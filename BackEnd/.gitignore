@@ -1,0 +1,38 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# VSCode
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Entornos
+.env
+.env.*
+
+# Salidas de build
+dist/
+build/
+out/
+
+# Otros
+*.log
+.idea/
+*.suo
+*.user
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos de pruebas y ejemplos
+api.http
+test/test.js
