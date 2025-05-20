@@ -1,0 +1,52 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+/* ————————————————————————————————————————
+   1) Define tus design-tokens, colores y animaciones
+      con @theme (incluso keyframes)
+——————————————————————————————————————— */
+
+@theme {
+  /* Ejemplo de token de color */
+  --color-primary: hsl(162, 75%, 60%);
+  --color-secondary: hsl(217, 12%, 63%);
+
+  /* Breakpoints si quieres sobreescribir */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+
+  /* Definir tus keyframes para tailwind-animate */
+  --animate-fade-in: fadeIn 0.8s ease-out forwards;
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px) }
+    to   { opacity: 1; transform: translateY(0) }
+  }
+
+  --animate-fade-in-left: fadeInLeft 0.8s ease-out forwards;
+  @keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-20px) }
+    to   { opacity: 1; transform: translateX(0) }
+  }
+
+  /* … y así con todas tus animaciones personalizadas … */
+}
+
+/* ————————————————————————————————————————
+   2) Inserta utilidades o componentes custom
+      con @layer components (si las necesitas)
+——————————————————————————————————————— */
+@layer components {
+  .animate-pulse-slow {
+    /* si no usas tailwindcss-animate, puedes definir aquí */
+    animation: pulse 4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { transform: scale(1) }
+    50%     { transform: scale(1.05) }
+  }
+
+  /* Tus clases personalizadas extra */
+  .btn-primary {
+    @apply bg-primary text-black font-bold py-2 px-4 rounded-lg;
+  }
+}

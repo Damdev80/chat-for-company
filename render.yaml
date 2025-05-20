@@ -1,0 +1,58 @@
+services:
+  # Backend service
+  - type: web
+    name: chat-app-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run prod
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://chat-app-frontend.onrender.com
+      - key: DB_HOST
+        fromDatabase:
+          name: chat-app-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: chat-app-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: chat-app-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: chat-app-db
+          property: password
+      - key: DB_PORT
+        fromDatabase:
+          name: chat-app-db
+          property: port
+
+  # Frontend service
+  - type: web
+    name: chat-app-frontend
+    env: node
+    plan: free
+    buildCommand: cd frontEnd && npm install && npm run build
+    startCommand: cd frontEnd && npm run preview -- --host 0.0.0.0 --port 3001
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        value: https://chat-app-backend.onrender.com/api
+      - key: VITE_SOCKET_URL
+        value: https://chat-app-backend.onrender.com
+
+# Database service
+databases:
+  - name: chat-app-db
+    plan: free
+    type: mysql
