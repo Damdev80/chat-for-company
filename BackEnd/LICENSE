@@ -2,18 +2,61 @@ MIT License
 
 Copyright (c) 2025 CHAT_DEV
 
+LICENCIA DE USO, DISTRIBUCIÓN Y MODIFICACIÓN
+
+DEFINICIONES
+"Software" se refiere al programa de chat empresarial desarrollado por CHAT_DEV, incluyendo todos los archivos de código fuente, 
+documentación, recursos multimedia, y cualquier otro archivo adjunto al proyecto, así como sus copias, modificaciones y trabajos derivados.
+
+"Autor" se refiere a CHAT_DEV, creador original del Software.
+
+"Usuario" se refiere a cualquier persona o entidad que obtenga una copia del Software.
+
+CONCESIÓN DE DERECHOS
 Por la presente se concede permiso, de forma gratuita, a cualquier persona que obtenga una copia
 de este software y los archivos de documentación asociados (el "Software"), para utilizar el
 Software sin restricción, incluyendo sin limitación los derechos a usar, copiar, modificar, fusionar,
 publicar, distribuir, sublicenciar y/o vender copias del Software, y a permitir a las personas a quienes
 se les proporcione el Software a hacer lo mismo, sujeto a las siguientes condiciones:
 
-El aviso de copyright anterior y este aviso de permiso deberán ser incluidos en todas las copias o
-partes sustanciales del Software.
+CONDICIONES DE LA LICENCIA
+1. Todas las copias o partes sustanciales del Software deben incluir el aviso de copyright anterior y
+   este aviso de permiso en su forma completa e inalterada.
 
+2. La redistribución del Software en su forma original o modificada debe cumplir con esta misma licencia
+   y contener atribución apropiada al Autor original.
+
+3. Las modificaciones al Software están permitidas y se anima a ellas, pero deben documentarse claramente 
+   y distinguirse del trabajo original del Autor cuando se distribuyan.
+
+4. Ni el nombre del Autor ni los nombres de sus colaboradores pueden utilizarse para respaldar o promocionar
+   productos derivados de este Software sin permiso previo específico por escrito.
+
+EXCLUSIÓN DE GARANTÍAS Y LIMITACIÓN DE RESPONSABILIDAD
 EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O IMPLÍCITA,
 INCLUYENDO PERO NO LIMITADO A GARANTÍAS DE COMERCIALIZACIÓN, IDONEIDAD PARA UN PROPÓSITO
-PARTICULAR Y NO INFRACCIÓN. EN NINGÚN CASO LOS AUTORES O TITULARES DEL COPYRIGHT SERÁN
+PARTICULAR Y NO INFRACCIÓN. 
+
+EN NINGÚN CASO LOS AUTORES O TITULARES DEL COPYRIGHT SERÁN
 RESPONSABLES POR NINGUNA RECLAMACIÓN, DAÑO O OTRA RESPONSABILIDAD, YA SEA EN UNA ACCIÓN DE
 CONTRATO, AGRAVIO O CUALQUIER OTRA FORMA, QUE SURJA DE O EN CONEXIÓN CON EL SOFTWARE O EL USO U
 OTROS TRATOS EN EL SOFTWARE.
+
+TÉRMINOS ADICIONALES
+El Usuario reconoce que el Software puede contener componentes de terceros con sus propias licencias. 
+En tales casos, esas licencias se proporcionan junto con el Software y deben respetarse adicionalmente 
+a los términos establecidos en este documento.
+
+Esta licencia no otorga al Usuario ningún derecho sobre marcas comerciales, logotipos, nombres comerciales
+u otras formas de propiedad intelectual más allá del código fuente y la documentación del Software como se
+define anteriormente.
+
+La invalidez o inaplicabilidad de cualquier disposición de esta licencia no afectará la validez o aplicabilidad
+de las disposiciones restantes.
+
+TERMINACIÓN
+Esta licencia y los derechos otorgados en virtud de la misma terminarán automáticamente si el Usuario
+no cumple con cualquiera de los términos establecidos en este documento. Al terminar, el Usuario debe 
+destruir todas las copias del Software en su posesión.
+
+FIN DE LA LICENCIA
