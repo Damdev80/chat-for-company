@@ -12,24 +12,31 @@ function Register() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log("Iniciando registro de usuario...")
+    
     if (!username || !email || !password || !confirmPassword) {
       setError("Por favor, completa todos los campos")
       return
     }
+    
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden")
       return
     }
+    
     setError("")
     setLoading(true)
+    console.log("Enviando datos de registro...")
+    
     try {
-      await registerUser({ username, email, password })
+      const response = await registerUser({ username, email, password })
+      console.log("Registro exitoso:", response)
       navigate("/login")
     } catch (err) {
-      setError(err.message)
+      console.error("Error en el registro:", err)
+      setError(err.message || "Ocurrió un error al registrar el usuario")
     } finally {
       setLoading(false)
     }

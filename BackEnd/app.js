@@ -6,6 +6,7 @@ import http from 'http'
 import { Server as SocketServer } from 'socket.io'
 import { configureSocket } from './src/config/socket.io.js'
 import { serverError } from './src/middlewares/error.middlewar.js' 
+import { requestLogger } from './src/middlewares/logger.middleware.js'
 
 // Importar rutas
 import userRoutes from './src/routes/user.routes.js'
@@ -22,14 +23,16 @@ const server = http.createServer(app)
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: '*',  // Permitir todas las origenes para depuración
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }
 
 // Middleware
 app.use(cors(corsOptions))
 app.use(express.json())
+app.use(requestLogger) // Agregar el middleware de logging
 
 // Rutas
 app.use('/api/users', userRoutes)
@@ -42,7 +45,7 @@ app.use(serverError)
 // Configurar Socket.io
 const io = new SocketServer(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: '*',  // Permitir todas las origenes para depuración
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }

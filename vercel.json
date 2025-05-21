@@ -2,13 +2,10 @@
   "buildCommand": "cd frontEnd && npm install && npm run build",
   "outputDirectory": "frontEnd/dist",
   "framework": "vite",
-  "routes": [
-    { "src": "/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|webp|json))", "dest": "/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "env": {
-    "VITE_API_URL": "https://chat-app-backend.onrender.com/api",
-    "VITE_SOCKET_URL": "https://chat-app-backend.onrender.com"
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],  "env": {
+    "VITE_API_URL": "https://chat-for-company.onrender.com/api",
+    "VITE_SOCKET_URL": "https://chat-for-company.onrender.com"
   }
 }

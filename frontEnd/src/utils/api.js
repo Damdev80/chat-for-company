@@ -1,6 +1,7 @@
 // src/utils/api.js
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+console.log('API URL configurada:', API_URL);
 
 export async function fetchMessages(token) {
   const res = await fetch(`${API_URL}/messages`, {

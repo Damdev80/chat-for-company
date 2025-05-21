@@ -6,26 +6,31 @@ import { v4 as uuid } from 'uuid'
 import jwt from 'jsonwebtoken'
 import { ModelsRole } from '../models/role.js' // Asegúrate de importar el modelo de rol
 
-export class UserController {
-  static async register(req, res) {
+export class UserController {  static async register(req, res) {
     try {
+      console.log('Recibida solicitud de registro:', req.body);
+      
       // Validar datos con Zod
       const result = userSchema.safeParse(req.body)
       if (!result.success) {
+        console.log('Error de validación:', result.error.issues);
         return res.status(400).json({ errors: result.error.issues })
       }
   
       const { username, email, password } = result.data // 👈🏻 Ya NO pedimos role_id
+      console.log('Datos validados correctamente');
   
       // Verificar si el usuario ya existe
       const existingUser = await ModelsUser.getByUsername(username)
       if (existingUser) {
+        console.log('Usuario ya existe:', username);
         return res.status(400).json({ message: 'El nombre de usuario ya está en uso' })
       }
   
       // Verificar si el email ya existe
       const existingEmail = await ModelsUser.getByEmail(email)
       if (existingEmail) {
+        console.log('Email ya existe:', email);
         return res.status(400).json({ message: 'El email ya está en uso' })
       }
   
@@ -33,20 +38,26 @@ export class UserController {
       const hashedPassword = await bcrypt.hash(password, 10)
   
       // Aquí asignas el rol por defecto ("user")
-      const roleIdDefault = '59e2178f-21f6-11f0-ae34-047c16ab5fbc' // ← UUID real de usuario normal
-  
-      // Crear el usuario
-      await ModelsUser.create({
-        username,
-        email,
-        password: hashedPassword,
-        role_id: roleIdDefault
-      })
-  
-      res.status(201).json({ message: 'Usuario registrado correctamente' })
+      const roleIdDefault = '59e2178f-21f6-11f0-ae34-047c16ab5fbc' // ← UUID real de usuario normal      // Crear el usuario
+      console.log('Creando usuario con role_id:', roleIdDefault);
+      try {
+        await ModelsUser.create({
+          username,
+          email,
+          password: hashedPassword,
+          role_id: roleIdDefault
+        });
+        console.log('Usuario creado correctamente');
+        
+        res.status(201).json({ message: 'Usuario registrado correctamente' });
+      } catch (dbError) {
+        console.error('Error específico al insertar usuario en la base de datos:', dbError);
+        throw dbError;
+      }
     } catch (error) {
-      console.error('Error al registrar usuario:', error)
-      res.status(500).json({ message: 'Error interno del servidor' })
+      console.error('Error al registrar usuario:', error);
+      console.error('Stack trace:', error.stack);
+      res.status(500).json({ message: 'Error interno del servidor', details: error.message });
     }
   }
 
