@@ -2,16 +2,27 @@ import jwt from 'jsonwebtoken'
 import { MessageController } from '../controllers/message.controller.js'
 
 export function configureSocket(io) {
-  console.log(`Socket.IO configurado en modo: ${process.env.NODE_ENV || 'development'}`)
+  console.log(`Socket.IO configurado en modo: ${process.env.NODE_ENV || 'development'}`)  // Log de todos los intentos de conexión
+  console.log('Socket.IO esperando conexiones en URL base:', process.env.CORS_ORIGIN || '*');
+  
   io.use((socket, next) => {
+    console.log('Intento de conexión a Socket.io desde:', socket.handshake.headers.origin);
+    console.log('Headers de conexión:', JSON.stringify(socket.handshake.headers));
+    
     const token = socket.handshake.auth?.token
-    if (!token) return next(new Error('Token faltante'))
+    if (!token) {
+      console.error('Conexión rechazada: Token faltante');
+      return next(new Error('Token faltante'))
+    }
 
     try {
+      console.log('Verificando token JWT...');
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
+      console.log('Token válido para usuario:', decoded.username);
       socket.user = decoded // Guardamos los datos del usuario en el socket
       next()
     } catch (err) {
+      console.error('Conexión rechazada: Token inválido:', err.message);
       next(new Error('Token inválido'))
     }
   })
@@ -50,14 +61,27 @@ export function configureSocket(io) {
         }
       } catch (error) {
         console.error('Error al procesar mensaje:', error)
-        // Informar al cliente del error
+        console.error('Stack trace:', error.stack)
+        
+        // Informar al cliente del error con detalles
         socket.emit('message_error', { 
           error: 'No se pudo enviar el mensaje', 
+          details: error.message || 'Error desconocido',
           temp_id: data.temp_id 
         })
       }
 
     }); // Cierra socket.on('send_message', ...)
+    
+    // Añadir evento para debugging de conexión
+    socket.on('ping_server', (data) => {
+      console.log('Cliente envió ping:', data);
+      socket.emit('pong_client', { 
+        message: 'Conexión Socket.io funcionando correctamente',
+        userId: socket.user.id,
+        timestamp: new Date().toISOString()
+      });
+    });
 
     socket.on('disconnect', () => {
       console.log(`👋 Usuario desconectado: ${socket.user.id}`)

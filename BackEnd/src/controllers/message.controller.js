@@ -33,19 +33,34 @@ export class MessageController {
       console.error('Error al obtener mensajes:', error)
       res.status(500).json({ message: 'Error interno del servidor' })
     }
-  }
-  static async createFromSocket(data) {
+  }  static async createFromSocket(data) {
     try {
       // Log para depuración
-      console.log('Mensaje recibido desde socket:', data)
+      console.log('Mensaje recibido desde socket:', JSON.stringify(data))
+      
       // Validación manual extra
-      if (typeof data.group_id !== 'string' || data.group_id.length > 350) {
-        console.error('group_id inválido:', data.group_id)
-        throw new Error('group_id inválido: ' + data.group_id)
+      if (data.group_id && (typeof data.group_id !== 'string' || data.group_id.length > 350)) {
+        console.error('group_id inválido:', data.group_id);
+        throw new Error('group_id inválido: ' + data.group_id);
       }
       
+      // Si no hay content o está vacío, rechazar
+      if (!data.content || !data.content.trim()) {
+        console.error('content inválido o vacío');
+        throw new Error('El contenido del mensaje no puede estar vacío');
+      }
+      
+      // Si no hay sender_id, rechazar
+      if (!data.sender_id) {
+        console.error('sender_id faltante');
+        throw new Error('ID de remitente requerido');
+      }
+      
+      console.log('MessageController.createFromSocket - Validaciones pasadas, creando mensaje');
+      
       // Crear el mensaje y obtener sus datos
-      const message = await ModelsMessage.create(data)
+      const message = await ModelsMessage.create(data);
+      console.log('Mensaje creado en la base de datos:', message);
       
       // Obtener el nombre de usuario para la respuesta (simulamos un join con users)
       // En una implementación real, esto debería ser una consulta JOIN adecuada

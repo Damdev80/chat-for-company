@@ -29,7 +29,7 @@ import {
 } from "lucide-react"
 import "../../styles/index.css"
 import { fetchMessages, fetchGroups, createGroup, updateGroup, deleteGroup, fetchUsers, deleteGroupMessages } from "../utils/api"
-import { io } from "socket.io-client"
+import { connectSocket, disconnectSocket } from "../utils/socket"
 
 // Utilidad para iniciales
 function getInitials(name) {
@@ -140,17 +140,20 @@ function Chat() {
     fetchUsers(token)
       .then(setUsers)
       .catch(() => setUsers([]))
-  }, [token])
-
-  // Conexión a Socket.io y eventos
+  }, [token]);  // Conexión a Socket.io y eventos
   useEffect(() => {
-    if (!token) return
-    socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
-      auth: { token },
-    })    // Unirse al grupo inicial
-    socketRef.current.emit("join_group", activeGroup)
-    
-    socketRef.current.on("receive_message", (msg) => {
+    if (!token) return;
+    // Inicializar socket
+    const socket = connectSocket(token);
+    socketRef.current = socket;
+    if (!socket) {
+      showNotification("Error de conexión", "No se pudo conectar al servidor de chat");
+      return;
+    }
+    // Unirse al grupo activo
+    socket.emit("join_group", activeGroup);
+    // Recibir mensajes
+    socket.on("receive_message", (msg) => {
       setMessages((prev) => {
         // Verificar si es un mensaje propio que ya hemos agregado a la UI de forma optimista
         // Lo identificamos por su temp_id (si existe) o por el contenido y el nombre del remitente
@@ -212,7 +215,7 @@ function Chat() {
     })
 
     // Manejar errores de mensajes
-    socketRef.current.on("message_error", (errorData) => {
+    socket.on("message_error", (errorData) => {
       // Marcar el mensaje como fallido por su temp_id
       setMessages((prev) => 
         prev.map(m => 
@@ -227,20 +230,21 @@ function Chat() {
     });
 
     // Evento de usuario escribiendo
-    socketRef.current.on("user_typing", (data) => {
+    socket.on("user_typing", (data) => {
       if (data.sender_name !== user && data.group_id === activeGroup) {
         setIsTyping(true)
-        // Limpiar estado después de 3 segundos
         clearTimeout(typingTimeoutRef.current)
         typingTimeoutRef.current = setTimeout(() => {
           setIsTyping(false)
         }, 3000)
       }
-    })
+    });
 
+    // Cleanup socket connection on unmount or deps change
     return () => {
-      socketRef.current.disconnect()
-    }
+      disconnectSocket(socket);
+      socketRef.current = null;
+    };
   }, [token, user, activeGroup])
 
   // Unirse a room al cambiar de grupo

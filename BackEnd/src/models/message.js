@@ -11,32 +11,54 @@ function bufferToUuid(buffer) {
   ].join('-');
 }
 
-export class ModelsMessage {
-    static async create({ content, sender_id, group_id, temp_id }) {
-      // Si group_id es un buffer, conviértelo a string
-      if (typeof group_id === 'object' && group_id !== null && group_id.type === 'Buffer') {
-        group_id = bufferToUuid(Buffer.from(group_id.data));
+export class ModelsMessage {    static async create({ content, sender_id, group_id, temp_id }) {
+      try {
+        console.log('ModelsMessage.create - Iniciando creación de mensaje:', { content, sender_id, group_id, temp_id });
+        
+        // Si group_id es un buffer, conviértelo a string
+        if (typeof group_id === 'object' && group_id !== null && group_id.type === 'Buffer') {
+          group_id = bufferToUuid(Buffer.from(group_id.data));
+        }
+        
+        // Para SQLite/Turso: Si no existe la función UUID(), usamos un id aleatorio generado de otra forma
+        const query = process.env.NODE_ENV === 'production' 
+          ? 'INSERT INTO messages (id, content, sender_id, group_id) VALUES (lower(hex(randomblob(16))), ?, ?, ?)'
+          : 'INSERT INTO messages (id, content, sender_id, group_id) VALUES (UUID(), ?, ?, ?)';
+          
+        console.log('Ejecutando query:', query);
+        const connection = await getConnection();
+        const [result] = await connection.execute(
+          query,
+          [content, sender_id, group_id]
+        );
+        
+        console.log('Mensaje insertado, obteniendo detalles completos');
+        
+        // Obtener el ID del mensaje recién creado
+        const [insertedMessage] = await connection.execute(
+          'SELECT id, content, sender_id, group_id, created_at FROM messages WHERE sender_id = ? ORDER BY created_at DESC LIMIT 1',
+          [sender_id]
+        );
+        
+        connection.end();
+        
+        // Procesar el resultado para devolverlo
+        if (insertedMessage && insertedMessage[0]) {
+          const finalMessage = {
+            ...insertedMessage[0],
+            group_id: insertedMessage[0].group_id ? bufferToUuid(insertedMessage[0].group_id) : insertedMessage[0].group_id,
+            temp_id
+          };
+          console.log('Mensaje creado con éxito:', finalMessage);
+          return finalMessage;
+        } else {
+          console.log('No se pudo obtener el mensaje insertado, devolviendo result:', result);
+          return result;
+        }
+      } catch (error) {
+        console.error('Error en ModelsMessage.create:', error);
+        throw error;
       }
-      const connection = await getConnection()
-      const [result] = await connection.execute(
-        'INSERT INTO messages (id, content, sender_id, group_id) VALUES (UUID(), ?, ?, ?)',
-        [content, sender_id, group_id]
-      )
-      
-      // Obtener el ID del mensaje recién creado
-      const [insertedMessage] = await connection.execute(
-        'SELECT id, content, sender_id, group_id, created_at FROM messages WHERE sender_id = ? ORDER BY created_at DESC LIMIT 1',
-        [sender_id]
-      )
-      
-      connection.end()
-      
-      // Devolver el mensaje completo con su ID real y temp_id si existe
-      return insertedMessage[0] ? {
-        ...insertedMessage[0],
-        group_id: bufferToUuid(insertedMessage[0].group_id),
-        temp_id
-      } : result
     }
   
     static async getById(id) {
