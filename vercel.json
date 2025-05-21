@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd frontEnd && npm install && npm run build",
+  "outputDirectory": "frontEnd/dist",
+  "framework": "vite",
+  "routes": [
+    { "src": "/(.*)", "dest": "/frontEnd/dist/index.html" }
+  ],
+  "env": {
+    "VITE_API_URL": "https://chat-app-backend.onrender.com/api",
+    "VITE_SOCKET_URL": "https://chat-app-backend.onrender.com"
+  }
+}
