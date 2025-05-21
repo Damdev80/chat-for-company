@@ -1,9 +1,15 @@
 import { getConnection } from '../config/db.js'
-export class ModelsRole {
-    static async create({ name, description }) {
+export class ModelsRole {    static async create({ name, description }) {
       const connection = await getConnection()
+      
+      // Para SQLite/Turso: Si no existe la función UUID(), usamos un id aleatorio generado de otra forma
+      const query = process.env.NODE_ENV === 'production' 
+        ? 'INSERT INTO roles (id, name, description) VALUES (lower(hex(randomblob(16))), ?, ?)'
+        : 'INSERT INTO roles (id, name, description) VALUES (UUID(), ?, ?)';
+      
+      console.log('Ejecutando query para crear rol:', query);
       const [result] = await connection.execute(
-        'INSERT INTO roles (id, name, description) VALUES (UUID(), ?, ?)',
+        query,
         [name, description || null]
       )
       connection.end()

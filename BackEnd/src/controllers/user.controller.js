@@ -32,20 +32,47 @@ export class UserController {  static async register(req, res) {
       if (existingEmail) {
         console.log('Email ya existe:', email);
         return res.status(400).json({ message: 'El email ya está en uso' })
-      }
-  
-      // Hashear la contraseña
+      }      // Hashear la contraseña
       const hashedPassword = await bcrypt.hash(password, 10)
   
-      // Aquí asignas el rol por defecto ("user")
-      const roleIdDefault = '59e2178f-21f6-11f0-ae34-047c16ab5fbc' // ← UUID real de usuario normal      // Crear el usuario
-      console.log('Creando usuario con role_id:', roleIdDefault);
+      // Buscar o crear el rol por defecto ("user")
+      console.log('Buscando rol "user" en la base de datos');
+      let userRole = await ModelsRole.getByName('user');
+      
+      if (!userRole) {
+        console.log('Rol "user" no encontrado, creándolo');
+        // Crear el rol "user" si no existe
+        // Para SQLite/Turso, adaptamos la función UUID
+        const createRoleQuery = process.env.NODE_ENV === 'production' 
+          ? 'INSERT INTO roles (id, name, description) VALUES (lower(hex(randomblob(16))), ?, ?)'
+          : 'INSERT INTO roles (id, name, description) VALUES (UUID(), ?, ?)';
+          
+        const connection = await getConnection();
+        const [result] = await connection.execute(
+          createRoleQuery,
+          ['user', 'Usuario estándar']
+        );
+        connection.end();
+        
+        // Obtener el rol creado
+        userRole = await ModelsRole.getByName('user');
+        console.log('Rol "user" creado con ID:', userRole?.id);
+      } else {
+        console.log('Rol "user" encontrado con ID:', userRole.id);
+      }
+      
+      if (!userRole || !userRole.id) {
+        throw new Error('No se pudo obtener o crear el rol de usuario');
+      }
+      
+      // Crear el usuario con el ID del rol encontrado o creado
+      console.log('Creando usuario con role_id:', userRole.id);
       try {
         await ModelsUser.create({
           username,
           email,
           password: hashedPassword,
-          role_id: roleIdDefault
+          role_id: userRole.id
         });
         console.log('Usuario creado correctamente');
         

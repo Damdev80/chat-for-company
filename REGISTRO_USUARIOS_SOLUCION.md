@@ -36,7 +36,23 @@ git push
    - La consola del navegador (F12 > Console)
    - Los logs de despliegue en Render
 
-## Si el problema persiste
+## Problema resuelto: Restricción de llave foránea (FOREIGN KEY constraint failed)
+
+Hemos identificado y solucionado un problema crítico con el registro de usuarios:
+
+1. **Error específico**: `SQLITE_CONSTRAINT: SQLite error: FOREIGN KEY constraint failed`
+
+2. **Causa del problema**:
+   - El registro de usuarios asignaba un ID de rol predefinido (`59e2178f-21f6-11f0-ae34-047c16ab5fbc`) que no existía en la base de datos Turso
+   - La restricción de llave foránea en la tabla `users` requiere que el `role_id` exista en la tabla `roles`
+
+3. **Solución implementada**:
+   - Modificamos el controlador de usuarios para que verifique la existencia del rol "user"
+   - Si el rol no existe, lo crea automáticamente
+   - Utilizamos el ID del rol encontrado o creado para registrar nuevos usuarios
+   - Adaptamos la función `create` del modelo de rol para ser compatible con SQLite/Turso
+
+## Si persisten otros problemas
 
 1. Revisa la URL del backend:
    - Asegúrate de que `https://chat-for-company.onrender.com/api` sea accesible
