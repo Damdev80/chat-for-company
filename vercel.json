@@ -3,7 +3,7 @@
   "outputDirectory": "frontEnd/dist",
   "framework": "vite",
   "routes": [
-    { "src": "/(.*)", "dest": "/frontEnd/dist/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "env": {
     "VITE_API_URL": "https://chat-app-backend.onrender.com/api",
