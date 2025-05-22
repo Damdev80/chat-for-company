@@ -1,0 +1,202 @@
+LICENCIA DE USO Y DISTRIBUCIÓN DE SOFTWARE
+CHATEMPRESA - VERSIÓN 1.0
+21 DE MAYO DE 2025
+
+==========================================================================
+AVISO LEGAL IMPORTANTE: LEA ESTE DOCUMENTO DETENIDAMENTE ANTES DE INSTALAR,
+COPIAR, DESCARGAR O UTILIZAR EL SOFTWARE
+==========================================================================
+
+1. DEFINICIONES
+
+1.1. "Software" se refiere a la aplicación ChatEmpresa, incluyendo todos sus
+     componentes, documentación, actualizaciones, mejoras y materiales asociados.
+
+1.2. "Licenciante" se refiere a ChatEmpresa y sus titulares de derechos.
+
+1.3. "Usuario" se refiere a cualquier persona física o jurídica que utilice el Software.
+
+1.4. "Código Fuente" se refiere al conjunto de instrucciones informáticas legibles
+     por humanos que conforman el Software.
+
+1.5. "Versión Modificada" se refiere a cualquier versión alterada del Software original.
+
+
+2. CONCESIÓN DE LICENCIA
+
+2.1. Se concede por la presente, de forma gratuita, a cualquier persona que obtenga una
+     copia de este Software y de los archivos de documentación asociados, el derecho
+     sin restricción para utilizar, copiar, modificar, fusionar, publicar, distribuir,
+     sublicenciar y/o vender copias del Software, con las siguientes condiciones:
+
+     a) Incluir el aviso de copyright anterior y este aviso de permiso en todas
+        las copias o partes sustanciales del Software.
+        
+     b) Reconocer la autoría original del Software en cualquier uso público
+        o redistribución del mismo.
+
+
+3. DERECHOS DE PROPIEDAD INTELECTUAL
+
+3.1. El Software está protegido por leyes de propiedad intelectual y tratados
+     internacionales. El Licenciante posee todos los derechos, títulos e intereses
+     sobre el Software, incluyendo todos los derechos de propiedad intelectual.
+
+3.2. Esta licencia no otorga al Usuario ningún derecho sobre marcas comerciales,
+     logotipos o nombres comerciales del Licenciante.
+
+
+4. RESTRICCIONES Y RESPONSABILIDADES DEL USUARIO
+
+4.1. RESTRICCIONES DE USO:
+     El Software no debe utilizarse para almacenar, procesar o transmitir
+     información clasificada, datos personales especialmente protegidos o información
+     restringida sin implementar las medidas de seguridad adecuadas conforme a la
+     normativa aplicable en materia de protección de datos y seguridad de la información.
+
+4.2. PROTECCIÓN DE DATOS PERSONALES:
+     Los Usuarios son plenamente responsables de cumplir con todas las leyes y
+     regulaciones aplicables en materia de protección de datos personales cuando
+     utilicen este Software, incluyendo pero no limitándose a:
+     
+     a) Obtener el consentimiento necesario de los titulares de los datos.
+     b) Informar adecuadamente sobre el tratamiento de los datos.
+     c) Garantizar la seguridad e integridad de los datos personales tratados.
+     d) Respetar los derechos de los titulares de los datos.
+     e) Notificar brechas de seguridad cuando sea legalmente requerido.
+     
+4.3. MEDIDAS DE SEGURIDAD:
+     El Usuario se compromete a implementar medidas técnicas y organizativas
+     apropiadas para garantizar un nivel de seguridad adecuado al riesgo,
+     incluyendo, según proceda:
+     
+     a) La seudonimización y el cifrado de datos personales.
+     b) La capacidad de garantizar la confidencialidad, integridad y disponibilidad
+        de los sistemas y servicios de tratamiento.
+     c) La capacidad de restaurar la disponibilidad y el acceso a los datos personales
+        de forma rápida en caso de incidente físico o técnico.
+     d) Un proceso de verificación, evaluación y valoración regulares de la eficacia
+        de las medidas técnicas y organizativas para garantizar la seguridad del tratamiento.
+
+4.4. CUMPLIMIENTO LEGAL:
+     Es responsabilidad exclusiva del Usuario asegurarse de que el uso del Software
+     cumple con todas las leyes, reglamentos y normativas aplicables, incluidas las
+     relativas a la privacidad, protección de datos, comunicaciones electrónicas,
+     derechos de propiedad intelectual y cualquier legislación específica del sector.
+
+
+5. DISTRIBUCIÓN Y MODIFICACIONES
+
+5.1. El Usuario puede distribuir copias exactas del código fuente del Software tal
+     como lo recibe, en cualquier medio, siempre que publique de forma clara y visible
+     en cada copia un aviso de copyright apropiado y una exención de responsabilidad.
+
+5.2. El Usuario puede modificar su copia del Software y distribuir la obra resultante,
+     siempre que cumpla todas las condiciones siguientes:
+     
+     a) La obra modificada debe llevar avisos destacados indicando que el Usuario ha
+        modificado el Software y la fecha de dichas modificaciones.
+        
+     b) La obra modificada debe distribuirse en su totalidad bajo los términos de esta
+        licencia.
+        
+     c) Si la obra modificada incluye componentes interactivos que muestran avisos legales,
+        dichos avisos deben incluir el aviso de copyright correspondiente.
+
+
+6. LIMITACIÓN DE RESPONSABILIDAD Y GARANTÍAS
+
+6.1. EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA
+     O IMPLÍCITA, INCLUYENDO PERO NO LIMITADO A LAS GARANTÍAS DE COMERCIALIZACIÓN,
+     IDONEIDAD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN. 
+
+6.2. EN NINGÚN CASO LOS AUTORES O TITULARES DE DERECHOS DE AUTOR SERÁN RESPONSABLES
+     DE CUALQUIER RECLAMACIÓN, DAÑO U OTRA RESPONSABILIDAD, YA SEA EN UNA ACCIÓN
+     DE CONTRATO, AGRAVIO O CUALQUIER OTRO MOTIVO, DERIVADA DE, FUERA DE O EN CONEXIÓN
+     CON EL SOFTWARE O EL USO U OTROS TRATOS CON EL SOFTWARE.
+
+6.3. El Licenciante específicamente declina cualquier responsabilidad por:
+    
+     a) El uso del Software en un entorno de producción sin las pruebas, medidas
+        de seguridad y auditorías adecuadas.
+     
+     b) Pérdida o corrupción de datos resultantes del uso del Software.
+     
+     c) Daños resultantes del acceso no autorizado a datos o transmisiones.
+     
+     d) Uso inadecuado o violación de cualquier ley aplicable por parte del Usuario.
+     
+     e) Cualquier interrupción, falla o retraso en la operación del Software debido
+        a circunstancias fuera del control razonable del Licenciante.
+
+
+7. INDEMNIZACIÓN
+
+7.1. El Usuario acepta defender, indemnizar y eximir de responsabilidad al Licenciante
+     y a sus empleados, agentes, directores y representantes frente a cualquier reclamación,
+     demanda, acción, causa de acción, proceso, pérdida, daño, multa o cualquier otro coste
+     o gasto de cualquier tipo o naturaleza, incluidos los honorarios razonables de abogados,
+     presentados por cualquier tercero debido a o como resultado de:
+     
+     a) El uso del Software por parte del Usuario.
+     b) La violación de esta Licencia por parte del Usuario.
+     c) La violación por parte del Usuario de cualquier derecho de un tercero.
+
+
+8. CONTRIBUCIONES Y MODIFICACIONES
+
+8.1. Cualquier contribución intencionalmente enviada para su inclusión en el Software
+     estará sujeta a los mismos términos y condiciones de esta licencia, sin términos
+     o condiciones adicionales.
+
+8.2. Los contribuyentes garantizan que son propietarios de o tienen los derechos necesarios
+     sobre sus contribuciones para otorgar los derechos y licencias descritos en esta Licencia.
+
+
+9. PERIODO DE VALIDEZ Y TERMINACIÓN
+
+9.1. Esta licencia es válida durante todo el periodo de protección legal del Software
+     por las leyes de propiedad intelectual aplicables, salvo incumplimiento de sus términos.
+
+9.2. Si el Usuario incumple cualquier término de esta licencia, los derechos otorgados
+     se terminarán automáticamente sin previo aviso.
+
+9.3. Tras la terminación de la licencia, el Usuario deberá cesar todo uso del Software
+     y destruir todas las copias, completas o parciales, del mismo.
+
+
+10. DISPOSICIONES GENERALES
+
+10.1. LEGISLACIÓN APLICABLE:
+      Esta licencia se regirá e interpretará de acuerdo con las leyes españolas,
+      sin tener en cuenta sus disposiciones sobre conflicto de leyes.
+
+10.2. DIVISIBILIDAD:
+      Si alguna disposición de esta licencia se considera inválida o inaplicable,
+      el resto de la licencia permanecerá en pleno vigor y efecto.
+
+10.3. INTEGRACIÓN:
+      Esta licencia constituye el acuerdo completo entre las partes con respecto al uso
+      del Software y reemplaza todas las comunicaciones, propuestas o representaciones
+      previas, orales o escritas, referentes al Software o a cualquier otro asunto
+      cubierto por esta licencia.
+
+10.4. MODIFICACIONES DE LA LICENCIA:
+      El Licenciante se reserva el derecho de modificar los términos de esta licencia
+      en cualquier momento. Las modificaciones entrarán en vigor al ser publicadas
+      en el repositorio oficial del Software o a través de cualquier otro medio
+      que el Licenciante considere adecuado.
+
+10.5. AUSENCIA DE RENUNCIA:
+      El hecho de que el Licenciante no ejerza o exija el cumplimiento de cualquier
+      derecho o disposición de esta licencia no constituirá una renuncia a tal derecho
+      o disposición.
+
+
+======================================================================
+
+La presente licencia ha sido elaborada específicamente para el proyecto ChatEmpresa.
+Para cualquier consulta relacionada con esta licencia, póngase en contacto con
+el equipo legal de ChatEmpresa en: legal@chatempresa.example.com
+
+======================================================================
