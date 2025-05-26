@@ -4,13 +4,36 @@ import { ModelsMessage } from '../models/message.js' // Importar modelo de mensa
 export class GroupController {
   static async create(req, res) {
     try {
+      console.log('🏗️ Creando nuevo grupo - Datos recibidos:', req.body);
+      console.log('👤 Usuario que intenta crear grupo:', req.user);
+      
       const { name } = req.body
-      if (!name) return res.status(400).json({ message: 'El nombre es requerido' })
-      await ModelsGroup.create({ name })
-      res.status(201).json({ message: 'Grupo creado correctamente' })
+      if (!name || name.trim() === '') {
+        console.log('❌ Validación fallida: nombre de grupo vacío');
+        return res.status(400).json({ message: 'El nombre es requerido' })
+      }
+        console.log('✅ Validación pasada, procediendo a crear grupo:', name.trim());
+      const result = await ModelsGroup.create({ name: name.trim() })
+      
+      console.log('✅ Grupo creado exitosamente:', result);
+      res.status(201).json({ 
+        message: 'Grupo creado correctamente', 
+        group: { 
+          id: result.id || result.insertId || 'nuevo-grupo',
+          name: name.trim()
+        }
+      })
     } catch (error) {
-      console.error('Error al crear grupo:', error)
-      res.status(500).json({ message: 'Error interno del servidor' })
+      console.error('❌ Error completo al crear grupo:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        sql: error.sql
+      })
+      res.status(500).json({ 
+        message: 'Error interno del servidor',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      })
     }
   }
 

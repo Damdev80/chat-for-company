@@ -1417,121 +1417,197 @@ function Chat() {
             </div>
           </main>
         </div>
-      </div>
-
-      {/* Modal para crear grupo */}
-      {showGroupModal && (
+      </div>      {/* Modal mejorado para crear grupo */}      {showGroupModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-md flex items-center justify-center z-50 transition-all duration-300 animate-fadeIn"
           onClick={() => setShowGroupModal(false)}
         >
-          <form
-            className="bg-[#232336] p-6 rounded-lg shadow-lg w-80 flex flex-col gap-4 animate-fadeIn"
-            onSubmit={handleCreateGroup}
+          <div
+            className="bg-gradient-to-br from-[#232336] via-[#1E1E2E] to-[#1A1A2E] p-8 rounded-3xl shadow-2xl w-[480px] transform transition-all duration-300 scale-100 hover:scale-[1.01] border border-[#3C3C4E] backdrop-blur-sm"
             onClick={e => e.stopPropagation()}
+            style={{
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(74, 222, 128, 0.1)'
+            }}
           >
-            <h2 className="text-lg font-bold text-[#4ADE80] mb-2 flex items-center gap-2">
-              <Users size={20} /> Crear nuevo grupo
-            </h2>
-            <div>
-              <label htmlFor="group-name" className="block text-sm font-medium text-[#A0A0B0] mb-1">
-                Nombre del grupo
-              </label>
-              <input
-                id="group-name"
-                type="text"
-                className="w-full px-3 py-2 rounded bg-[#1E1E2E] border border-[#3C3C4E] text-white focus:ring-2 focus:ring-[#4ADE80] focus:border-[#4ADE80] transition-all"
-                placeholder="Ej: Equipo de Marketing"
-                value={groupName}
-                onChange={(e) => setGroupName(e.target.value)}
-                autoFocus
-                maxLength={32}
-                required
-              />
-              <p className="text-xs text-[#A0A0B0] mt-1">Máximo 32 caracteres</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#A0A0B0] mb-1">Miembros</label>
-              <div className="bg-[#1E1E2E] border border-[#3C3C4E] rounded p-2 max-h-32 overflow-y-auto">
-                <div className="flex items-center p-2 hover:bg-[#3C3C4E] rounded">
-                  <input
-                    type="checkbox"
-                    id="member-1"
-                    className="mr-2 rounded border-[#3C3C4E] text-[#4ADE80] focus:ring-[#4ADE80]"
-                    defaultChecked
-                  />
-                  <label htmlFor="member-1" className="flex items-center cursor-pointer">
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-black text-xs mr-2"
-                      style={{ backgroundColor: getAvatarColor("Ana Martínez") }}
-                    >
-                      {getInitials("Ana Martínez")}
-                    </div>
-                    <span className="text-white text-sm">Ana Martínez</span>
-                  </label>
+            {/* Header del modal con gradiente mejorado */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-[#4ADE80] via-[#22c55e] to-[#16a34a] rounded-2xl flex items-center justify-center shadow-lg shadow-[#4ADE80]/20 animate-pulse">
+                  <Users size={26} className="text-black" />
                 </div>
-                <div className="flex items-center p-2 hover:bg-[#3C3C4E] rounded">
-                  <input
-                    type="checkbox"
-                    id="member-2"
-                    className="mr-2 rounded border-[#3C3C4E] text-[#4ADE80] focus:ring-[#4ADE80]"
-                    defaultChecked
-                  />
-                  <label htmlFor="member-2" className="flex items-center cursor-pointer">
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-black text-xs mr-2"
-                      style={{ backgroundColor: getAvatarColor("Carlos López") }}
-                    >
-                      {getInitials("Carlos López")}
-                    </div>
-                    <span className="text-white text-sm">Carlos López</span>
-                  </label>
-                </div>
-                <div className="flex items-center p-2 hover:bg-[#3C3C4E] rounded">
-                  <input
-                    type="checkbox"
-                    id="member-3"
-                    className="mr-2 rounded border-[#3C3C4E] text-[#4ADE80] focus:ring-[#4ADE80]"
-                  />
-                  <label htmlFor="member-3" className="flex items-center cursor-pointer">
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-black text-xs mr-2"
-                      style={{ backgroundColor: getAvatarColor("Elena Rodríguez") }}
-                    >
-                      {getInitials("Elena Rodríguez")}
-                    </div>
-                    <span className="text-white text-sm">Elena Rodríguez</span>
-                  </label>
+                <div>                  <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    Crear Nuevo Grupo
+                  </h2>
+                  <p className="text-[#A0A0B0] text-sm mt-1">Organiza conversaciones por equipos y proyectos</p>
                 </div>
               </div>
-            </div>
-
-            <div className="flex gap-2 justify-end mt-2">
               <button
-                type="button"
-                className="px-4 py-2 rounded bg-[#3C3C4E] text-[#A0A0B0] hover:bg-[#232336] hover:text-white transition-all"
                 onClick={() => setShowGroupModal(false)}
+                className="w-10 h-10 rounded-xl bg-[#3C3C4E] hover:bg-[#ff4757] text-[#A0A0B0] hover:text-white transition-all duration-200 flex items-center justify-center group hover:rotate-90 transform"
               >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded bg-[#4ADE80] text-black font-semibold hover:bg-[#22c55e] transition-all disabled:opacity-60"
-                disabled={!groupName.trim()}
-              >
-                Crear
+                <X size={20} className="group-hover:scale-110 transition-transform" />
               </button>
             </div>
-          </form>
-        </div>
-      )}
 
-      {/* Estilos adicionales para animaciones */}
+            <form onSubmit={handleCreateGroup} className="space-y-7">
+              {/* Input del nombre con validación visual mejorada */}
+              <div className="space-y-3">
+                <label htmlFor="group-name" className="flex items-center gap-2 text-sm font-semibold text-[#A0A0B0]">
+                  <div className="w-5 h-5 rounded-full bg-[#4ADE80] flex items-center justify-center">
+                    <MessageSquare size={12} className="text-black" />
+                  </div>
+                  Nombre del grupo
+                </label>
+                <div className="relative group">
+                  <input
+                    id="group-name"
+                    type="text"
+                    className={`w-full px-5 py-4 rounded-2xl bg-[#1E1E2E] border-2 text-white placeholder-[#6B7280] transition-all duration-300 text-base font-medium pr-16 ${
+                      groupName.trim()
+                        ? groupName.length <= 50
+                          ? 'border-[#4ADE80] ring-2 ring-[#4ADE80]/20 focus:ring-[#4ADE80]/40'
+                          : 'border-red-400 ring-2 ring-red-400/20'
+                        : 'border-[#3C3C4E] focus:border-[#4ADE80] focus:ring-2 focus:ring-[#4ADE80]/20'
+                    }`}
+                    placeholder="Ej: Equipo de Marketing, Proyecto Alpha, Desarrollo..."
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    autoFocus
+                    maxLength={50}
+                    required
+                  />
+                  <div className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-sm font-medium ${
+                    groupName.length > 40 ? 'text-amber-400' : groupName.length > 35 ? 'text-orange-400' : 'text-[#6B7280]'
+                  }`}>
+                    {groupName.length}/50
+                  </div>
+                  {/* Indicador de validación */}
+                  {groupName.trim() && (
+                    <div className={`absolute right-16 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full ${
+                      groupName.length <= 50 ? 'bg-[#4ADE80]' : 'bg-red-400'
+                    } animate-pulse`} />
+                  )}
+                </div>
+                
+                {/* Feedback visual mejorado */}
+                <div className="flex items-center justify-between text-xs">
+                  {groupName.length > 40 && groupName.length <= 50 && (
+                    <p className="text-amber-400 flex items-center gap-1 animate-bounce">
+                      <Info size={12} />
+                      Te quedan {50 - groupName.length} caracteres
+                    </p>
+                  )}
+                  {groupName.length > 50 && (
+                    <p className="text-red-400 flex items-center gap-1 animate-shake">
+                      <X size={12} />
+                      Nombre demasiado largo
+                    </p>
+                  )}
+                  {groupName.trim() && groupName.length <= 40 && (
+                    <p className="text-[#4ADE80] flex items-center gap-1">
+                      ✓ Nombre válido
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Previsualización del grupo mejorada */}
+              {groupName.trim() && (
+                <div className="bg-gradient-to-r from-[#1E1E2E] to-[#232336] rounded-2xl p-5 border border-[#3C3C4E] shadow-inner transition-all duration-300 animate-fadeIn">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[#A0A0B0] text-sm font-medium flex items-center gap-2">
+                      <Eye size={14} className="text-[#4ADE80]" />
+                      Vista previa del grupo
+                    </p>
+                    <span className="text-xs bg-[#4ADE80] text-black px-2 py-1 rounded-full font-bold">
+                      NUEVO
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-[#232336] rounded-xl border border-[#3C3C4E]/50 hover:border-[#4ADE80]/30 transition-all duration-300">
+                    <div 
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-black text-sm font-bold shadow-lg transform hover:scale-105 transition-transform"
+                      style={{ 
+                        backgroundColor: getAvatarColor(groupName),
+                        boxShadow: `0 8px 25px ${getAvatarColor(groupName)}40`
+                      }}
+                    >
+                      {getInitials(groupName)}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold text-lg">{groupName}</h3>
+                      <div className="flex items-center gap-2 text-xs text-[#A0A0B0] mt-1">
+                        <span className="bg-[#4ADE80] text-black px-2 py-0.5 rounded-full font-medium">
+                          Grupo
+                        </span>
+                        <span>•</span>
+                        <span>Creado por {user}</span>
+                        <span>•</span>
+                        <span className="text-[#4ADE80]">Ahora</span>
+                      </div>
+                    </div>
+                    <div className="text-[#4ADE80]">
+                      <Users size={20} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sugerencias de nombres (opcional) */}
+              {!groupName.trim() && (
+                <div className="bg-[#1E1E2E] rounded-2xl p-4 border border-[#3C3C4E]/50">
+                  <p className="text-[#A0A0B0] text-sm font-medium mb-3 flex items-center gap-2">
+                    💡 Sugerencias de nombres
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Equipo Frontend', 'Marketing Digital', 'Proyecto Alpha', 'Desarrollo Backend', 'Diseño UX'].map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setGroupName(suggestion)}
+                        className="px-3 py-1.5 text-xs bg-[#3C3C4E] hover:bg-[#4ADE80] text-[#A0A0B0] hover:text-black rounded-full transition-all duration-200 hover:scale-105 transform"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Botones de acción mejorados */}
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  className="flex-1 px-6 py-4 rounded-2xl bg-[#3C3C4E] text-[#A0A0B0] hover:bg-[#232336] hover:text-white transition-all duration-300 font-bold text-sm transform hover:scale-[1.02] hover:shadow-lg"
+                  onClick={() => setShowGroupModal(false)}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <X size={16} />
+                    Cancelar
+                  </span>
+                </button>
+                <button
+                  type="submit"
+                  className={`flex-1 px-6 py-4 rounded-2xl font-bold text-sm transform transition-all duration-300 ${
+                    groupName.trim() && groupName.length <= 50
+                      ? 'bg-gradient-to-r from-[#4ADE80] to-[#22c55e] text-black hover:from-[#22c55e] hover:to-[#16a34a] hover:scale-[1.02] hover:shadow-xl shadow-[#4ADE80]/25'
+                      : 'bg-[#3C3C4E] text-[#6B7280] cursor-not-allowed opacity-50'
+                  }`}
+                  disabled={!groupName.trim() || groupName.length > 50}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Plus size={18} />
+                    Crear Grupo
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}      {/* Estilos adicionales para animaciones mejoradas */}
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         @keyframes slideInLeft {
           from { transform: translateX(-100%); }
@@ -1541,14 +1617,37 @@ function Chat() {
           from { transform: translateX(100%); }
           to { transform: translateX(0); }
         }
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-5px); }
+          60% { transform: translateY(-2px); }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+          20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
         .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
+          animation: fadeIn 0.4s ease-out;
         }
         .animate-slideInLeft {
           animation: slideInLeft 0.3s ease-out;
         }
         .animate-slideInRight {
           animation: slideInRight 0.3s ease-out;
+        }
+        .animate-bounce {
+          animation: bounce 1s infinite;
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+        .animate-pulse {
+          animation: pulse 2s ease-in-out infinite;
         }
         /* Ocultar el menú de opciones de mensaje al hacer clic fuera */
         .group:not(:hover) .group-hover-opacity-100:not(:focus-within) {

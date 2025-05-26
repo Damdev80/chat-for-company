@@ -8,11 +8,24 @@ if (process.env.NODE_ENV === 'production') {
   dotenv.config();
 }
 
-// Inicializar cliente de Turso
-export const tursoClient = createClient({
-  url: process.env.TURSO_URL || 'libsql://[tu-db].turso.io',
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+// Inicializar cliente de Turso solo si las credenciales están disponibles
+let tursoClient = null;
+
+try {
+  if (process.env.TURSO_URL && process.env.TURSO_AUTH_TOKEN && process.env.TURSO_URL !== 'libsql://[tu-db].turso.io') {
+    tursoClient = createClient({
+      url: process.env.TURSO_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+    console.log('✅ Cliente Turso inicializado correctamente');
+  } else {
+    console.log('⚠️ Configuración de Turso no encontrada, usando base de datos local');
+  }
+} catch (error) {
+  console.log('⚠️ Error al inicializar Turso, usando base de datos local:', error.message);
+}
+
+export { tursoClient };
 
 // Funciones auxiliares para ejecutar consultas
 export async function executeQuery(query, params = []) {

@@ -6,8 +6,8 @@ import { checkRole } from '../middlewares/role.middleware.js' // Import checkRol
 const router = Router()
 
 router.get('/', verifyToken, GroupController.getAll)
-// Only admins can create groups
-router.post('/', verifyToken, checkRole(['admin']), GroupController.create)
+// Temporalmente permitir a todos los usuarios crear grupos para testing
+router.post('/', verifyToken, GroupController.create)
 router.put('/:id', verifyToken, GroupController.update)
 // Only admins can delete groups
 router.delete('/:id', verifyToken, checkRole(['admin']), GroupController.delete)

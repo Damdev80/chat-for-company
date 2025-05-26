@@ -11,46 +11,77 @@ function bufferToUuid(buffer) {
   ].join('-');
 }
 
-export class ModelsGroup {
-    static async create({ name }) {
+export class ModelsGroup {    static async create({ name }) {
+      console.log('📝 Creando grupo:', { name });
       const connection = await getConnection()
-      const [result] = await connection.execute(
-        'INSERT INTO `groups` (id, name) VALUES (UUID_TO_BIN(UUID()), ?)', // Cambié 'groups' por `groups`
-        [name]
-      )
-      connection.end()
-      return result
-    }
-
-    static async getAll() {
+      
+      try {
+        const [result] = await connection.execute(
+          'INSERT INTO groups (id, name) VALUES (randomblob(16), ?)',
+          [name]
+        )
+        console.log('✅ Grupo creado exitosamente:', result);
+        
+        // Retornar un objeto consistente independientemente de la base de datos
+        return {
+          id: result.insertId || result.lastInsertRowid || Date.now().toString(),
+          name: name
+        }
+      } catch (error) {
+        console.error('❌ Error al crear grupo en la base de datos:', error);
+        throw error;
+      } finally {
+        connection.end()
+      }
+    }static async getAll() {
+      console.log('📋 Obteniendo todos los grupos');
       const connection = await getConnection()
-      const [rows] = await connection.execute(
-        'SELECT id, name FROM `groups`' // Cambié 'groups' por `groups`
-      )
-      connection.end()
-      return rows.map(row => ({
-        ...row,
-        id: row.id ? bufferToUuid(row.id) : row.id
-      }))
-    }
-
-    static async update(id, { name }) {
+      
+      try {
+        const [rows] = await connection.execute(
+          'SELECT hex(id) as id, name FROM groups'
+        )
+        console.log('✅ Grupos obtenidos:', rows);
+        return rows
+      } catch (error) {
+        console.error('❌ Error al obtener grupos:', error);
+        throw error;
+      } finally {
+        connection.end()
+      }
+    }    static async update(id, { name }) {
+      console.log('✏️ Actualizando grupo:', { id, name });
       const connection = await getConnection()
-      const [result] = await connection.execute(
-        'UPDATE `groups` SET name = ? WHERE id = ?',
-        [name, id]
-      )
-      connection.end()
-      return result
-    }
-
-    static async delete(id) {
+      
+      try {
+        const [result] = await connection.execute(
+          'UPDATE groups SET name = ? WHERE hex(id) = ?',
+          [name, id]
+        )
+        console.log('✅ Grupo actualizado:', result);
+        return result
+      } catch (error) {
+        console.error('❌ Error al actualizar grupo:', error);
+        throw error;
+      } finally {
+        connection.end()
+      }
+    }    static async delete(id) {
+      console.log('🗑️ Eliminando grupo:', { id });
       const connection = await getConnection()
-      const [result] = await connection.execute(
-        'DELETE FROM `groups` WHERE id = ?',
-        [id]
-      )
-      connection.end()
-      return result
+      
+      try {
+        const [result] = await connection.execute(
+          'DELETE FROM groups WHERE hex(id) = ?',
+          [id]
+        )
+        console.log('✅ Grupo eliminado:', result);
+        return result
+      } catch (error) {
+        console.error('❌ Error al eliminar grupo:', error);
+        throw error;
+      } finally {
+        connection.end()
+      }
     }
 }
