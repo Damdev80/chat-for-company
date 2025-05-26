@@ -26,6 +26,7 @@ import {
   Trash2,
   Edit2,
   User,
+  Eye,
 } from "lucide-react"
 import "../../styles/index.css"
 import { fetchMessages, fetchGroups, createGroup, updateGroup, deleteGroup, fetchUsers, deleteGroupMessages } from "../utils/api"
@@ -67,7 +68,10 @@ function Chat() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   // Estado para mostrar modal de crear grupo
   const [showGroupModal, setShowGroupModal] = useState(false)
-  const [groupName, setGroupName] = useState("")
+  const [groupName, setGroupName] = useState("")  // Estado para modal de edición de grupo
+  const [showEditGroupModal, setShowEditGroupModal] = useState(false)
+  const [editingGroup, setEditingGroup] = useState(null)
+  const [editGroupName, setEditGroupName] = useState("")
   // Estado para grupos persistentes
   const [groups, setGroups] = useState([])
   const [activeGroup, setActiveGroup] = useState("global")
@@ -374,23 +378,46 @@ function Chat() {
           (msg.content.toLowerCase().includes(search.toLowerCase()) ||
             (msg.sender_name && msg.sender_name.toLowerCase().includes(search.toLowerCase()))),
       )
-    : messages.filter((msg) => msg.group_id === activeGroup)
-
-  // Crear grupo persistente (solo para admin)
+    : messages.filter((msg) => msg.group_id === activeGroup)  // Crear grupo persistente (solo para admin)
   const handleCreateGroup = async (e) => {
     e.preventDefault()
     if (userRole !== "admin" || !groupName.trim()) return // Verificar rol
+    
+    const currentGroupName = groupName; // Guardar el nombre antes de limpiar
+    
     try {
-      const newGroup = await createGroup(groupName, token)
-      setGroups((prev) => [...prev, newGroup])
+      console.log('Creando grupo:', currentGroupName);
+      const response = await createGroup(currentGroupName, token)
+      console.log('Respuesta del servidor:', response);
+      
+      // Extraer el grupo de la respuesta
+      const newGroup = response.group || response;
+      console.log('Grupo creado exitosamente:', newGroup);
+      
+      if (!newGroup || !newGroup.id) {
+        throw new Error('Respuesta del servidor inválida');
+      }
+      
+      // Actualizar la lista de grupos
+      setGroups((prev) => {
+        const updatedGroups = [...prev, newGroup];
+        console.log('Lista de grupos actualizada:', updatedGroups);
+        return updatedGroups;
+      });
+      
+      // Limpiar el formulario y cerrar modal
       setGroupName("")
       setShowGroupModal(false)
-      showNotification("Grupo creado", `El grupo "${groupName}" ha sido creado exitosamente`)
-    } catch {
-      // feedback de error opcional
+      
+      // Cambiar al grupo recién creado (el useEffect se encargará del socket)
+      setActiveGroup(newGroup.id);
+      
+      showNotification("Grupo creado", `El grupo "${currentGroupName}" ha sido creado exitosamente`)
+    } catch (error) {
+      console.error('Error al crear grupo:', error);
+      showNotification("Error", "No se pudo crear el grupo. Inténtalo de nuevo.")
     }
   }
-
   // Editar grupo (solo para admin)
   const handleEditGroup = async (id, newName) => {
     if (userRole !== "admin") return; // Verificar rol
@@ -400,7 +427,13 @@ function Chat() {
       showNotification("Grupo actualizado", `El grupo ha sido renombrado a "${newName}"`)
     } catch {
       // feedback opcional
-    }
+    }  }
+
+  // (Eliminada función openEditGroupModal porque no se usa)  // Función para abrir modal de edición
+  const openEditGroupModal = (group) => {
+    setEditingGroup(group)
+    setEditGroupName(group.name || '')
+    setShowEditGroupModal(true)
   }
 
   // Eliminar grupo (solo para admin)
@@ -648,15 +681,10 @@ function Chat() {
                           </div>
                         </button>
                         {userRole === "admin" && group.id !== "global" && (
-                          <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
+                          <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">                            <button
                               className="text-xs text-[#A0A0B0] hover:text-[#4ADE80] p-1 rounded-full hover:bg-[#3C3C4E]"
                               title="Editar grupo"
-                              onClick={() => {
-                                const newName = prompt("Nuevo nombre del grupo", group.name)
-                                if (newName && newName.trim() && newName !== group.name)
-                                  handleEditGroup(group.id, newName.trim())
-                              }}
+                              onClick={() => openEditGroupModal(group)}
                             >
                               <Edit2 size={14} />
                             </button>
@@ -1233,7 +1261,7 @@ function Chat() {
                                     </svg>
                                     Reintentar
                                   </button>
-                                )                                }
+                                )}
                                 
                                 {message.isMine && (
                                   <>
@@ -1419,11 +1447,11 @@ function Chat() {
         </div>
       </div>      {/* Modal mejorado para crear grupo */}      {showGroupModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-md flex items-center justify-center z-50 transition-all duration-300 animate-fadeIn"
+          className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-50 transition-all duration-300 animate-fadeIn"
           onClick={() => setShowGroupModal(false)}
         >
           <div
-            className="bg-gradient-to-br from-[#232336] via-[#1E1E2E] to-[#1A1A2E] p-8 rounded-3xl shadow-2xl w-[480px] transform transition-all duration-300 scale-100 hover:scale-[1.01] border border-[#3C3C4E] backdrop-blur-sm"
+            className="bg-gradient-to-br from-[#232336]/95 via-[#1E1E2E]/95 to-[#1A1A2E]/95 p-8 rounded-3xl shadow-2xl w-[480px] transform transition-all duration-300 scale-100 border border-[#3C3C4E] backdrop-blur-xl"
             onClick={e => e.stopPropagation()}
             style={{
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(74, 222, 128, 0.1)'
@@ -1598,6 +1626,87 @@ function Chat() {
                     <Plus size={18} />
                     Crear Grupo
                   </span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>      )}      {/* Modal para editar grupo */}      {showEditGroupModal && editingGroup && (
+        <div
+          className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-50 transition-all duration-300 animate-fadeIn"
+          onClick={() => setShowEditGroupModal(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-[#232336]/95 via-[#1E1E2E]/95 to-[#1A1A2E]/95 p-8 rounded-3xl shadow-2xl w-[480px] transform transition-all duration-300 scale-100 border border-[#3C3C4E] backdrop-blur-xl"
+            onClick={e => e.stopPropagation()}
+            style={{
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(74, 222, 128, 0.1)'
+            }}
+          >
+            {/* Header del modal con gradiente mejorado */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-[#4ADE80] via-[#22c55e] to-[#16a34a] rounded-2xl flex items-center justify-center shadow-lg shadow-[#4ADE80]/20 animate-pulse">
+                  <Users size={26} className="text-black" />
+                </div>
+                <div>                  <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    Editar Grupo
+                  </h2>
+                  <p className="text-[#A0A0B0] text-sm mt-1">Modifica el nombre y la descripción del grupo</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEditGroupModal(false)}
+                className="w-10 h-10 rounded-xl bg-[#3C3C4E] hover:bg-[#ff4757] text-[#A0A0B0] hover:text-white transition-all duration-200 flex items-center justify-center group hover:rotate-90 transform"
+              >
+                <X size={20} className="group-hover:scale-110 transition-transform" />
+              </button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              if (!editGroupName.trim()) return
+              
+              // Lógica para actualizar el grupo
+              try {
+                await handleEditGroup(editingGroup.id, editGroupName.trim())
+                setShowEditGroupModal(false)
+                setEditGroupName("")
+                showNotification("Grupo actualizado", `El grupo ha sido renombrado a "${editGroupName}"`)
+              } catch {
+                showNotification("Error", "No se pudo actualizar el grupo. Inténtalo de nuevo.")
+              }
+            }} className="space-y-4">
+              {/* Input del nuevo nombre */}
+              <div>
+                <label htmlFor="edit-group-name" className="block text-sm font-medium text-[#A0A0B0] mb-1">
+                  Nuevo nombre del grupo
+                </label>
+                <input
+                  id="edit-group-name"
+                  type="text"
+                  className="w-full px-4 py-3 rounded-lg bg-[#1E1E2E] border border-[#3C3C4E] text-white placeholder-[#6B7280] focus:outline-none focus:ring-1 focus:ring-[#4ADE80] transition-all"
+                  placeholder="Ej: Equipo de Ventas, Proyecto Beta..."
+                  value={editGroupName}
+                  onChange={(e) => setEditGroupName(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  className="flex-1 px-4 py-3 rounded-lg bg-[#3C3C4E] text-[#A0A0B0] hover:bg-[#232336] transition-all"
+                  onClick={() => setShowEditGroupModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 rounded-lg bg-[#4ADE80] text-black hover:bg-opacity-90 transition-all"
+                >
+                  Guardar cambios
                 </button>
               </div>
             </form>
