@@ -57,10 +57,12 @@ export class MessageController {
       }
       
       console.log('MessageController.createFromSocket - Validaciones pasadas, creando mensaje');
+      console.log('Contenido original recibido:', JSON.stringify(data.content));
       
       // Crear el mensaje y obtener sus datos
       const message = await ModelsMessage.create(data);
       console.log('Mensaje creado en la base de datos:', message);
+      console.log('Contenido después de la base de datos:', JSON.stringify(message.content));
       
       // Obtener el nombre de usuario para la respuesta (simulamos un join con users)
       // En una implementación real, esto debería ser una consulta JOIN adecuada

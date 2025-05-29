@@ -1,0 +1,184 @@
+/* Estilos personalizados para ReactMarkdown y syntax highlighting */
+
+/* Wrapper for Markdown content */
+.markdown-body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Syntax Highlighting via rehype-highlight */
+.markdown-body pre {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  margin: 1em 0;
+  font-size: 0.9rem;
+}
+
+.markdown-body code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9rem;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
+  display: block;
+}
+
+/* Sobrescribir estilos de highlight.js para asegurar compatibilidad con tema oscuro */
+.hljs {
+  background: #0d1117 !important;
+  color: #c9d1d9 !important;
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #30363d;
+  margin: 8px 0;
+}
+
+/* Colores específicos para diferentes tipos de sintaxis */
+.hljs-keyword {
+  color: #ff7b72 !important;
+}
+
+.hljs-string {
+  color: #a5d6ff !important;
+}
+
+.hljs-comment {
+  color: #8b949e !important;
+  font-style: italic;
+}
+
+.hljs-number {
+  color: #79c0ff !important;
+}
+
+.hljs-function {
+  color: #d2a8ff !important;
+}
+
+.hljs-variable {
+  color: #ffa657 !important;
+}
+
+.hljs-title {
+  color: #7ee787 !important;
+}
+
+.hljs-attr {
+  color: #7ee787 !important;
+}
+
+.hljs-built_in {
+  color: #ffa657 !important;
+}
+
+.hljs-literal {
+  color: #79c0ff !important;
+}
+
+.hljs-operator {
+  color: #ff7b72 !important;
+}
+
+.hljs-tag {
+  color: #7ee787 !important;
+}
+
+.hljs-name {
+  color: #7ee787 !important;
+}
+
+.hljs-selector-id {
+  color: #d2a8ff !important;
+}
+
+.hljs-selector-class {
+  color: #d2a8ff !important;
+}
+
+.hljs-property {
+  color: #79c0ff !important;
+}
+
+.hljs-value {
+  color: #a5d6ff !important;
+}
+
+/* Asegurar que todos los elementos de código tengan el color correcto */
+pre code {
+  color: #c9d1d9 !important;
+  background: transparent !important;
+}
+
+/* Estilo para código inline que no usa highlight.js */
+code:not(.hljs) {
+  background-color: #21262d !important;
+  color: #fffc !important;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid #30363d;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875em;
+}
+
+/* Contenedor de código para asegurar que se vea bien */
+pre {
+  background: #0d1117 !important;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 12px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+/* Prevenir que Tailwind override los colores */
+.prose code {
+  color: inherit !important;
+}
+
+/* Remove or comment out this block to preserve code block styling */
+/* .prose pre {
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+} */
+
+/* Styling for highlighted code blocks */
+code.hljs {
+  display: block !important;
+  overflow-x: auto;
+  background: #0d1117 !important;
+  color: #c9d1d9 !important;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+}
+
+/* Asegurar que el texto del mensaje no se deforme */
+.prose {
+  max-width: none !important;
+}
+
+.prose p {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Estilos para diferentes tipos de elementos de código */
+.hljs-meta {
+  color: #8b949e !important;
+}
+
+.hljs-type {
+  color: #ffa657 !important;
+}
+
+.hljs-params {
+  color: #c9d1d9 !important;
+}

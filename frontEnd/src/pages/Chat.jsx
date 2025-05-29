@@ -31,6 +31,11 @@ import {
 import "../../styles/index.css"
 import { fetchMessages, fetchGroups, createGroup, updateGroup, deleteGroup, fetchUsers, deleteGroupMessages } from "../utils/api"
 import { connectSocket, disconnectSocket } from "../utils/socket"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
+import 'highlight.js/styles/vs2015.css'
+import '../styles/markdown.css'
 
 // Utilidad para iniciales
 function getInitials(name) {
@@ -158,6 +163,8 @@ function Chat() {
     socket.emit("join_group", activeGroup);
     // Recibir mensajes
     socket.on("receive_message", (msg) => {
+      console.log('Mensaje recibido via socket:', JSON.stringify(msg));
+      console.log('Contenido del mensaje:', JSON.stringify(msg.content));
       setMessages((prev) => {
         // Verificar si es un mensaje propio que ya hemos agregado a la UI de forma optimista
         // Lo identificamos por su temp_id (si existe) o por el contenido y el nombre del remitente
@@ -465,7 +472,6 @@ function Chat() {
 
   // Obtener emojis comunes
   const commonEmojis = ["😊", "👍", "❤️", "😂", "🎉", "🔥", "👏", "🙏", "😍", "🤔", "😢", "😎", "🚀", "✅", "⭐", "💯"]
-
   // Cambiar grupo (handler robusto)
   const handleGroupClick = (groupId) => {
     if (groupId !== activeGroup) {
@@ -477,7 +483,6 @@ function Chat() {
       setShowAttachOptions(false)
     }
   }
-
 
   return (
     <div className="min-h-screen bg-[#1E1E2E] text-white flex flex-col">
@@ -988,7 +993,7 @@ function Chat() {
                       <li className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center mr-2 text-black"
+                            className="w-8 h-8 rounded-full bg-[#4ADE80] flex items-center justify-center text-black font-medium"
                             style={{ backgroundColor: getAvatarColor(user) }}
                           >
                             {getInitials(user)}
@@ -1002,7 +1007,7 @@ function Chat() {
                       <li className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center mr-2 text-black"
+                            className="w-8 h-8 rounded-full bg-[#4ADE80] flex items-center justify-center text-black font-medium"
                             style={{ backgroundColor: getAvatarColor("Ana Martínez") }}
                           >
                             {getInitials("Ana Martínez")}
@@ -1016,7 +1021,7 @@ function Chat() {
                       <li className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center mr-2 text-black"
+                            className="w-8 h-8 rounded-full bg-[#4ADE80] flex items-center justify-center text-black font-medium"
                             style={{ backgroundColor: getAvatarColor("Carlos López") }}
                           >
                             {getInitials("Carlos López")}
@@ -1171,9 +1176,13 @@ function Chat() {
                             onContextMenu={(e) => {
                               e.preventDefault()
                               setMessageOptions(message.id)
-                            }}
-                          >
-                            <p className="break-words">{message.content}</p>
+                            }}                          >                            <div className="break-words">
+                              <div className="markdown-body">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                                  {message.content.trim()}
+                                </ReactMarkdown>
+                              </div>
+                            </div>
                             <div
                               className={`text-xs mt-1 flex items-center justify-end ${
                                 message.isMine ? "text-black text-opacity-70" : "text-white text-opacity-70"
@@ -1543,7 +1552,7 @@ function Chat() {
               {groupName.trim() && (
                 <div className="bg-gradient-to-r from-[#1E1E2E] to-[#232336] rounded-2xl p-5 border border-[#3C3C4E] shadow-inner transition-all duration-300 animate-fadeIn">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[#A0A0B0] text-sm font-medium flex items-center gap-2">
+                    <p className="text-[#A0B0] text-sm font-medium flex items-center gap-2">
                       <Eye size={14} className="text-[#4ADE80]" />
                       Vista previa del grupo
                     </p>
@@ -1630,7 +1639,8 @@ function Chat() {
               </div>
             </form>
           </div>
-        </div>      )}      {/* Modal para editar grupo */}      {showEditGroupModal && editingGroup && (
+        </div>
+      )}      {/* Modal para editar grupo */}      {showEditGroupModal && editingGroup && (
         <div
           className="fixed inset-0 backdrop-blur-lg flex items-center justify-center z-50 transition-all duration-300 animate-fadeIn"
           onClick={() => setShowEditGroupModal(false)}

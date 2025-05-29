@@ -1,4 +1,5 @@
 import { getConnection } from '../config/db.js'
+import { v4 as uuidv4 } from 'uuid'
 
 function bufferToUuid(buffer) {
   if (!Buffer.isBuffer(buffer) || buffer.length !== 16) return buffer;
@@ -19,25 +20,21 @@ export class ModelsMessage {    static async create({ content, sender_id, group_
         if (typeof group_id === 'object' && group_id !== null && group_id.type === 'Buffer') {
           group_id = bufferToUuid(Buffer.from(group_id.data));
         }
+          // Generar UUID usando JavaScript en lugar de SQL
+        const messageId = uuidv4();
         
-        // Para SQLite/Turso: Si no existe la función UUID(), usamos un id aleatorio generado de otra forma
-        const query = process.env.NODE_ENV === 'production' 
-          ? 'INSERT INTO messages (id, content, sender_id, group_id) VALUES (lower(hex(randomblob(16))), ?, ?, ?)'
-          : 'INSERT INTO messages (id, content, sender_id, group_id) VALUES (UUID(), ?, ?, ?)';
-          
-        console.log('Ejecutando query:', query);
+        console.log('Ejecutando query con ID generado:', messageId);
         const connection = await getConnection();
         const [result] = await connection.execute(
-          query,
-          [content, sender_id, group_id]
+          'INSERT INTO messages (id, content, sender_id, group_id) VALUES (?, ?, ?, ?)',
+          [messageId, content, sender_id, group_id]
         );
+          console.log('Mensaje insertado, obteniendo detalles completos');
         
-        console.log('Mensaje insertado, obteniendo detalles completos');
-        
-        // Obtener el ID del mensaje recién creado
+        // Obtener el mensaje recién creado usando el ID específico
         const [insertedMessage] = await connection.execute(
-          'SELECT id, content, sender_id, group_id, created_at FROM messages WHERE sender_id = ? ORDER BY created_at DESC LIMIT 1',
-          [sender_id]
+          'SELECT id, content, sender_id, group_id, created_at FROM messages WHERE id = ?',
+          [messageId]
         );
         
         connection.end();
