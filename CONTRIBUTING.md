@@ -39,7 +39,7 @@ ChatEmpresa sigue una arquitectura monorepo con dos carpetas principales:
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/tu-usuario/chatempresa.git
+git clone https://github.com/damdev80/chatempresa.git
 cd chatempresa
 
 # Instalar dependencias backend
