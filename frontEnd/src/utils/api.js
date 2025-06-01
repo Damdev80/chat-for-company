@@ -98,3 +98,220 @@ export async function fetchUsers(token) {
   if (!res.ok) throw new Error('Error al obtener usuarios');
   return res.json();
 }
+
+// --- OBJETIVOS ---
+
+export async function fetchObjectives(token) {
+  const res = await fetch(`${API_URL}/objectives`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al obtener objetivos');
+  return res.json();
+}
+
+export async function fetchObjectivesByGroup(groupId, token) {
+  console.log(`[api.js] fetchObjectivesByGroup called with groupId: ${groupId}, token: ${token ? 'Present' : 'Missing'}`);
+  try {
+    const res = await fetch(`${API_URL}/objectives/group/${groupId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    console.log(`[api.js] fetchObjectivesByGroup response status: ${res.status}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[api.js] Error fetching objectives by group. Status: ${res.status}, Response: ${errorText}`);
+      throw new Error(`Error al obtener objetivos del grupo: ${errorText}`);
+    }
+    const data = await res.json();
+    console.log('[api.js] Objectives fetched successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('[api.js] Catch block error in fetchObjectivesByGroup:', error);
+    throw error; // Re-throw the error to be caught by the calling component
+  }
+}
+
+export async function createObjective(objective, token) {
+  console.log('API createObjective llamada con:', { objective, token: token ? 'Present' : 'Missing' });
+  try {
+    const res = await fetch(`${API_URL}/objectives`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(objective),
+    });
+    
+    console.log('Respuesta del servidor para objetivo:', res.status, res.statusText);
+    
+    if (!res.ok) {
+      const errorData = await res.text();
+      console.error('Error en createObjective:', errorData);
+      throw new Error(`HTTP ${res.status}: ${errorData}`);
+    }
+    
+    const result = await res.json();
+    console.log('Objetivo creado exitosamente:', result);
+    return result;
+  } catch (error) {
+    console.error('Error en createObjective:', error);
+    throw error;
+  }
+}
+
+export async function updateObjective(id, objective, token) {
+  const res = await fetch(`${API_URL}/objectives/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(objective),
+  });
+  if (!res.ok) throw new Error('Error al actualizar objetivo');
+  return res.json();
+}
+
+export async function deleteObjective(id, token) {
+  const res = await fetch(`${API_URL}/objectives/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al eliminar objetivo');
+  return res.json();
+}
+
+export async function fetchObjectiveProgress(id, token) {
+  const res = await fetch(`${API_URL}/objectives/${id}/progress`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al obtener progreso del objetivo');
+  return res.json();
+}
+
+// --- TAREAS ---
+
+export async function fetchTasks(token) {
+  const res = await fetch(`${API_URL}/tasks`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al obtener tareas');
+  return res.json();
+}
+
+export async function fetchTasksByObjective(objectiveId, token) {
+  const res = await fetch(`${API_URL}/tasks/objective/${objectiveId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al obtener tareas del objetivo');
+  return res.json();
+}
+
+export async function fetchMyTasks(token) {
+  const res = await fetch(`${API_URL}/tasks/my/tasks`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al obtener mis tareas');
+  return res.json();
+}
+
+export async function createTask(task, token) {
+  console.log('API createTask llamada con:', { task, token: token ? 'Present' : 'Missing' });
+  try {
+    const res = await fetch(`${API_URL}/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(task),
+    });
+    
+    console.log('Respuesta del servidor:', res.status, res.statusText);
+    
+    if (!res.ok) {
+      const errorData = await res.text();
+      console.error('Error en createTask:', errorData);
+      throw new Error(`HTTP ${res.status}: ${errorData}`);
+    }
+    
+    const result = await res.json();
+    console.log('Tarea creada exitosamente:', result);
+    return result;
+  } catch (error) {
+    console.error('Error en createTask:', error);
+    throw error;
+  }
+}
+
+export async function updateTask(id, task, token) {
+  const res = await fetch(`${API_URL}/tasks/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(task),
+  });
+  if (!res.ok) throw new Error('Error al actualizar tarea');
+  return res.json();
+}
+
+export async function assignTask(id, userId, token) {
+  const res = await fetch(`${API_URL}/tasks/${id}/assign`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ assigned_to: userId }),
+  });
+  if (!res.ok) throw new Error('Error al asignar tarea');
+  return res.json();
+}
+
+export async function markTaskCompleted(id, token) {
+  const res = await fetch(`${API_URL}/tasks/${id}/complete`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al marcar tarea como completada');
+  return res.json();
+}
+
+export async function deleteTask(id, token) {
+  const res = await fetch(`${API_URL}/tasks/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al eliminar tarea');
+  return res.json();
+}
+
+export async function fetchUserTaskStats(token) {
+  const res = await fetch(`${API_URL}/tasks/my/stats`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al obtener estadísticas de tareas');
+  return res.json();
+}

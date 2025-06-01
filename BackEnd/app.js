@@ -13,6 +13,8 @@ import userRoutes from './src/routes/user.routes.js'
 import roleRoutes from './src/routes/role.routes.js'
 import messageRoutes from './src/routes/message.routes.js'
 import groupRoutes from './src/routes/group.routes.js'
+import objectiveRoutes from './src/routes/objective.routes.js'
+import taskRoutes from './src/routes/task.routes.js'
 
 // Configurar variables de entorno
 dotenv.config()
@@ -39,6 +41,8 @@ app.use('/api/users', userRoutes)
 app.use('/api/roles', roleRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/groups', groupRoutes)
+app.use('/api/objectives', objectiveRoutes)
+app.use('/api/tasks', taskRoutes)
 
 app.use(serverError)
 

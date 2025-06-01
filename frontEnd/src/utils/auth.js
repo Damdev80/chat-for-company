@@ -49,12 +49,28 @@ export async function registerUser({ username, email, password }) {
       }
       throw new Error(errorData.message || `Error ${res.status} al registrar usuario`);
     }
-    
-    const data = await res.json();
+      const data = await res.json();
     console.log('Registro exitoso:', data);
     return data;
   } catch (error) {
     console.error('Error en función registerUser:', error);
     throw error;
   }
+}
+
+// Función para obtener el token del localStorage
+export function getToken() {
+  return localStorage.getItem('token');
+}
+
+// Función para verificar si el usuario está autenticado
+export function isAuthenticated() {
+  return !!getToken();
+}
+
+// Función para cerrar sesión
+export function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('userRole');
 }

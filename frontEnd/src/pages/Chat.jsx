@@ -27,6 +27,7 @@ import {
   Edit2,
   User,
   Eye,
+  Target,
 } from "lucide-react"
 import "../../styles/index.css"
 import { fetchMessages, fetchGroups, createGroup, updateGroup, deleteGroup, fetchUsers, deleteGroupMessages } from "../utils/api"
@@ -36,6 +37,9 @@ import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/vs2015.css'
 import '../styles/markdown.css'
+import ObjectiveManager from '../components/ObjectiveManager'
+import UserTaskView from '../components/UserTaskView'
+import ObjectiveProgressSummary from '../components/ObjectiveProgressSummary'
 
 // Utilidad para iniciales
 function getInitials(name) {
@@ -238,9 +242,7 @@ function Chat() {
       
       // Mostrar notificación de error
       showNotification("Error", "No se pudo enviar el mensaje. Intenta nuevamente.");
-    });
-
-    // Evento de usuario escribiendo
+    });    // Evento de usuario escribiendo
     socket.on("user_typing", (data) => {
       if (data.sender_name !== user && data.group_id === activeGroup) {
         setIsTyping(true)
@@ -248,6 +250,31 @@ function Chat() {
         typingTimeoutRef.current = setTimeout(() => {
           setIsTyping(false)
         }, 3000)
+      }
+    });
+
+    // Eventos de tareas y objetivos
+    socket.on("task_assigned", (data) => {
+      if (data.assigned_to === user) {
+        showNotification("Nueva tarea asignada", `Se te ha asignado la tarea: ${data.title}`)
+      }
+    });
+
+    socket.on("task_completed", (data) => {
+      if (data.group_id === activeGroup) {
+        showNotification("Tarea completada", `${data.completed_by} completó: ${data.title}`)
+      }
+    });
+
+    socket.on("objective_created", (data) => {
+      if (data.group_id === activeGroup) {
+        showNotification("Nuevo objetivo", `Se creó el objetivo: ${data.title}`)
+      }
+    });
+
+    socket.on("objective_completed", (data) => {
+      if (data.group_id === activeGroup) {
+        showNotification("¡Objetivo completado!", `¡Se completó el objetivo: ${data.title}! 🎉`)
       }
     });
 
@@ -621,9 +648,7 @@ function Chat() {
                     />
                     <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A0A0B0]" />
                   </div>
-                </div>
-
-                {/* Pestañas */}
+                </div>                {/* Pestañas */}
                 <div className="flex border-b border-[#3C3C4E]">
                   <button
                     className={`flex-1 py-3 ${
@@ -644,6 +669,16 @@ function Chat() {
                     onClick={() => handleTabChange("contacts")}
                   >
                     Contactos
+                  </button>
+                  <button
+                    className={`flex-1 py-3 ${
+                      activeTab === "objectives"
+                        ? "text-[#4ADE80] border-b-2 border-[#4ADE80]"
+                        : "text-[#A0A0B0] hover:text-white"
+                    } font-medium text-sm`}
+                    onClick={() => handleTabChange("objectives")}
+                  >
+                    Objetivos
                   </button>
                 </div>
 
@@ -734,8 +769,18 @@ function Chat() {
                               </div>
                             </li>
                           ))
-                        )}
-                      </ul>
+                        )}                      </ul>
+                    </div>
+                  )}
+
+                  {/* Objetivos (cuando la pestaña está activa) */}
+                  {activeTab === "objectives" && (
+                    <div className="mt-6">
+                      <div className="text-center text-[#A0A0B0] text-sm">
+                        <Target size={24} className="mx-auto mb-2 opacity-50" />
+                        <p>Los objetivos se muestran en el área principal</p>
+                        <p className="text-xs mt-1">Selecciona un grupo para ver sus objetivos</p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -764,10 +809,38 @@ function Chat() {
                 </div>
               </aside>
             </div>
-          )}
-
-          {/* Barra lateral (escritorio) */}
-          <aside className="w-64 bg-[#2D2D3A] border-r border-[#3C3C4E] flex-col hidden md:flex animate-fadeInLeft">
+          )}          {/* Barra lateral (escritorio) */}
+          <aside className="w-80 bg-[#2D2D3A] border-r border-[#3C3C4E] flex-col hidden md:flex animate-fadeInLeft min-w-[280px] max-w-[600px] relative" id="sidebar">
+            {/* Handle para redimensionar */}
+            <div className="absolute right-0 top-0 bottom-0 w-2 bg-[#3C3C4E] hover:bg-[#4ADE80] cursor-ew-resize transition-colors z-10" 
+                 onMouseDown={(e) => {
+                   e.preventDefault();
+                   const sidebar = document.getElementById('sidebar');
+                   const startX = e.clientX;
+                   const startWidth = sidebar.offsetWidth;
+                   
+                   const handleMouseMove = (e) => {
+                     const newWidth = startWidth + (e.clientX - startX);
+                     // Expanded range: minimum 280px, maximum 600px
+                     if (newWidth >= 280 && newWidth <= 600) {
+                       sidebar.style.width = newWidth + 'px';
+                       // Store the width in localStorage to persist across sessions
+                       localStorage.setItem('sidebarWidth', newWidth + 'px');
+                     }
+                   };
+                   
+                   const handleMouseUp = () => {
+                     document.removeEventListener('mousemove', handleMouseMove);
+                     document.removeEventListener('mouseup', handleMouseUp);
+                     document.body.style.userSelect = 'auto';
+                   };
+                   
+                   // Prevent text selection while dragging
+                   document.body.style.userSelect = 'none';
+                   document.addEventListener('mousemove', handleMouseMove);
+                   document.addEventListener('mouseup', handleMouseUp);
+                 }}
+            ></div>
             {/* Búsqueda */}
             <div className="p-4">
               <div className="relative">
@@ -788,9 +861,7 @@ function Chat() {
                   </button>
                 )}
               </div>
-            </div>
-
-            {/* Pestañas */}
+            </div>            {/* Pestañas */}
             <div className="flex border-b border-[#3C3C4E]">
               <button
                 className={`flex-1 py-3 ${
@@ -816,6 +887,23 @@ function Chat() {
                 <div className="flex items-center justify-center">
                   <Users size={16} className="mr-2" />
                   <span>Contactos</span>
+                </div>
+              </button>              <button
+                className={`flex-1 py-3 ${
+                  activeTab === "objectives"
+                    ? "text-[#4ADE80] border-b-2 border-[#4ADE80]"
+                    : "text-[#A0A0B0] hover:text-white"
+                } font-medium text-sm transition-all`}
+                onClick={() => handleTabChange("objectives")}
+              >
+                <div className="flex items-center justify-center relative">
+                  <Target size={16} className="mr-2" />
+                  <span>Objetivos</span>
+                  {activeTab !== "objectives" && (
+                    <span className="absolute -top-1 -right-2 bg-[#4ADE80] text-black text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                      !
+                    </span>
+                  )}
                 </div>
               </button>
             </div>
@@ -917,10 +1005,22 @@ function Chat() {
                               <p className="text-xs text-[#A0A0B0] truncate">{u.username === user ? "En línea" : "Desconocido"}</p>
                             </div>
                           </div>
-                        </li>
-                      ))
-                    )}
+                        </li>                      ))                    )}
                   </ul>
+                </div>
+              )}
+
+              {/* Objetivos (cuando la pestaña está activa) */}
+              {activeTab === "objectives" && (
+                <div className="mt-6">
+                  <div className="text-center text-[#A0A0B0] text-sm bg-[#4ADE80]/5 border border-[#4ADE80]/20 rounded-lg p-4">
+                    <Target size={32} className="mx-auto mb-3 text-[#4ADE80]" />
+                    <p className="font-medium text-white mb-1">¡Gestión de Objetivos Activada!</p>
+                    <p className="text-xs">El área principal ahora muestra los objetivos</p>
+                    <p className="text-xs mt-2 text-[#4ADE80]">
+                      💡 Haz clic en un objetivo para ver y crear tareas
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -947,10 +1047,44 @@ function Chat() {
                 <span>Cerrar sesión</span>
               </button>
             </div>
-          </aside>
-
-          {/* Área de chat */}
+          </aside>          {/* Área de chat */}
           <main className="flex-1 flex flex-col bg-[#1E1E2E] animate-fadeIn relative">
+            {/* Contenido según la pestaña activa */}
+            {activeTab === "objectives" ? (
+              // Contenido de objetivos
+              <div className="flex-1 flex flex-col">
+                <div className="bg-[#2D2D3A] border-b border-[#3C3C4E] p-4">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-[#4ADE80] flex items-center justify-center text-black font-medium mr-3">
+                      <Target size={20} />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-white">
+                        Objetivos - {groups.find((g) => g.id === activeGroup)?.name || "Global"}
+                      </h2>
+                      <p className="text-xs text-[#A0A0B0]">Gestión de objetivos y tareas del grupo</p>
+                    </div>
+                  </div>
+                </div>
+                  <div className="flex-1 overflow-y-auto p-6">
+                  {userRole === "admin" ? (
+                    <ObjectiveManager 
+                      groupId={activeGroup}
+                      token={token}
+                      onObjectiveCreated={() => setActiveTab("chats")}
+                    />
+                  ) : (
+                    <UserTaskView 
+                      groupId={activeGroup}
+                      username={user}
+                      token={token}
+                    />
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Contenido de chat existente
+              <>
             {/* Panel de información del grupo (condicional) */}
             {showGroupInfo && (
               <div className="absolute inset-0 bg-[#1E1E2E] z-20 flex flex-col animate-fadeIn">
@@ -1050,9 +1184,7 @@ function Chat() {
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Cabecera del chat */}
+            )}            {/* Cabecera del chat */}
             <div className="bg-[#2D2D3A] border-b border-[#3C3C4E] p-4 flex items-center justify-between">
               <div className="flex items-center">
                 <div
@@ -1069,6 +1201,17 @@ function Chat() {
                 </div>
               </div>
               <div className="flex items-center space-x-3">
+                <button
+                  className={`${
+                    activeTab === "objectives" 
+                      ? "text-[#4ADE80] bg-[#4ADE80]/20" 
+                      : "text-[#A0A0B0] hover:text-white"
+                  } transition-colors p-2 rounded-full hover:bg-[#3C3C4E]`}
+                  onClick={() => handleTabChange("objectives")}
+                  title="Ver objetivos del grupo"
+                >
+                  <Target size={18} />
+                </button>
                 <button
                   className="text-[#A0A0B0] hover:text-white transition-colors p-2 rounded-full hover:bg-[#3C3C4E]"
                   onClick={handleCall}
@@ -1099,7 +1242,14 @@ function Chat() {
                   <Trash2 size={18} />
                 </button>
                )}
-              </div>
+              </div>            </div>
+
+            {/* Resumen de Progreso de Objetivos */}
+            <div className="p-4 border-b border-[#3C3C4E]">
+              <ObjectiveProgressSummary 
+                groupId={activeGroup}
+                groupName={groups.find((g) => g.id === activeGroup)?.name || "Global"}
+              />
             </div>
 
             {/* Mensajes */}
@@ -1448,10 +1598,11 @@ function Chat() {
                   className="bg-[#4ADE80] text-black p-3 hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!newMessage.trim()}
                 >
-                  <Send size={20} />
-                </button>
+                  <Send size={20} />                </button>
               </form>
             </div>
+              </>
+            )}
           </main>
         </div>
       </div>      {/* Modal mejorado para crear grupo */}      {showGroupModal && (
