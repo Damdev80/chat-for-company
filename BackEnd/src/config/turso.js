@@ -12,17 +12,23 @@ if (process.env.NODE_ENV === 'production') {
 let tursoClient = null;
 
 try {
+  console.error('Turso configuration check:', {
+    hasUrl: !!process.env.TURSO_URL,
+    hasToken: !!process.env.TURSO_AUTH_TOKEN,
+    url: process.env.TURSO_URL,
+    nodeEnv: process.env.NODE_ENV
+  });
+  
   if (process.env.TURSO_URL && process.env.TURSO_AUTH_TOKEN && process.env.TURSO_URL !== 'libsql://[tu-db].turso.io') {
     tursoClient = createClient({
       url: process.env.TURSO_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
-    console.log('✅ Cliente Turso inicializado correctamente');
-  } else {
-    console.log('⚠️ Configuración de Turso no encontrada, usando base de datos local');
+    console.error('Turso client initialized successfully');
+  } else {// Configuración de Turso no encontrada, usando base de datos local
   }
 } catch (error) {
-  console.log('⚠️ Error al inicializar Turso, usando base de datos local:', error.message);
+  console.error('Error al inicializar Turso:', error.message);
 }
 
 export { tursoClient };

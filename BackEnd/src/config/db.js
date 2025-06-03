@@ -22,24 +22,25 @@ export const getConnection = async () => {
     try {
       // Si Turso está disponible (producción o desarrollo), usarlo
       if (tursoClient !== null) {
-        console.log('✅ Usando base de datos Turso')
+        console.error('Using Turso database connection')
         
         return {
           execute: async (query, params = []) => {
+            console.error('Turso query:', query, 'params:', params);
             const result = await executeQuery(query, params);
+            console.error('Turso result:', result);
             return [formatResults(result), result];
           },
           end: () => Promise.resolve()
         };
       }
-      
-      // Para desarrollo sin Turso, usar MySQL
+        // Para desarrollo sin Turso, usar MySQL
       const connection = await mysql.createConnection(mysqlConfig)
-      console.log('✅ Base de datos MySQL conectada correctamente')
+      console.error('Using MySQL database connection')
       return connection 
       
     } catch (error) {
-      console.error('❌ Error al conectar a la base de datos:', error.message)
+      console.error('Database connection error:', error.message)
       throw error
     }
   }

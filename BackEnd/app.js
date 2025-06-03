@@ -37,6 +37,30 @@ app.use(cors(corsOptions))
 app.use(express.json())
 app.use(requestLogger) // Agregar el middleware de logging
 
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  })
+})
+
+// Test API route
+app.get('/api/test', (req, res) => {
+  res.status(200).json({ 
+    message: 'API is working',
+    routes: {
+      users: '/api/users',
+      roles: '/api/roles', 
+      messages: '/api/messages',
+      groups: '/api/groups',
+      objectives: '/api/objectives',
+      tasks: '/api/tasks'
+    }
+  })
+})
+
 // Rutas
 app.use('/api/users', userRoutes)
 app.use('/api/roles', roleRoutes)
@@ -44,6 +68,16 @@ app.use('/api/messages', messageRoutes)
 app.use('/api/groups', groupRoutes)
 app.use('/api/objectives', objectiveRoutes)
 app.use('/api/tasks', taskRoutes)
+
+// Log para diagnóstico - rutas registradas
+console.error('Routes registered:', {
+  users: '/api/users',
+  roles: '/api/roles',
+  messages: '/api/messages',
+  groups: '/api/groups',
+  objectives: '/api/objectives',
+  tasks: '/api/tasks'
+});
 
 app.use(serverError)
 

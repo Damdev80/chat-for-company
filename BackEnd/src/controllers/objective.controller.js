@@ -5,12 +5,14 @@ import { objectiveSchema, updateObjectiveSchema } from '../validations/objective
 export class ObjectiveController {
   static async create(req, res) {
     try {
-      console.log('Datos recibidos en objective controller:', req.body);
+      // Log para diagnóstico en producción
+      console.error('Objective create - Request body:', JSON.stringify(req.body, null, 2));
+      console.error('Objective create - User:', JSON.stringify(req.user, null, 2));
       
       // Validar datos con Zod
       const result = objectiveSchema.safeParse(req.body)
       if (!result.success) {
-        console.log('Errores de validación:', result.error.issues);
+        console.error('Objective create - Validation error:', JSON.stringify(result.error.issues, null, 2));
         return res.status(400).json({ errors: result.error.issues })
       }
 
@@ -30,11 +32,9 @@ export class ObjectiveController {
         }
       } else {
         deadline = null;
-      }
-
-      console.log('Datos procesados:', { title, description, group_id, deadline, created_by });
-
-      // Crear el objetivo
+      }      // Crear el objetivo
+      console.error('Objective create - About to call ModelsObjective.create with:', { title, description, group_id, created_by, deadline });
+      
       const objective = await ModelsObjective.create({
         title,
         description,
@@ -43,15 +43,19 @@ export class ObjectiveController {
         deadline
       })
 
-      console.log('Objetivo creado:', objective);
+      console.error('Objective create - Success:', JSON.stringify(objective, null, 2));
 
       res.status(201).json({
         message: 'Objetivo creado correctamente',
         objective
+      })    } catch (error) {
+      console.error('Objective create - Error:', error);
+      console.error('Objective create - Error message:', error.message);
+      console.error('Objective create - Error stack:', error.stack);
+      res.status(500).json({ 
+        message: 'Error interno del servidor',
+        error: error.message
       })
-    } catch (error) {
-      console.error('Error al crear objetivo:', error)
-      res.status(500).json({ message: 'Error interno del servidor' })
     }
   }
 
