@@ -13,15 +13,14 @@ function bufferToUuid(buffer) {
   ].join('-')
 }
 
-export class ModelsTask {
-  static async create({ title, description, objective_id, assigned_to, created_by }) {
+export class ModelsTask {  static async create({ title, description, objective_id, assigned_to, priority, created_by }) {
     try {
       const connection = await getConnection()
       const taskId = uuidv4()
       
       const [result] = await connection.execute(
-        'INSERT INTO tasks (id, title, description, objective_id, assigned_to, created_by, status) VALUES (?, ?, ?, ?, ?, ?, "pending")',
-        [taskId, title, description || null, objective_id, assigned_to || null, created_by]
+        'INSERT INTO tasks (id, title, description, objective_id, assigned_to, priority, created_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, "pending")',
+        [taskId, title, description || null, objective_id, assigned_to || null, priority || 'medium', created_by]
       )
       
       // Obtener la tarea recién creada con información de usuario
@@ -122,8 +121,7 @@ export class ModelsTask {
       group_id: row.group_id ? bufferToUuid(row.group_id) : row.group_id
     }))
   }
-
-  static async update(id, { title, description, assigned_to, status }) {
+  static async update(id, { title, description, assigned_to, priority, status }) {
     const connection = await getConnection()
     
     // Preparar los campos a actualizar
@@ -141,6 +139,10 @@ export class ModelsTask {
     if (assigned_to !== undefined) {
       updates.push('assigned_to = ?')
       values.push(assigned_to)
+    }
+    if (priority !== undefined) {
+      updates.push('priority = ?')
+      values.push(priority)
     }
     if (status !== undefined) {
       updates.push('status = ?')

@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 import http from 'http'
 import { Server as SocketServer } from 'socket.io'
 import { configureSocket } from './src/config/socket.io.js'
+import { setSocketInstance } from './src/utils/socketManager.js'
 import { serverError } from './src/middlewares/error.middlewar.js' 
 import { requestLogger } from './src/middlewares/logger.middleware.js'
 
@@ -26,7 +27,7 @@ const server = http.createServer(app)
 // CORS configuration
 const corsOptions = {
   origin: '*',  // Permitir todas las origenes para depuración
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }
@@ -55,6 +56,8 @@ const io = new SocketServer(server, {
   }
 })
 
+// Set Socket.IO instance in manager for access from controllers
+setSocketInstance(io)
 configureSocket(io)
 
 

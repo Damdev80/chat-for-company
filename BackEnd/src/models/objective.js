@@ -117,7 +117,6 @@ export class ModelsObjective {
     connection.end()
     return result
   }
-
   static async getProgress(id) {
     const connection = await getConnection();
     
@@ -125,18 +124,18 @@ export class ModelsObjective {
     let completed = 0;
 
     try {
-      const totalResult = await connection.execute({
-        sql: 'SELECT COUNT(id) as total FROM tasks WHERE objective_id = ?',
-        args: [id]
-      });
+      const totalResult = await connection.execute(
+        'SELECT COUNT(id) as total FROM tasks WHERE objective_id = ?',
+        [id]
+      );
       if (totalResult.rows && totalResult.rows.length > 0) {
         total = totalResult.rows[0].total;
       }
 
-      const completedResult = await connection.execute({
-        sql: 'SELECT COUNT(id) as completed FROM tasks WHERE objective_id = ? AND status = "completed"',
-        args: [id]
-      });
+      const completedResult = await connection.execute(
+        'SELECT COUNT(id) as completed FROM tasks WHERE objective_id = ? AND status = "completed"',
+        [id]
+      );
       if (completedResult.rows && completedResult.rows.length > 0) {
         completed = completedResult.rows[0].completed;
       }

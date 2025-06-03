@@ -9,17 +9,18 @@ export function Home() {
     const ref = useRef(null)
 
     useEffect(() => {
-      if (!ref.current) return
+      const currentRef = ref.current
+      if (!currentRef) return
 
       const observer = new IntersectionObserver(([entry]) => {
         setIsInView(entry.isIntersecting)
       }, options)
 
-      observer.observe(ref.current)
+      observer.observe(currentRef)
 
       return () => {
-        if (ref.current) {
-          observer.unobserve(ref.current)
+        if (currentRef) {
+          observer.unobserve(currentRef)
         }
       }
     }, [options])

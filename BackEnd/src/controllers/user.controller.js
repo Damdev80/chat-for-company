@@ -137,11 +137,10 @@ export class UserController {  static async register(req, res) {
       res.status(500).json({ message: 'Error interno del servidor' })
     }
   }
-
   static async getAll(req, res) {
     try {
       const users = await ModelsUser.getAll()
-      res.json(users)
+      res.json({ users })
     } catch (error) {
       console.error('Error al obtener usuarios:', error)
       res.status(500).json({ message: 'Error interno del servidor' })

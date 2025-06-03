@@ -9,7 +9,9 @@ import {
   CheckCircle, 
   Clock,
   AlertCircle,
-  X
+  X,
+  Flag,
+  Users
 } from 'lucide-react';
 import { 
   fetchTasksByObjective, 
@@ -26,11 +28,11 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  const [formData, setFormData] = useState({
+  const [editingTask, setEditingTask] = useState(null);  const [formData, setFormData] = useState({
     title: '',
     description: '',
-    assigned_to: ''
+    assigned_to: '',
+    priority: 'medium'
   });
   const loadTasks = useCallback(async () => {
     try {
@@ -80,56 +82,70 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
         }, token);
         console.log('Respuesta del servidor:', response);
       }
-      
-      await loadTasks();
+        await loadTasks();
       resetForm();
-      if (onTaskUpdate) onTaskUpdate();
+      console.log('TaskManager: Task saved successfully, calling onTaskUpdate...');
+      if (onTaskUpdate) {
+        await onTaskUpdate();
+        console.log('TaskManager: onTaskUpdate called after save');
+      }
     } catch (error) {
       console.error('Error al guardar tarea:', error);
       console.error('Detalles del error:', error.message);
       alert(`Error al guardar la tarea: ${error.message}`);
     }
   };
-
   const handleDelete = async (taskId) => {
     if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) return;
     
     try {
+      console.log('TaskManager: Deleting task', taskId);
       const token = getToken();
       await deleteTask(taskId, token);
+      console.log('TaskManager: Task deleted successfully, reloading tasks...');
       await loadTasks();
-      if (onTaskUpdate) onTaskUpdate();
+      console.log('TaskManager: Tasks reloaded, calling onTaskUpdate...');
+      if (onTaskUpdate) {
+        await onTaskUpdate();
+        console.log('TaskManager: onTaskUpdate called after delete');
+      }
     } catch (error) {
       console.error('Error al eliminar tarea:', error);
       alert('Error al eliminar la tarea');
     }
   };
 
-
   const handleComplete = async (taskId) => {
     try {
+      console.log('TaskManager: Completing task', taskId);
       const token = getToken();
-      await markTaskCompleted(taskId, token);
+      await markTaskCompleted(taskId, token);      console.log('TaskManager: Task completed successfully, reloading tasks...');
       await loadTasks();
-      if (onTaskUpdate) onTaskUpdate();
+      console.log('TaskManager: Tasks reloaded, calling onTaskUpdate...');
+      if (onTaskUpdate) {
+        console.log('TaskManager: About to call onTaskUpdate function');
+        await onTaskUpdate();
+        console.log('TaskManager: onTaskUpdate called successfully');
+      } else {
+        console.warn('TaskManager: onTaskUpdate is not defined!');
+      }
     } catch (error) {
       console.error('Error al completar tarea:', error);
       alert('Error al completar la tarea');
     }
   };
-
   const resetForm = () => {
-    setFormData({ title: '', description: '', assigned_to: '' });
+    setFormData({ title: '', description: '', assigned_to: '', priority: 'medium' });
     setShowCreateForm(false);
     setEditingTask(null);
   };
-
   const startEdit = (task) => {
     setEditingTask(task);
     setFormData({
       title: task.title,
       description: task.description || '',
-      assigned_to: task.assigned_to || ''
+      assigned_to: task.assigned_to || '',
+      priority: task.priority || 'medium'
     });
     setShowCreateForm(true);
   };
@@ -143,7 +159,6 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
         return <AlertCircle size={16} className="text-[#A0A0B0]" />;
     }
   };
-
   const getStatusText = (status) => {
     switch (status) {
       case 'completed':
@@ -152,6 +167,21 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
         return 'Pendiente';
       default:
         return 'Desconocido';
+    }
+  };
+
+  const getPriorityDisplay = (priority) => {
+    switch (priority) {
+      case 'low':
+        return { icon: '🟢', text: 'Baja', color: 'text-green-400' };
+      case 'medium':
+        return { icon: '🟡', text: 'Media', color: 'text-yellow-400' };
+      case 'high':
+        return { icon: '🟠', text: 'Alta', color: 'text-orange-400' };
+      case 'critical':
+        return { icon: '🔴', text: 'Crítica', color: 'text-red-400' };
+      default:
+        return { icon: '🟡', text: 'Media', color: 'text-yellow-400' };
     }
   };
 
@@ -166,10 +196,8 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
         </div>
       </div>
     );
-  }
-
-  return (
-    <div className="space-y-4">
+  }  return (
+    <div className="p-6 pb-8 space-y-6">
       {/* Header con botón de ayuda */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-white flex items-center space-x-2">
@@ -196,9 +224,8 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
             <div className="p-2 bg-[#4ADE80]/20 rounded-lg">
               <User size={20} className="text-[#4ADE80]" />
             </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-white mb-2">
-                💡 Cómo asignar tareas a usuarios
+            <div className="flex-1">              <h4 className="text-sm font-semibold text-white mb-2">
+                💡 Cómo crear y gestionar tareas efectivamente
               </h4>
               <ul className="text-sm text-[#A0A0B0] space-y-2">
                 <li className="flex items-center space-x-2">
@@ -207,11 +234,11 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
                 </li>
                 <li className="flex items-center space-x-2">
                   <span className="w-5 h-5 bg-[#60A5FA] text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                  <span>Escribe un título descriptivo para la tarea</span>
+                  <span>Escribe un título descriptivo y selecciona la prioridad</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <span className="w-5 h-5 bg-[#FBBF24] text-black rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                  <span>En "Asignar a", selecciona el usuario responsable</span>
+                  <span>Asigna la tarea a un usuario específico o déjala libre</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <span className="w-5 h-5 bg-[#F87171] text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
@@ -220,7 +247,7 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
               </ul>
               <div className="mt-3 p-3 bg-[#2D2D3A] rounded-lg">
                 <p className="text-xs text-[#4ADE80] font-medium">
-                  ✅ Los usuarios asignados verán sus tareas en la pestaña "Mis Tareas"
+                  ✅ Las tareas se organizan por prioridad y los usuarios asignados las verán en "Mis Tareas"
                 </p>
               </div>
             </div>
@@ -243,8 +270,7 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
             >
               <X size={18} />
             </button>
-          </div>
-            <form onSubmit={handleSubmit} className="space-y-3">
+          </div>            <form onSubmit={handleSubmit} className="space-y-4">
             {/* Title field - full width */}
             <div>
               <label className="block text-sm font-medium text-white mb-1">
@@ -261,8 +287,34 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
               />
             </div>
 
-            {/* Grid layout for assignee and description */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">              <div>
+            {/* Grid layout for priority and user assignment */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Priority Selection */}
+              <div>
+                <label className="flex items-center space-x-2 text-sm font-medium text-white mb-1">
+                  <Flag size={14} className="text-[#4ADE80]" />
+                  <span>Prioridad / Importancia</span>
+                </label>
+                <select
+                  value={formData.priority}
+                  onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                  className="w-full bg-[#1E1E2E] border border-[#3C3C4E] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:border-transparent transition-all"
+                >
+                  <option value="low" className="text-white">🟢 Baja - No urgente</option>
+                  <option value="medium" className="text-white">🟡 Media - Importante</option>
+                  <option value="high" className="text-white">🟠 Alta - Urgente</option>
+                  <option value="critical" className="text-white">🔴 Crítica - Muy urgente</option>
+                </select>
+                <p className="text-xs text-[#A0A0B0] mt-1">
+                  {formData.priority === 'low' && "✅ Puede realizarse cuando haya tiempo"}
+                  {formData.priority === 'medium' && "⚠️ Debe completarse en tiempo razonable"}
+                  {formData.priority === 'high' && "🚨 Requiere atención pronta"}
+                  {formData.priority === 'critical' && "🚩 Necesita atención inmediata"}
+                </p>
+              </div>
+
+              {/* User Assignment */}
+              <div>
                 <label className="flex items-center space-x-2 text-sm font-medium text-white mb-1">
                   <User size={14} className="text-[#4ADE80]" />
                   <span>Asignar a Usuario</span>
@@ -286,19 +338,20 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
                   }
                 </p>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-white mb-1">
-                  Descripción
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full bg-[#1E1E2E] border border-[#3C3C4E] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:border-transparent transition-all resize-none"
-                  placeholder="Describe la tarea (opcional)"
-                  rows="2"
-                />
-              </div>
+            </div>
+
+            {/* Description field - full width */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-1">
+                Descripción
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="w-full bg-[#1E1E2E] border border-[#3C3C4E] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:border-transparent transition-all resize-none"
+                placeholder="Describe la tarea en detalle (opcional)"
+                rows="3"
+              />
             </div>
 
             {/* Buttons - always visible at bottom */}
@@ -323,7 +376,7 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
 
       {/* Tasks List */}
       <div className="space-y-3">        {tasks.length === 0 ? (
-          <div className="text-center py-8 text-[#A0A0B0] bg-[#2D2D3A] border border-[#3C3C4E] rounded-lg">
+          <div className="text-center py-8 mb-6 text-[#A0A0B0] bg-[#2D2D3A] border border-[#3C3C4E] rounded-lg">
             <Target size={48} className="mx-auto mb-4 text-[#4ADE80]" />
             <p className="font-medium text-white mb-2">No hay tareas para este objetivo</p>
             <p className="text-sm mb-4">Las tareas te ayudan a dividir el objetivo en pasos manejables</p>
@@ -345,8 +398,7 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
               }`}
             >
               <div className="flex justify-between items-start">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center space-x-2">
+                <div className="flex-1 space-y-2">                  <div className="flex items-center space-x-2">
                     {getStatusIcon(task.status)}
                     <h4 className={`font-medium ${
                       task.status === 'completed' ? 'line-through text-[#A0A0B0]' : 'text-white'
@@ -360,6 +412,13 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
                     }`}>
                       {getStatusText(task.status)}
                     </span>
+                    {/* Priority indicator */}
+                    {task.priority && (
+                      <span className={`text-xs px-2 py-1 rounded-full bg-gray-700/50 ${getPriorityDisplay(task.priority).color} flex items-center space-x-1`}>
+                        <span>{getPriorityDisplay(task.priority).icon}</span>
+                        <span>{getPriorityDisplay(task.priority).text}</span>
+                      </span>
+                    )}
                   </div>
                   
                   {task.description && (

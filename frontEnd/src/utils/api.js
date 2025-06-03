@@ -1,7 +1,6 @@
 // src/utils/api.js
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-console.log('API URL configurada:', API_URL);
 
 export async function fetchMessages(token) {
   const res = await fetch(`${API_URL}/messages`, {
@@ -112,21 +111,20 @@ export async function fetchObjectives(token) {
 }
 
 export async function fetchObjectivesByGroup(groupId, token) {
-  console.log(`[api.js] fetchObjectivesByGroup called with groupId: ${groupId}, token: ${token ? 'Present' : 'Missing'}`);
   try {
     const res = await fetch(`${API_URL}/objectives/group/${groupId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
-    console.log(`[api.js] fetchObjectivesByGroup response status: ${res.status}`);
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`[api.js] Error fetching objectives by group. Status: ${res.status}, Response: ${errorText}`);
       throw new Error(`Error al obtener objetivos del grupo: ${errorText}`);
     }
+
     const data = await res.json();
-    console.log('[api.js] Objectives fetched successfully:', data);
+    
     return data;
   } catch (error) {
     console.error('[api.js] Catch block error in fetchObjectivesByGroup:', error);
@@ -135,7 +133,6 @@ export async function fetchObjectivesByGroup(groupId, token) {
 }
 
 export async function createObjective(objective, token) {
-  console.log('API createObjective llamada con:', { objective, token: token ? 'Present' : 'Missing' });
   try {
     const res = await fetch(`${API_URL}/objectives`, {
       method: 'POST',
@@ -146,8 +143,6 @@ export async function createObjective(objective, token) {
       body: JSON.stringify(objective),
     });
     
-    console.log('Respuesta del servidor para objetivo:', res.status, res.statusText);
-    
     if (!res.ok) {
       const errorData = await res.text();
       console.error('Error en createObjective:', errorData);
@@ -155,7 +150,6 @@ export async function createObjective(objective, token) {
     }
     
     const result = await res.json();
-    console.log('Objetivo creado exitosamente:', result);
     return result;
   } catch (error) {
     console.error('Error en createObjective:', error);
@@ -230,7 +224,6 @@ export async function fetchMyTasks(token) {
 }
 
 export async function createTask(task, token) {
-  console.log('API createTask llamada con:', { task, token: token ? 'Present' : 'Missing' });
   try {
     const res = await fetch(`${API_URL}/tasks`, {
       method: 'POST',
@@ -241,8 +234,6 @@ export async function createTask(task, token) {
       body: JSON.stringify(task),
     });
     
-    console.log('Respuesta del servidor:', res.status, res.statusText);
-    
     if (!res.ok) {
       const errorData = await res.text();
       console.error('Error en createTask:', errorData);
@@ -250,7 +241,6 @@ export async function createTask(task, token) {
     }
     
     const result = await res.json();
-    console.log('Tarea creada exitosamente:', result);
     return result;
   } catch (error) {
     console.error('Error en createTask:', error);
@@ -273,7 +263,7 @@ export async function updateTask(id, task, token) {
 
 export async function assignTask(id, userId, token) {
   const res = await fetch(`${API_URL}/tasks/${id}/assign`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -286,7 +276,7 @@ export async function assignTask(id, userId, token) {
 
 export async function markTaskCompleted(id, token) {
   const res = await fetch(`${API_URL}/tasks/${id}/complete`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       'Authorization': `Bearer ${token}`,
     },

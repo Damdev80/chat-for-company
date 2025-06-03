@@ -12,9 +12,9 @@ function Register() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  
   const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log("Iniciando registro de usuario...")
     
     if (!username || !email || !password || !confirmPassword) {
       setError("Por favor, completa todos los campos")
@@ -28,11 +28,9 @@ function Register() {
     
     setError("")
     setLoading(true)
-    console.log("Enviando datos de registro...")
     
     try {
-      const response = await registerUser({ username, email, password })
-      console.log("Registro exitoso:", response)
+      await registerUser({ username, email, password })
       navigate("/login")
     } catch (err) {
       console.error("Error en el registro:", err)

@@ -1,4 +1,5 @@
 import { ModelsObjective } from '../models/objective.js'
+import { ModelsTask } from '../models/task.js'
 import { objectiveSchema, updateObjectiveSchema } from '../validations/objective.validation.js'
 
 export class ObjectiveController {
@@ -109,17 +110,22 @@ export class ObjectiveController {
       if (!objectives) {
         console.log(`[ObjectiveController] No objectives found for groupId: ${groupId}`);
         return res.status(404).json({ message: 'No objectives found for this group' });
-      }
-      
-      // Obtener progreso para cada objetivo
+      }        // Obtener progreso para cada objetivo
       const objectivesWithProgress = await Promise.all(
         objectives.map(async (objective) => {
-          console.log(`[ObjectiveController] Getting progress for objectiveId: ${objective.id}`); // Log before getting progress
+          console.log(`[ObjectiveController] Getting progress for objectiveId: ${objective.id}`);
           const progress = await ModelsObjective.getProgress(objective.id);
-          console.log(`[ObjectiveController] Progress for objectiveId ${objective.id}:`, progress); // Log progress result
+          
+          // Get ALL tasks, not just pending ones
+          const allTasks = await ModelsTask.getByObjectiveId(objective.id);
+          
+          console.log(`[ObjectiveController] Progress for objectiveId ${objective.id}:`, progress);
+          console.log(`[ObjectiveController] All tasks for objectiveId ${objective.id}:`, allTasks);
+          
           return {
             ...objective,
-            progress
+            progress,
+            tasks: allTasks // Include ALL tasks so frontend can calculate correctly
           };
         })
       );

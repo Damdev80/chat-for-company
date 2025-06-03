@@ -1,6 +1,7 @@
 import { ModelsTask } from '../models/task.js'
 import { ModelsObjective } from '../models/objective.js'
 import { taskSchema, updateTaskSchema, assignTaskSchema } from '../validations/task.validation.js'
+import { emitTaskCompleted, emitProgressUpdate, emitObjectiveCompleted } from '../utils/socketManager.js'
 
 export class TaskController {
   static async create(req, res) {
@@ -14,12 +15,10 @@ export class TaskController {
       if (!result.success) {
         console.log('Validation failed:', result.error.issues);
         return res.status(400).json({ errors: result.error.issues })
-      }
-
-      const { title, description, objective_id, assigned_to } = result.data
+      }      const { title, description, objective_id, assigned_to, priority } = result.data
       const created_by = req.user.id
 
-      console.log('Parsed data:', { title, description, objective_id, assigned_to, created_by });
+      console.log('Parsed data:', { title, description, objective_id, assigned_to, priority, created_by });
 
       // Verificar que el objetivo existe
       const objective = await ModelsObjective.getById(objective_id)
@@ -28,14 +27,13 @@ export class TaskController {
         return res.status(404).json({ message: 'Objetivo no encontrado' })
       }
 
-      console.log('Objective found:', objective);
-
-      // Crear la tarea
+      console.log('Objective found:', objective);      // Crear la tarea
       const task = await ModelsTask.create({
         title,
         description,
         objective_id,
         assigned_to,
+        priority,
         created_by
       })
 
@@ -76,12 +74,11 @@ export class TaskController {
       res.status(500).json({ message: 'Error interno del servidor' })
     }
   }
-
   static async getByObjectiveId(req, res) {
     try {
       const { objectiveId } = req.params
       const tasks = await ModelsTask.getByObjectiveId(objectiveId)
-      res.json(tasks)
+      res.json({ tasks })
     } catch (error) {
       console.error('Error al obtener tareas del objetivo:', error)
       res.status(500).json({ message: 'Error interno del servidor' })
@@ -98,12 +95,11 @@ export class TaskController {
       res.status(500).json({ message: 'Error interno del servidor' })
     }
   }
-
   static async getMyTasks(req, res) {
     try {
       const userId = req.user.id
       const tasks = await ModelsTask.getByUserId(userId)
-      res.json(tasks)
+      res.json({ tasks })
     } catch (error) {
       console.error('Error al obtener mis tareas:', error)
       res.status(500).json({ message: 'Error interno del servidor' })
@@ -198,16 +194,47 @@ export class TaskController {
       res.status(500).json({ message: 'Error interno del servidor' })
     }
   }
-
   static async markAsCompleted(req, res) {
     try {
       const { id } = req.params
       const userId = req.user.id
 
+      console.log('=== TASK COMPLETION REQUEST ===')
+      console.log('Task ID:', id)
+      console.log('User ID:', userId)
+
       // Marcar como completada (verificará permisos internamente)
       await ModelsTask.markAsCompleted(id, userId)
+
+      // Get the completed task with full details
+      const completedTask = await ModelsTask.getById(id)
+      console.log('Completed task details:', completedTask)
+
+      // Get the objective details
+      const objective = await ModelsObjective.getById(completedTask.objective_id)
+      console.log('Objective details:', objective)
+
+      if (objective) {
+        // Emit task completion event
+        await emitTaskCompleted(completedTask, objective)
+
+        // Calculate and emit progress update
+        const progress = await ModelsObjective.getProgress(objective.id)
+        console.log('Updated progress:', progress)
+        
+        await emitProgressUpdate(objective, progress)
+
+        // Check if objective is now completed (100% progress)
+        if (progress.progress >= 100) {
+          console.log('🎉 Objective completed! Emitting objective_completed event')
+          await emitObjectiveCompleted(objective)
+        }
+      }
       
-      res.json({ message: 'Tarea marcada como completada' })
+      res.json({ 
+        message: 'Tarea marcada como completada',
+        progress: objective ? await ModelsObjective.getProgress(objective.id) : null
+      })
     } catch (error) {
       console.error('Error al completar tarea:', error)
       

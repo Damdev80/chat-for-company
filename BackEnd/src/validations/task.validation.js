@@ -6,23 +6,25 @@ export const taskSchema = z.object({
   }).min(1, 'El título no puede estar vacío').max(200, 'El título es demasiado largo'),
 
   description: z.string().max(1000, 'La descripción es demasiado larga').optional(),
-
   objective_id: z.string({
     required_error: 'El objetivo es obligatorio',
   }).min(1, 'El objetivo es obligatorio'),
 
-  assigned_to: z.string().uuid('ID de usuario inválido').optional()
+  assigned_to: z.string().regex(/^[a-f0-9]{32}$/, 'ID de usuario inválido').optional(),
+
+  priority: z.enum(['low', 'medium', 'high', 'critical'], 'Prioridad inválida').optional().default('medium')
 })
 
 export const updateTaskSchema = z.object({
   title: z.string().min(1, 'El título no puede estar vacío').max(200, 'El título es demasiado largo').optional(),
   description: z.string().max(1000, 'La descripción es demasiado larga').optional(),
-  assigned_to: z.string().uuid('ID de usuario inválido').optional(),
-  status: z.enum(['pending', 'completed'], 'Estado inválido').optional()
+  assigned_to: z.string().regex(/^[a-f0-9]{32}$/, 'ID de usuario inválido').optional(),
+  status: z.enum(['pending', 'completed'], 'Estado inválido').optional(),
+  priority: z.enum(['low', 'medium', 'high', 'critical'], 'Prioridad inválida').optional()
 })
 
 export const assignTaskSchema = z.object({
   assigned_to: z.string({
     required_error: 'El usuario es obligatorio',
-  }).uuid('ID de usuario inválido')
+  }).regex(/^[a-f0-9]{32}$/, 'ID de usuario inválido')
 })
