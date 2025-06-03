@@ -13,19 +13,26 @@ function bufferToUuid(buffer) {
   ].join('-')
 }
 
-export class ModelsObjective {
-  static async create({ title, description, group_id, created_by, deadline }) {
+export class ModelsObjective {  static async create({ title, description, group_id, created_by, deadline }) {
     try {
+      console.error('ModelsObjective.create - Input params:', { title, description, group_id, created_by, deadline });
+      
       const connection = await getConnection()
+      console.error('ModelsObjective.create - Got database connection');
+      
       const objectiveId = uuidv4()
+      console.error('ModelsObjective.create - Generated ID:', objectiveId);
       
       // Convert group_id hex string to Buffer for BLOB storage
       const bufferGroupId = Buffer.from(group_id.replace(/-/g, ''), 'hex')
+      console.error('ModelsObjective.create - Converted group_id to buffer:', bufferGroupId);
       
       const [result] = await connection.execute(
         'INSERT INTO objectives (id, title, description, group_id, created_by, deadline) VALUES (?, ?, ?, ?, ?, ?)',
         [objectiveId, title, description || null, bufferGroupId, created_by, deadline || null]
       )
+      
+      console.error('ModelsObjective.create - Insert result:', result);
       
       // Obtener el objetivo recién creado
       const [rows] = await connection.execute(
@@ -33,12 +40,16 @@ export class ModelsObjective {
         [objectiveId]
       )
       
+      console.error('ModelsObjective.create - Retrieved objective:', rows[0]);
+      
       connection.end()
       
       const objective = rows[0]
       if (objective && objective.group_id) {
         objective.group_id = bufferToUuid(objective.group_id)
       }
+      
+      console.error('ModelsObjective.create - Final objective:', objective);
       
       return objective
     } catch (error) {
