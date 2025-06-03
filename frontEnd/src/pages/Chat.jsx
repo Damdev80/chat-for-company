@@ -170,14 +170,16 @@ function Chat() {
       setActiveGroup("global");
     }
   }, [groups, activeGroup]);
-
   // Cargar usuarios desde la API
   useEffect(() => {
     if (!token) return;
     fetchUsers(token)
-      .then(setUsers)
+      .then((data) => {
+        // Handle the API response structure: { users: [...] }
+        setUsers(data.users || []);
+      })
       .catch(() => setUsers([]));
-  }, [token]); // Conexión a Socket.io y eventos
+  }, [token]);// Conexión a Socket.io y eventos
   useEffect(() => {
     if (!token) return;
     // Inicializar socket
@@ -814,9 +816,8 @@ function Chat() {
                         ? "text-[#4ADE80] border-b-2 border-[#4ADE80]"
                         : "text-[#A0A0B0] hover:text-white"
                     } font-medium text-sm`}
-                    onClick={() => handleTabChange("contacts")}
-                  >
-                    Contactos
+                    onClick={() => handleTabChange("contacts")}                  >
+                    Usuarios
                   </button>
                   <button
                     className={`flex-1 py-3 ${
@@ -1064,10 +1065,9 @@ function Chat() {
                     : "text-[#A0A0B0] hover:text-white"
                 } font-medium text-sm transition-all`}
                 onClick={() => handleTabChange("contacts")}
-              >
-                <div className="flex items-center justify-center">
+              >                <div className="flex items-center justify-center">
                   <Users size={16} className="mr-2" />
-                  <span>Contactos</span>
+                  <span>Usuarios</span>
                 </div>
               </button>{" "}
               <button
@@ -1500,14 +1500,15 @@ function Chat() {
                       </button>
                     )}
                   </div>{" "}
-                </div>                {/* Resumen de Progreso de Objetivos */}
-                <div className="p-4 border-b border-[#3C3C4E]">
+                </div>                {/* Resumen de Progreso de Objetivos - Enhanced UI 20% Height */}
+                <div className="px-4 py-4 border-b border-[#3C3C4E]/70 bg-gradient-to-r from-[#1E1E2E]/30 to-[#2D2D3A]/30">
                   <ObjectiveProgressSummary
                     key={`progress-${activeGroup}-${objectiveRefreshKey}`}
                     groupId={activeGroup}
                     groupName={
                       groups.find((g) => g.id === activeGroup)?.name || "Global"
                     }
+                    compact={true}
                   />
                 </div>
                 {/* Mensajes */}

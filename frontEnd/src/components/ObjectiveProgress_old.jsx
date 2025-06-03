@@ -7,6 +7,19 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  // Debug: Log the objective prop whenever it changes
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('🎯 ObjectiveProgress received objective:', {
+        id: objective?.id,
+        title: objective?.title,
+        tasks: objective?.tasks,
+        tasksCount: objective?.tasks?.length,
+        progress: objective?.progress,
+        fullObjective: objective
+      });
+    }
+  }, [objective]);
 
   // Confetti effect
   const triggerConfetti = useCallback(() => {
@@ -16,15 +29,14 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
       origin: { y: 0.6 },
       colors: ['#4ADE80', '#60A5FA', '#F59E0B']
     });
-  }, []);
-
-  // Calculate progress from tasks
+  }, []);  // Calculate progress from tasks
   const calculateProgress = useCallback((tasks) => {
     if (!Array.isArray(tasks) || tasks.length === 0) {
       return { total: 0, completed: 0, percentage: 0, pendingTasks: [] };
     }
 
     const completed = tasks.filter(task => {
+      // More flexible status checking
       const isCompleted = task && (
         task.status === 'completed' || 
         task.status === 'completada' ||
@@ -41,13 +53,23 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
       task.status === 'pendiente' ||
       task.status === 'in_progress' ||
       task.status === 'en_progreso'
-    ));
-
-    return { total, completed, percentage, pendingTasks };
+    ));    const result = { total, completed, percentage, pendingTasks };
+    return result;
   }, []);
 
   useEffect(() => {
+    // Debug: Log all tasks and their status in development
+    if (import.meta.env.DEV && objective?.tasks) {
+      console.log('📋 ObjectiveProgress: Tasks breakdown:', objective.tasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        status: task.status,
+        rawTask: task
+      })));
+    }
+
     if (objective) {
+      // Always calculate progress from tasks since backend progress calculation has issues
       if (objective.tasks && Array.isArray(objective.tasks)) {
         const calculatedProgress = calculateProgress(objective.tasks);
         setProgress(calculatedProgress);
@@ -82,23 +104,24 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
     hasTriggeredConfetti, 
     triggerConfetti, 
     onProgressUpdate
-  ]);
-
-  // Listen for progress updates from Socket.IO
+  ]);  // Listen for progress updates from Socket.IO
   useEffect(() => {
     const handleProgressUpdate = (event) => {
       const data = event.detail;
       
+      // Check if this update is for our objective
       if (data.objective_id === objective?.id) {
+        // Update progress state directly
         const newProgress = {
           total: data.total_tasks,
           completed: data.completed_tasks,
           percentage: Math.round(data.progress),
-          pendingTasks: progress?.pendingTasks || []
+          pendingTasks: progress?.pendingTasks || [] // Keep existing pending tasks for now
         };
         
         setProgress(newProgress);
         
+        // Trigger confetti if completed
         if (newProgress.percentage === 100 && !hasTriggeredConfetti) {
           triggerConfetti();
           setHasTriggeredConfetti(true);
@@ -118,33 +141,32 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
 
   if (loading) {
     return (
-      <div className="bg-[#2D2D3A] border border-[#3C3C4E] rounded-lg p-2">
+      <div className="bg-[#2D2D3A] border border-[#3C3C4E] rounded-lg p-3">
         <div className="animate-pulse flex items-center justify-between">
-          <div className="h-3 bg-[#3C3C4E] rounded w-16"></div>
-          <div className="h-3 bg-[#3C3C4E] rounded w-8"></div>
+          <div className="h-4 bg-[#3C3C4E] rounded w-20"></div>
+          <div className="h-4 bg-[#3C3C4E] rounded w-10"></div>
         </div>
-        <div className="mt-1 h-1 bg-[#3C3C4E] rounded-full"></div>
+        <div className="mt-2 h-2 bg-[#3C3C4E] rounded-full"></div>
       </div>
     );
   }
 
   if (!progress) {
     return (
-      <div className="bg-[#2D2D3A] border border-[#3C3C4E] rounded-lg p-2">
-        <div className="flex items-center text-[#A0A0B0] text-xs">
-          <Clock size={12} className="mr-1.5" />
-          <span>Sin tareas</span>
+      <div className="bg-[#2D2D3A] border border-[#3C3C4E] rounded-lg p-3">
+        <div className="flex items-center text-[#A0A0B0] text-sm">
+          <Clock size={16} className="mr-2" />
+          <span>Sin tareas asignadas</span>
         </div>
       </div>
     );
   }
-
   const getProgressColor = () => {
-    if (progress.percentage === 100) return 'from-[#10B981] to-[#059669]';
-    if (progress.percentage >= 75) return 'from-[#3B82F6] to-[#1D4ED8]';
-    if (progress.percentage >= 50) return 'from-[#8B5CF6] to-[#7C3AED]';
-    if (progress.percentage >= 25) return 'from-[#F59E0B] to-[#D97706]';
-    return 'from-[#EF4444] to-[#DC2626]';
+    if (progress.percentage === 100) return 'from-[#10B981] to-[#059669]'; // Verde brillante
+    if (progress.percentage >= 75) return 'from-[#3B82F6] to-[#1D4ED8]'; // Azul
+    if (progress.percentage >= 50) return 'from-[#8B5CF6] to-[#7C3AED]'; // Púrpura
+    if (progress.percentage >= 25) return 'from-[#F59E0B] to-[#D97706]'; // Amarillo/Naranja
+    return 'from-[#EF4444] to-[#DC2626]'; // Rojo
   };
 
   const getTextColor = () => {
@@ -156,100 +178,105 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
   };
 
   const getProgressIcon = () => {
-    if (progress.percentage === 100) return <CheckCircle size={12} className={getTextColor()} />;
-    if (progress.percentage >= 75) return <Target size={12} className={getTextColor()} />;
-    return <Clock size={12} className={getTextColor()} />;
-  };
-
-  return (
-    <div className="bg-[#2D2D3A] border border-[#3C3C4E] rounded-lg overflow-hidden">
-      {/* Ultra Compact View */}
+    if (progress.percentage === 100) return <CheckCircle size={16} className={getTextColor()} />;
+    if (progress.percentage >= 75) return <Target size={16} className={getTextColor()} />;
+    return <Clock size={16} className={getTextColor()} />;
+  };  return (
+    <div className="bg-gradient-to-r from-[#2D2D3A] to-[#1E1E2E] border border-[#3C3C4E] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
+      {/* Compact View */}
       <div 
-        className="p-1.5 cursor-pointer hover:bg-[#3C3C4E]/10 transition-all duration-200"
+        className="p-2 cursor-pointer hover:bg-[#3C3C4E]/10 transition-all duration-200"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1.5">
+          <div className="flex items-center space-x-2">
             {getProgressIcon()}
-            <span className="text-[#A0A0B0] text-xs">
-              {progress.completed}/{progress.total}
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-white text-xs font-medium">Progreso</span>
+              <span className="text-[#A0A0B0] text-xs">
+                {progress.completed}/{progress.total}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center space-x-1.5">
-            <div className={`text-xs font-bold ${getTextColor()}`}>
+          
+          <div className="flex items-center space-x-2">
+            <div className={`text-sm font-bold ${getTextColor()}`}>
               {progress.percentage}%
             </div>
             {progress.percentage === 100 && <span className="text-xs">🎉</span>}
             {isExpanded ? 
-              <ChevronUp size={10} className="text-[#A0A0B0]" /> : 
-              <ChevronDown size={10} className="text-[#A0A0B0]" />
+              <ChevronUp size={14} className="text-[#A0A0B0] hover:text-white transition-colors" /> : 
+              <ChevronDown size={14} className="text-[#A0A0B0] hover:text-white transition-colors" />
             }
           </div>
         </div>
             
-        {/* Ultra Thin Progress Bar */}
-        <div className="mt-1">
-          <div className="w-full bg-[#3C3C4E] rounded-full h-0.5 overflow-hidden">
+        {/* Compact Progress Bar */}
+        <div className="mt-2">
+          <div className="w-full bg-[#3C3C4E] rounded-full h-1.5 overflow-hidden">
             <div 
-              className={`h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r ${getProgressColor()}`}
+              className={`h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r ${getProgressColor()} ${progress.percentage === 100 ? 'shadow-sm shadow-[#10B981]/30' : ''}`}
               style={{ width: `${progress.percentage}%` }}
-            />
+            >
+              {/* Subtle shimmer for active progress */}
+              {progress.percentage > 0 && progress.percentage < 100 && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Minimalist Expanded View */}
+      </div>      {/* Simplified Expanded View */}
       {isExpanded && (
-        <div className="border-t border-[#3C3C4E]/30 bg-[#1E1E2E] p-2">
-          {/* Mini Stats */}
-          <div className="flex justify-around text-center mb-2">
+        <div className="border-t border-[#3C3C4E]/30 bg-[#1E1E2E] p-3 space-y-3">
+          {/* Simple Stats */}
+          <div className="flex justify-around text-center">
             <div className="flex flex-col items-center">
-              <CheckCircle size={12} className="text-[#10B981] mb-0.5" />
-              <div className="text-xs font-bold text-[#10B981]">{progress.completed}</div>
+              <CheckCircle size={16} className="text-[#10B981] mb-1" />
+              <div className="text-sm font-bold text-[#10B981]">{progress.completed}</div>
               <div className="text-xs text-[#A0A0B0]">Hechas</div>
             </div>
             
             <div className="flex flex-col items-center">
-              <Clock size={12} className="text-[#F59E0B] mb-0.5" />
-              <div className="text-xs font-bold text-[#F59E0B]">{progress.total - progress.completed}</div>
+              <Clock size={16} className="text-[#F59E0B] mb-1" />
+              <div className="text-sm font-bold text-[#F59E0B]">{progress.total - progress.completed}</div>
               <div className="text-xs text-[#A0A0B0]">Pendientes</div>
             </div>
             
             <div className="flex flex-col items-center">
-              <Target size={12} className="text-[#3B82F6] mb-0.5" />
-              <div className="text-xs font-bold text-[#3B82F6]">{progress.total}</div>
+              <Target size={16} className="text-[#3B82F6] mb-1" />
+              <div className="text-sm font-bold text-[#3B82F6]">{progress.total}</div>
               <div className="text-xs text-[#A0A0B0]">Total</div>
             </div>
           </div>
 
-          {/* Completion Message */}
+          {/* Completion Message - Simplified */}
           {progress.percentage === 100 && (
-            <div className="bg-[#10B981]/10 border border-[#10B981]/20 rounded p-1.5 text-center mb-2">
-              <div className="flex items-center justify-center space-x-1">
-                <CheckCircle size={12} className="text-[#10B981]" />
-                <span className="text-[#10B981] text-xs font-medium">¡Completado!</span>
-                <span className="text-xs">🎉</span>
+            <div className="bg-[#10B981]/10 border border-[#10B981]/20 rounded-lg p-2 text-center">
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle size={16} className="text-[#10B981]" />
+                <span className="text-[#10B981] text-sm font-medium">¡Completado!</span>
+                <span className="text-sm">🎉</span>
               </div>
             </div>
           )}
 
-          {/* Compact Pending Tasks */}
+          {/* Simplified Pending Tasks */}
           {progress.pendingTasks.length > 0 && progress.percentage < 100 && (
-            <div className="bg-[#2D2D3A] border border-[#3C3C4E]/30 rounded p-1.5">
-              <div className="flex items-center mb-1">
-                <Clock size={10} className="mr-1 text-[#F59E0B]" />
+            <div className="bg-[#2D2D3A] border border-[#3C3C4E]/30 rounded-lg p-2">
+              <div className="flex items-center mb-2">
+                <Clock size={14} className="mr-2 text-[#F59E0B]" />
                 <span className="text-xs font-medium text-white">Próximas ({progress.pendingTasks.length})</span>
               </div>
-              <div className="space-y-0.5">
-                {progress.pendingTasks.slice(0, 2).map((task) => (
-                  <div key={task.id} className="flex items-center p-0.5 bg-[#3C3C4E]/20 rounded text-xs">
-                    <div className="w-1 h-1 rounded-full bg-[#F59E0B] mr-1.5"></div>
+              <div className="space-y-1">
+                {progress.pendingTasks.slice(0, 2).map((task, index) => (
+                  <div key={task.id} className="flex items-center p-1 bg-[#3C3C4E]/20 rounded text-xs">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] mr-2"></div>
                     <span className="text-[#A0A0B0] truncate">{task.title}</span>
                   </div>
                 ))}
                 {progress.pendingTasks.length > 2 && (
                   <div className="text-center">
-                    <span className="text-xs text-[#10B981] bg-[#10B981]/10 px-1.5 py-0.5 rounded">
+                    <span className="text-xs text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded">
                       +{progress.pendingTasks.length - 2} más
                     </span>
                   </div>
@@ -257,8 +284,7 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
               </div>
             </div>
           )}
-        </div>
-      )}
+        </div>)}
     </div>
   );
 };

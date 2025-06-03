@@ -3,7 +3,7 @@ import { Target, TrendingUp, Users, Clock, CheckCircle, AlertCircle } from 'luci
 import { fetchObjectivesByGroup } from '../utils/api';
 import { getToken } from '../utils/auth';
 
-const ObjectiveProgressSummary = ({ groupId, groupName }) => {
+const ObjectiveProgressSummary = ({ groupId, groupName, compact = false }) => {
   const [objectives, setObjectives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalProgress, setTotalProgress] = useState(0);
@@ -147,9 +147,22 @@ const ObjectiveProgressSummary = ({ groupId, groupName }) => {
         </div>
       </div>
     );
-  }
-
-  if (objectives.length === 0) {
+  }  if (objectives.length === 0) {
+    if (compact) {
+      return (
+        <div className="bg-gradient-to-r from-[#2D2D3A]/90 to-[#1E1E2E]/90 backdrop-blur-sm border border-[#3C3C4E]/80 rounded-xl p-4 shadow-lg">
+          <div className="flex items-center justify-center space-x-3 text-[#A0A0B0]">
+            <div className="p-2 bg-[#6B7280]/20 rounded-lg border border-[#6B7280]/30">
+              <AlertCircle size={16} className="text-[#6B7280]" />
+            </div>
+            <div className="text-center">
+              <h4 className="text-white text-sm font-medium mb-1">Sin objetivos</h4>
+              <p className="text-xs text-[#A0A0B0]">No hay objetivos en {groupName}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="bg-gradient-to-br from-[#2D2D3A] to-[#1E1E2E] border border-[#3C3C4E] rounded-xl p-6">
         <div className="text-center py-4">
@@ -159,7 +172,61 @@ const ObjectiveProgressSummary = ({ groupId, groupName }) => {
         </div>
       </div>
     );
+  }  // Compact mode for chat interface - Simple 15% height design
+  if (compact) {
+    return (
+      <div className="bg-[#2D2D3A] border border-[#3C3C4E] rounded-xl p-3 shadow-md">
+        {/* Header with group info */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 bg-[#10B981]/20 rounded border border-[#10B981]/30">
+              <Target size={14} className="text-[#10B981]" />
+            </div>
+            <div>
+              <h4 className="text-white text-sm font-medium">{groupName}</h4>
+              <p className="text-[#A0A0B0] text-xs">{objectives.length} objetivo{objectives.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+          <div className={`text-sm font-bold ${
+            totalProgress === 100 ? 'text-[#10B981]' : 
+            totalProgress >= 75 ? 'text-[#3B82F6]' : 
+            totalProgress >= 50 ? 'text-[#8B5CF6]' : 
+            totalProgress >= 25 ? 'text-[#F59E0B]' : 'text-[#EF4444]'
+          }`}>
+            {totalProgress}%
+          </div>
+        </div>
+        
+        {/* Simple Progress Bar */}
+        <div className="w-full bg-[#3C3C4E] rounded-full h-2 mb-2">
+          <div 
+            className={`h-full rounded-full transition-all duration-500 ${
+              totalProgress === 100 ? 'bg-[#10B981]' : 
+              totalProgress >= 75 ? 'bg-[#3B82F6]' : 
+              totalProgress >= 50 ? 'bg-[#8B5CF6]' : 
+              totalProgress >= 25 ? 'bg-[#F59E0B]' : 'bg-[#EF4444]'
+            }`}
+            style={{ width: `${totalProgress}%` }}
+          />
+        </div>
+        
+        {/* Simple stats */}
+        <div className="flex justify-between text-xs text-[#A0A0B0]">
+          <span className="text-[#10B981]">{objectives.filter(obj => (obj.progress?.percentage ?? 0) === 100).length} completos</span>
+          <span className="text-[#F59E0B]">{objectives.filter(obj => (obj.progress?.percentage ?? 0) < 100 && (obj.progress?.percentage ?? 0) > 0).length} activos</span>
+          <span className="text-[#6B7280]">{objectives.filter(obj => (obj.progress?.percentage ?? 0) === 0).length} pendientes</span>
+        </div>
+        
+        {/* Simple completion message */}
+        {totalProgress === 100 && (
+          <div className="mt-2 bg-[#10B981]/10 border border-[#10B981]/30 rounded p-2 text-center">
+            <span className="text-[#10B981] text-xs font-medium">¡Todos completados! 🎉</span>
+          </div>
+        )}
+      </div>
+    );
   }
+
   return (
     <div className="bg-gradient-to-br from-[#2D2D3A] to-[#1E1E2E] border border-[#3C3C4E] rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300">
       {/* Header */}
