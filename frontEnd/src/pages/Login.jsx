@@ -106,16 +106,6 @@ function Login() {
                 />
               </div>
 
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-[#3C3C4E] bg-[#1E1E2E] text-[#4ADE80] focus:ring-[#4ADE80] focus:ring-offset-[#1E1E2E]"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-[#A0A0B0]">
-                  Recordarme
-                </label>
-              </div>
 
               <button
                 type="submit"
