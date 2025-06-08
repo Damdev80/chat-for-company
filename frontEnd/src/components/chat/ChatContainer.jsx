@@ -221,28 +221,73 @@ const ChatContainer = () => {  // Estados principales
     // Eventos para tracking de usuarios online
     socket.on("user_connected", (data) => {
       console.log("Usuario conectado:", data);
-      // Solicitar lista actualizada
-      socket.emit("get_online_users");
+      // Solicitar lista actualizada de forma segura
+      try {
+        socket.emit("get_online_users");
+      } catch (error) {
+        console.warn("Error solicitando usuarios online:", error);
+      }
     });
 
     socket.on("user_disconnected", (data) => {
       console.log("Usuario desconectado:", data);
-      // Solicitar lista actualizada
-      socket.emit("get_online_users");
+      // Solicitar lista actualizada de forma segura
+      try {
+        socket.emit("get_online_users");
+      } catch (error) {
+        console.warn("Error solicitando usuarios online:", error);
+      }
     });
 
     socket.on("online_users_updated", (usersList) => {
       console.log("Lista de usuarios online actualizada:", usersList);
-      setOnlineUsers(usersList);
+      try {
+        if (Array.isArray(usersList)) {
+          setOnlineUsers(usersList);
+        } else {
+          console.warn("Lista de usuarios online inválida:", usersList);
+          setOnlineUsers([]);
+        }
+      } catch (error) {
+        console.error("Error procesando usuarios online:", error);
+        setOnlineUsers([]);
+      }
     });
 
     socket.on("online_users_list", (usersList) => {
       console.log("Lista inicial de usuarios online:", usersList);
-      setOnlineUsers(usersList);
+      try {
+        if (Array.isArray(usersList)) {
+          setOnlineUsers(usersList);
+        } else {
+          console.warn("Lista inicial de usuarios online inválida:", usersList);
+          setOnlineUsers([]);
+        }
+      } catch (error) {
+        console.error("Error procesando lista inicial de usuarios:", error);
+        setOnlineUsers([]);
+      }
     });
 
-    // Solicitar lista inicial de usuarios online
-    socket.emit("get_online_users");
+    // Manejo de errores de conexión
+    socket.on("connect_error", (error) => {
+      console.error("Error de conexión Socket.IO:", error);
+      // Mantener el estado de usuarios vacío si hay problemas de conexión
+      setOnlineUsers([]);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.warn("Socket.IO desconectado:", reason);
+      // Limpiar lista de usuarios online cuando se pierde la conexión
+      setOnlineUsers([]);
+    });
+
+    // Solicitar lista inicial de usuarios online de forma segura
+    try {
+      socket.emit("get_online_users");
+    } catch (error) {
+      console.warn("Error solicitando lista inicial de usuarios:", error);
+    }
 
     return () => {
       disconnectSocket();

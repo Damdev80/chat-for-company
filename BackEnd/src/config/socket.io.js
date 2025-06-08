@@ -34,7 +34,7 @@ export function configureSocket(io) {
     addOnlineUser(socket.user.id, socket.user.username, socket.id);
 
     // Track current group for this socket
-    socket.currentGroup = null;// Join group room
+    socket.currentGroup = null;    // Join group room
     socket.on('join_group', (groupId) => {
       if (socket.currentGroup) {
         socket.leave(socket.currentGroup);
@@ -42,7 +42,9 @@ export function configureSocket(io) {
       socket.join(groupId);
       socket.currentGroup = groupId;
     });
-      socket.on('send_message', async (data) => {      const messageData = {
+
+    socket.on('send_message', async (data) => {
+      const messageData = {
         sender_id: socket.user.id,
         content: data.content,
         group_id: data.group_id,
