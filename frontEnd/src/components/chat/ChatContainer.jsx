@@ -7,7 +7,6 @@ import {
   updateGroup,
   deleteGroup,
   fetchUsers,
-  sendMessage as apiSendMessage,
 } from "../../utils/api";
 import { connectSocket, disconnectSocket } from "../../utils/socket";
 import ObjectiveManager from "../ObjectiveManager";
@@ -161,20 +160,70 @@ const ChatContainer = () => {  // Estados principales
     if (!token) return;
 
     const socket = connectSocket(token);
-    socketRef.current = socket;
+    socketRef.current = socket;    socket.on("receive_message", (messageData) => {
+      console.log("Mensaje recibido por Socket.IO:", messageData);
+      setMessages((prev) => {
+        // Si es mi mensaje optimista, actualizarlo con los datos reales
+        const isMyOptimisticMessage = 
+          (messageData.temp_id && prev.some(msg => msg.id === messageData.temp_id)) ||
+          (messageData.sender_name === user && 
+           prev.some(msg => 
+             msg.content === messageData.content && 
+             msg.sender_name === messageData.sender_name && 
+             msg.isOptimistic
+           ));
 
-    socket.on("message", (messageData) => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: messageData.id,
-          content: messageData.content,
-          isMine: messageData.sender_name === user,
-          sender_name: messageData.sender_name,
-          group_id: messageData.group_id || "global",
-          time: formatMessageTime(messageData.created_at),
-        },
-      ]);
+        if (isMyOptimisticMessage) {
+          return prev.map(msg =>
+            (messageData.temp_id && msg.id === messageData.temp_id) ||
+            (msg.content === messageData.content && 
+             msg.sender_name === messageData.sender_name && 
+             msg.isOptimistic)
+              ? {
+                  ...msg,
+                  id: messageData.id || msg.id,
+                  isOptimistic: false,
+                  time: formatMessageTime(messageData.created_at) || msg.time,
+                }
+              : msg
+          );
+        }
+
+        // Evitar duplicados para mensajes que no son míos
+        if (prev.some(msg => msg.id === messageData.id)) {
+          return prev;
+        }
+        
+        // Agregar nuevo mensaje de otro usuario
+        return [
+          ...prev,
+          {
+            id: messageData.id,
+            content: messageData.content,
+            isMine: messageData.sender_name === user,
+            sender_name: messageData.sender_name,
+            group_id: messageData.group_id || "global",
+            time: formatMessageTime(messageData.created_at),
+          },
+        ];
+      });
+
+      // Mostrar notificación solo para mensajes de otros usuarios
+      if (messageData.sender_name !== user && messageData.group_id !== activeGroup) {
+        showNotification(`Nuevo mensaje de ${messageData.sender_name}`, messageData.content);
+      }
+    });
+
+    socket.on("message_error", (errorData) => {
+      console.error("Error de mensaje Socket.IO:", errorData);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          errorData.temp_id && msg.id === errorData.temp_id
+            ? { ...msg, error: true, isOptimistic: false }
+            : msg
+        )
+      );
+      showNotification("Error", "No se pudo enviar el mensaje. Intenta nuevamente.");
     });
 
     socket.on("user_typing", (data) => {
@@ -299,23 +348,37 @@ const ChatContainer = () => {  // Estados principales
       console.warn("Socket.IO desconectado:", reason);
       // Limpiar lista de usuarios online cuando se pierde la conexión
       setOnlineUsers([]);
-    });
-
-    // Solicitar lista inicial de usuarios online de forma segura
+    });    // Solicitar lista inicial de usuarios online de forma segura
     try {
       socket.emit("get_online_users");
     } catch (error) {
       console.warn("Error solicitando lista inicial de usuarios:", error);
     }
 
+    // Unirse al grupo activo
+    socket.emit("join_group", activeGroup);
+    console.log("Uniéndose al grupo:", activeGroup);
+
     return () => {
       disconnectSocket();
     };
   }, [token, user, activeGroup]);
 
+  // Unirse a nuevo grupo cuando cambie activeGroup
+  useEffect(() => {
+    if (socketRef.current && activeGroup) {
+      socketRef.current.emit("join_group", activeGroup);
+      console.log("Cambiando a grupo:", activeGroup);
+    }
+  }, [activeGroup]);
   // Funciones de manejo
   const sendMessage = async (message) => {
     if (!message.trim()) return;
+    if (!socketRef.current) {
+      console.error("Socket no está conectado");
+      showNotification("Error", "No hay conexión con el servidor");
+      return;
+    }
 
     const tempId = generateTempId();
     const tempMessage = {
@@ -325,24 +388,36 @@ const ChatContainer = () => {  // Estados principales
       sender_name: user,
       group_id: activeGroup,
       time: formatMessageTime(new Date()),
-      isTemp: true,
+      isOptimistic: true,
     };
 
+    // Agregar mensaje optimista
     setMessages((prev) => [...prev, tempMessage]);
 
     try {
-      await apiSendMessage(message, activeGroup, token);
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === tempId ? { ...msg, isTemp: false } : msg
-        )
-      );    } catch (error) {
+      // Enviar por Socket.IO para tiempo real
+      socketRef.current.emit("send_message", {
+        content: message,
+        sender_name: user,
+        group_id: activeGroup,
+        temp_id: tempId,
+      });
+      
+      console.log("Mensaje enviado por Socket.IO:", {
+        content: message,
+        sender_name: user,
+        group_id: activeGroup,
+        temp_id: tempId,
+      });
+
+    } catch (error) {
       console.error("Error enviando mensaje:", error);
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === tempId ? { ...msg, failed: true } : msg
+          msg.id === tempId ? { ...msg, error: true, isOptimistic: false } : msg
         )
       );
+      showNotification("Error", "No se pudo enviar el mensaje");
     }
   };
   const retryMessage = (failedMessage) => {
