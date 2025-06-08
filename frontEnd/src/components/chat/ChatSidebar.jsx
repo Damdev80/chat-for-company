@@ -78,6 +78,7 @@ const ChatSidebar = ({
   setSearch,
   groups,
   users,
+  onlineUsers = [],
   activeGroup,
   onGroupSelect,
   userRole,
@@ -85,7 +86,12 @@ const ChatSidebar = ({
   onCreateGroup,
   onEditGroup,
   onDeleteGroup,
-}) => {  const [showGroupOptions, setShowGroupOptions] = useState(null);
+}) => {  // Helper function para determinar si un usuario está online
+  const isUserOnline = useCallback((userId) => {
+    return onlineUsers.some(onlineUser => onlineUser.userId === userId);
+  }, [onlineUsers]);
+
+  const [showGroupOptions, setShowGroupOptions] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const [isResizing, setIsResizing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -112,13 +118,11 @@ const ChatSidebar = ({
     ? (groups || []).filter(group =>
         group.name.toLowerCase().includes(search.toLowerCase())
       )
-    : (groups || []);
-
-  const filteredUsers = search.trim()
-    ? (users || []).filter(user =>
+    : (groups || []);  const filteredUsers = search.trim()
+    ? (Array.isArray(users) ? users : []).filter(user =>
         user.username?.toLowerCase().includes(search.toLowerCase())
       )
-    : (users || []);
+    : (Array.isArray(users) ? users : []);
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
@@ -302,8 +306,7 @@ const ChatSidebar = ({
           >
             <MessageCircle size={16} />
             Chats
-          </button>
-          <button
+          </button>          <button
             onClick={() => setActiveTab('users')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === 'users'
@@ -312,7 +315,7 @@ const ChatSidebar = ({
             }`}
           >
             <Users size={16} />
-            Usuarios
+            Online
           </button>
           <button
             onClick={() => setActiveTab('objectives')}
@@ -399,33 +402,49 @@ const ChatSidebar = ({
           )}
 
           {activeTab === "users" && (
-            <div className="p-4">
-              <div className="space-y-2">
-                {filteredUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center gap-3 p-3 bg-[#252529] border border-[#3C4043] rounded-xl hover:bg-[#3C4043] hover:border-[#A8E6A3]/30 transition-all duration-200"                  >
+            <div className="p-4">              <div className="space-y-2">                {Array.isArray(filteredUsers) && filteredUsers.map((user) => {
+                  // Usar estado real de online/offline desde Socket.IO
+                  const isOnline = isUserOnline(user.id);
+                  
+                  return (
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium text-white"
-                      style={{ backgroundColor: getAvatarColor(user.username || user.name || '') }}
+                      key={user.id}
+                      className="flex items-center gap-3 p-3 bg-[#252529] border border-[#3C4043] rounded-xl hover:bg-[#3C4043] hover:border-[#A8E6A3]/30 transition-all duration-200"
                     >
-                      {getInitials(user.username || user.name || '')}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-[#E8E8E8]">{user.username || user.name}</div>
-                      <div className="text-xs text-[#A8E6A3] capitalize">
-                        {user.role === 'admin' ? '👑 ' : ''}
-                        {user.role || 'user'}
+                      <div className="relative">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                          style={{ backgroundColor: getAvatarColor(user.username || user.name || '') }}
+                        >
+                          {getInitials(user.username || user.name || '')}
+                        </div>
+                        {/* Indicador de estado online/offline */}
+                        <div 
+                          className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#252529] ${
+                            isOnline ? 'bg-green-500' : 'bg-gray-500'
+                          }`}
+                          title={isOnline ? 'En línea' : 'Desconectado'}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-[#E8E8E8]">{user.username || user.name}</div>
+                        <div className="text-xs flex items-center gap-2">
+                          <span className={`${isOnline ? 'text-green-400' : 'text-gray-400'}`}>
+                            {isOnline ? '🟢 En línea' : '⚫ Desconectado'}
+                          </span>
+                          {user.role === 'admin' && (
+                            <span className="text-[#A8E6A3]">👑 Admin</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-              
-              {filteredUsers.length === 0 && (
+                {filteredUsers.length === 0 && (
                 <div className="text-center py-8 text-[#B8B8B8]">
                   <Users size={48} className="mx-auto mb-4 text-[#3C4043]" />
-                  <p>No se encontraron usuarios</p>
+                  <p>No hay usuarios conectados</p>
                 </div>
               )}
             </div>

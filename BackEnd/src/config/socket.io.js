@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { MessageController } from '../controllers/message.controller.js'
+import { addOnlineUser, removeOnlineUser, updateUserActivity, getOnlineUsersList } from '../utils/socketManager.js'
 
 export function configureSocket(io) {
   console.log(`Socket.IO configurado en modo: ${process.env.NODE_ENV || 'development'}`)  // Log de todos los intentos de conexión
@@ -26,12 +27,14 @@ export function configureSocket(io) {
       next(new Error('Token inválido'))
     }
   })
-
   io.on('connection', (socket) => {
     console.log(`🔌 Usuario conectado: ${socket.user.id}`)
 
+    // Agregar usuario al tracking de online
+    addOnlineUser(socket.user.id, socket.user.username, socket.id);
+
     // Track current group for this socket
-    socket.currentGroup = null;    // Join group room
+    socket.currentGroup = null;// Join group room
     socket.on('join_group', (groupId) => {
       if (socket.currentGroup) {
         socket.leave(socket.currentGroup);
@@ -39,17 +42,19 @@ export function configureSocket(io) {
       socket.join(groupId);
       socket.currentGroup = groupId;
     });
-      socket.on('send_message', async (data) => {
-      const messageData = {
+      socket.on('send_message', async (data) => {      const messageData = {
         sender_id: socket.user.id,
         content: data.content,
         group_id: data.group_id,
         created_at: new Date(),
         // Preservar temp_id si está presente para poder identificar mensajes optimistas
         temp_id: data.temp_id
-      }
+      };
 
       try {
+        // Actualizar actividad del usuario
+        updateUserActivity(socket.user.id);
+        
         // Ahora el resultado contiene toda la información del mensaje incluyendo id y sender_name
         const savedMessage = await MessageController.createFromSocket(messageData)
 
@@ -72,10 +77,10 @@ export function configureSocket(io) {
       }
 
     }); // Cierra socket.on('send_message', ...)
-    
-    // Añadir evento para debugging de conexión
+      // Añadir evento para debugging de conexión
     socket.on('ping_server', (data) => {
       console.log('Cliente envió ping:', data);
+      updateUserActivity(socket.user.id); // Actualizar actividad en ping
       socket.emit('pong_client', { 
         message: 'Conexión Socket.io funcionando correctamente',
         userId: socket.user.id,
@@ -83,8 +88,15 @@ export function configureSocket(io) {
       });
     });
 
+    // Evento para obtener lista de usuarios online
+    socket.on('get_online_users', () => {
+      socket.emit('online_users_list', getOnlineUsersList());
+    });
+
     socket.on('disconnect', () => {
       console.log(`👋 Usuario desconectado: ${socket.user.id}`)
+      // Remover usuario del tracking de online
+      removeOnlineUser(socket.user.id);
     });
   }); // Cierra io.on('connection', ...)
 }

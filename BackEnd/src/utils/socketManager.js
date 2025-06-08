@@ -141,3 +141,75 @@ export const emitProgressUpdate = async (objectiveData, progressData) => {
     console.log('📊 Progress update event emitted globally');
   }
 };
+
+// Sistema de tracking de usuarios online
+const onlineUsers = new Map(); // Map de userId -> { username, socketId, connectedAt }
+
+export const addOnlineUser = (userId, username, socketId) => {
+  onlineUsers.set(userId, {
+    username,
+    socketId,
+    connectedAt: new Date(),
+    lastSeen: new Date()
+  });
+  
+  console.log(`✅ Usuario ${username} (${userId}) conectado. Total online: ${onlineUsers.size}`);
+  
+  // Emitir evento de usuario conectado
+  const io = getSocketInstance();
+  if (io) {
+    io.emit('user_connected', {
+      userId,
+      username,
+      connectedAt: new Date()
+    });
+    
+    // Emitir lista actualizada de usuarios online
+    io.emit('online_users_updated', getOnlineUsersList());
+  }
+};
+
+export const removeOnlineUser = (userId) => {
+  const user = onlineUsers.get(userId);
+  if (user) {
+    onlineUsers.delete(userId);
+    console.log(`❌ Usuario ${user.username} (${userId}) desconectado. Total online: ${onlineUsers.size}`);
+    
+    // Emitir evento de usuario desconectado
+    const io = getSocketInstance();
+    if (io) {
+      io.emit('user_disconnected', {
+        userId,
+        username: user.username,
+        disconnectedAt: new Date()
+      });
+      
+      // Emitir lista actualizada de usuarios online
+      io.emit('online_users_updated', getOnlineUsersList());
+    }
+  }
+};
+
+export const updateUserActivity = (userId) => {
+  const user = onlineUsers.get(userId);
+  if (user) {
+    user.lastSeen = new Date();
+  }
+};
+
+export const getOnlineUsersList = () => {
+  return Array.from(onlineUsers.entries()).map(([userId, userData]) => ({
+    userId,
+    username: userData.username,
+    connectedAt: userData.connectedAt,
+    lastSeen: userData.lastSeen
+  }));
+};
+
+export const isUserOnline = (userId) => {
+  return onlineUsers.has(userId);
+};
+
+export const getOnlineUsersCount = () => {
+  return onlineUsers.size;
+};

@@ -21,14 +21,15 @@ import ChatHeader from "./ChatHeader";
 import MessageArea from "./MessageArea";
 import MessageInput from "./MessageInput";
 import NotificationBanner from "./NotificationBanner";
+import DeleteChatModal from "./DeleteChatModal";
 
 
-const ChatContainer = () => {
-  // Estados principales
+const ChatContainer = () => {  // Estados principales
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
-  const [activeGroup, setActiveGroup] = useState("global");  // Estados de UI
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [activeGroup, setActiveGroup] = useState("global");// Estados de UI
   const [activeTab, setActiveTab] = useState("chats");
   const [search, setSearch] = useState("");
   const [newMessage, setNewMessage] = useState("");
@@ -36,6 +37,9 @@ const ChatContainer = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showGroupInfo, setShowGroupInfo] = useState(false);  const [showEmojis, setShowEmojis] = useState(false);
   const [showAttachOptions, setShowAttachOptions] = useState(false);
+  const [showDeleteChatModal, setShowDeleteChatModal] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState(null);
+  const [isDeletingChat, setIsDeletingChat] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [notification, setNotification] = useState(null);
   const [objectiveRefreshKey, setObjectiveRefreshKey] = useState(0);
@@ -138,15 +142,17 @@ const ChatContainer = () => {
       })
       .catch(() => {});
   }, [token]);
-
   // Cargar usuarios
   useEffect(() => {
     if (!token) return;
     fetchUsers(token)
       .then((data) => {
-        setUsers(data);
+        // El backend devuelve { users: [...] }, necesitamos extraer el array
+        setUsers(data.users || []);
       })
-      .catch(() => {});
+      .catch(() => {
+        setUsers([]); // Asegurar que siempre sea un array
+      });
   }, [token]);
 
   // Configurar Socket.IO
@@ -206,13 +212,37 @@ const ChatContainer = () => {
         );
         setObjectiveRefreshKey(prev => prev + 1);
       }
-    });
-
-    socket.on("progress_update", (data) => {
+    });    socket.on("progress_update", (data) => {
       if (data.group_id === activeGroup) {
         setObjectiveRefreshKey(prev => prev + 1);
       }
     });
+
+    // Eventos para tracking de usuarios online
+    socket.on("user_connected", (data) => {
+      console.log("Usuario conectado:", data);
+      // Solicitar lista actualizada
+      socket.emit("get_online_users");
+    });
+
+    socket.on("user_disconnected", (data) => {
+      console.log("Usuario desconectado:", data);
+      // Solicitar lista actualizada
+      socket.emit("get_online_users");
+    });
+
+    socket.on("online_users_updated", (usersList) => {
+      console.log("Lista de usuarios online actualizada:", usersList);
+      setOnlineUsers(usersList);
+    });
+
+    socket.on("online_users_list", (usersList) => {
+      console.log("Lista inicial de usuarios online:", usersList);
+      setOnlineUsers(usersList);
+    });
+
+    // Solicitar lista inicial de usuarios online
+    socket.emit("get_online_users");
 
     return () => {
       disconnectSocket();
@@ -328,13 +358,51 @@ const ChatContainer = () => {
     showNotification("Info", "Funcionalidad de eliminar mensaje próximamente");
   };
 
+  const handleDeleteChat = (chatId) => {
+    const chatToDeleteData = groups.find(g => g.id === chatId);
+    if (chatToDeleteData) {
+      setChatToDelete(chatToDeleteData);
+      setShowDeleteChatModal(true);
+    }
+  };
+
+  const handleConfirmDeleteChat = async () => {
+    if (!chatToDelete) return;
+    
+    setIsDeletingChat(true);
+    try {
+      await deleteGroup(chatToDelete.id, token);
+      const data = await fetchGroups(token);
+      const globalGroup = { id: "global", name: "Global" };
+      setGroups([globalGroup, ...data.filter((g) => g.id !== "global")]);
+      
+      if (activeGroup === chatToDelete.id) {
+        setActiveGroup("global");
+      }
+      
+      // Mostrar alarma/notificación de éxito
+      showNotification("¡CHAT ELIMINADO!", `El chat "${chatToDelete.name}" ha sido eliminado exitosamente`);
+        // Reproducir sonido de alarma (opcional)
+      try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiS1/LUeysEI3bC8N+VQAURWK3g67NbGAk9k9n0wnUlBSaByO3aiToHGGC36+OZURE');
+        audio.play();
+      } catch {
+        // Si el audio falla, no es crítico
+      }
+      
+      setShowDeleteChatModal(false);
+      setChatToDelete(null);
+    } catch (error) {
+      console.error("Error eliminando chat:", error);
+      showNotification("ERROR", "No se pudo eliminar el chat");
+    } finally {
+      setIsDeletingChat(false);
+    }
+  };
   const handleCall = () => {
     showNotification("Info", "Funcionalidad de llamada próximamente");
   };
 
-  const handleVideoCall = () => {
-    showNotification("Info", "Funcionalidad de videollamada próximamente");
-  };
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
@@ -362,10 +430,11 @@ const ChatContainer = () => {
         setSearch={setSearch}
         groups={groups}
         users={users}
+        onlineUsers={onlineUsers}
         activeGroup={activeGroup}
         onGroupSelect={handleGroupSelect}
         userRole={userRole}
-        currentUser={user}        onCreateGroup={(groupData) => handleCreateGroup(groupData.name)}
+        currentUser={user}onCreateGroup={(groupData) => handleCreateGroup(groupData.name)}
         onEditGroup={(groupId, groupData) => handleEditGroup(groupId, groupData)}
         onDeleteGroup={handleDeleteGroup}
         onTaskUpdate={handleTaskUpdate}
@@ -373,14 +442,13 @@ const ChatContainer = () => {
       />
 
       {/* Área principal */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}        <ChatHeader
+      <div className="flex-1 flex flex-col min-w-0">        {/* Header */}        <ChatHeader
           activeGroup={activeGroup}
           groups={groups}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onToggleGroupInfo={() => setShowGroupInfo(!showGroupInfo)}
           onCall={handleCall}
-          onVideoCall={handleVideoCall}
+          onDeleteChat={handleDeleteChat}
           userMenuOpen={userMenuOpen}
           setUserMenuOpen={setUserMenuOpen}
           onLogout={handleLogout}          currentUser={user}
@@ -590,6 +658,15 @@ const ChatContainer = () => {
       <NotificationBanner
         notification={notification}
         onClose={() => setNotification(null)}
+      />
+
+      {/* Modal de confirmación para eliminar chat */}
+      <DeleteChatModal
+        isOpen={showDeleteChatModal}
+        onClose={() => setShowDeleteChatModal(false)}
+        onConfirm={handleConfirmDeleteChat}
+        chatName={chatToDelete?.name || ""}
+        isDeleting={isDeletingChat}
       />
     </div>
   );
