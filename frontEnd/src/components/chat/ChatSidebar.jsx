@@ -208,13 +208,12 @@ const ChatSidebar = ({
       setShowGroupOptions(null);
     }
   };
-
   return (
     <>
-      {/* Overlay móvil */}
+      {/* Overlay móvil con blur */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 backdrop-blur-md bg-black/20 z-40 lg:hidden animate-in fade-in duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}

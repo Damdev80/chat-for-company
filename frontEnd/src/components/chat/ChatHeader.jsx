@@ -9,7 +9,6 @@ const ChatHeader = ({
   onToggleGroupInfo,
   onCall,
   onDeleteChat,
-  isMobile = false,
   notifications = [],
   onShowNotifications,
   userRole
@@ -20,18 +19,15 @@ const ChatHeader = ({
   
   return (
     <div className="border-b border-[#3C4043] p-4 bg-gradient-to-r from-[#2C2C34] to-[#252529]">
-      <div className="flex items-center justify-between">
-        {/* Lado izquierdo */}
+      <div className="flex items-center justify-between">        {/* Lado izquierdo */}
         <div className="flex items-center gap-3">
-          {/* Botón de menú móvil */}
-          {isMobile && (
-            <button
-              onClick={onToggleSidebar}
-              className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200 lg:hidden"
-            >
-              <Menu size={20} />
-            </button>
-          )}
+          {/* Botón de menú hamburguesa - Siempre visible en móvil */}
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200 lg:hidden"
+          >
+            <Menu size={20} />
+          </button>
 
           {/* Avatar del grupo */}
           <div
@@ -42,16 +38,14 @@ const ChatHeader = ({
           </div>
 
           {/* Info del grupo */}
-          <div>
-            <h2 className="font-semibold text-[#E8E8E8]">{groupName}</h2>
-            <p className="text-sm text-[#A8E6A3]">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-[#E8E8E8] truncate">{groupName}</h2>
+            <p className="text-sm text-[#A8E6A3] truncate">
               {activeGroup === "global" ? "Chat global" : "Grupo privado"}
             </p>
           </div>
-        </div>
-
-        {/* Lado derecho - Acciones */}
-        <div className="flex items-center gap-2">
+        </div>        {/* Lado derecho - Acciones */}
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Notificaciones */}
           <button
             onClick={onShowNotifications}
@@ -64,10 +58,12 @@ const ChatHeader = ({
                 {unreadNotifications > 9 ? '9+' : unreadNotifications}
               </span>
             )}
-          </button>          {/* Llamada de voz */}
+          </button>
+
+          {/* Llamada de voz - Oculto en móviles muy pequeños */}
           <button
             onClick={onCall}
-            className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200"
+            className="hidden sm:flex p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200"
             title="Llamada de voz"
           >
             <Phone size={20} />

@@ -18,6 +18,7 @@ import { generateTempId, formatMessageTime } from "../../utils/chatUtils";
 // Import components
 import ChatSidebar from "./ChatSidebar";
 import ChatHeader from "./ChatHeader";
+import ChatProgressBar from "./ChatProgressBar";
 import MessageArea from "./MessageArea";
 import MessageInput from "./MessageInput";
 import NotificationBanner from "./NotificationBanner";
@@ -182,15 +183,18 @@ const ChatContainer = () => {  // Estados principales
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
       }
-    });
-
-    socket.on("task_completed", (data) => {
+    });    socket.on("task_completed", (data) => {
       if (data.group_id === activeGroup) {
         showNotification(
           "Tarea completada",
           `${data.completed_by} completó: ${data.title}`
         );
         setObjectiveRefreshKey(prev => prev + 1);
+        
+        // Emitir evento para ChatProgressBar
+        window.dispatchEvent(new CustomEvent('objectiveProgressUpdate', {
+          detail: { group_id: data.group_id, type: 'task_completed', data }
+        }));
       }
     });
 
@@ -201,6 +205,11 @@ const ChatContainer = () => {  // Estados principales
           `Se creó el objetivo: ${data.title}`
         );
         setObjectiveRefreshKey(prev => prev + 1);
+        
+        // Emitir evento para ChatProgressBar
+        window.dispatchEvent(new CustomEvent('objectiveProgressUpdate', {
+          detail: { group_id: data.group_id, type: 'objective_created', data }
+        }));
       }
     });
 
@@ -211,10 +220,20 @@ const ChatContainer = () => {  // Estados principales
           `¡Se completó el objetivo: ${data.title}! 🎉`
         );
         setObjectiveRefreshKey(prev => prev + 1);
+        
+        // Emitir evento para ChatProgressBar
+        window.dispatchEvent(new CustomEvent('objectiveProgressUpdate', {
+          detail: { group_id: data.group_id, type: 'objective_completed', data }
+        }));
       }
     });    socket.on("progress_update", (data) => {
       if (data.group_id === activeGroup) {
         setObjectiveRefreshKey(prev => prev + 1);
+        
+        // Emitir evento para ChatProgressBar
+        window.dispatchEvent(new CustomEvent('objectiveProgressUpdate', {
+          detail: { group_id: data.group_id, type: 'progress_update', data }
+        }));
       }
     });
 
@@ -500,7 +519,7 @@ const ChatContainer = () => {  // Estados principales
           userRole={userRole}
           notifications={notifications}
           onShowNotifications={handleShowNotifications}
-        /><div className="flex-1 flex min-h-0">
+        />        <div className="flex-1 flex min-h-0">
           {/* Contenido principal - Mensajes o Objetivos */}
           <div className="flex-1 flex flex-col">
             {activeTab === 'objectives' ? (
@@ -551,7 +570,13 @@ const ChatContainer = () => {  // Estados principales
               </div>
             ) : (
               // Área de mensajes normal
-              <>
+              <>                {/* Barra de progreso en el chat */}
+                <ChatProgressBar 
+                  groupId={activeGroup}
+                  onToggleObjectives={() => setActiveTab('objectives')}
+                  key={`progress-${activeGroup}-${objectiveRefreshKey}`}
+                />
+                
                 <MessageArea
                   messages={filteredMessages}
                   currentUser={user}
