@@ -46,7 +46,7 @@ const UserMenu = ({ onLogout, onClose, onOpenProfile, onOpenSettings }) => {
             onOpenSettings();
             onClose();
           }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-[#E8E8E8] hover:bg-[#3C4043] rounded-lg transition-all duration-200 group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-[#E8E6E8] hover:bg-[#3C4043] rounded-lg transition-all duration-200 group"
         >
           <Settings size={16} className="text-[#B8B8B8] group-hover:text-[#A8E6A3] group-hover:scale-110 transition-all" />
           <span className="font-medium">Configuraciones</span>
@@ -244,7 +244,7 @@ const ChatSidebar = ({
         <div className="p-4 border-b border-[#3C4043] relative bg-[#252529]">
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="w-full flex items-center justify-between p-3 text-left text-[#E8E8E8] hover:bg-[#3C4043] rounded-xl transition-all duration-200 group"
+            className="w-full flex items-center justify-between p-3 text-left text-[#E8E6E8] hover:bg-[#3C4043] rounded-xl transition-all duration-200 group"
           >
             <div className="flex items-center gap-3">
               <div
@@ -291,17 +291,7 @@ const ChatSidebar = ({
                 className="w-full pl-10 pr-4 py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200"
               />
             </div>
-            
-            {/* Botón crear grupo */}
-            {userRole === "admin" && (
-              <button
-                onClick={handleCreateGroup}
-                className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-[#A8E6A3] to-[#7DD3C0] text-[#1A1A1F] rounded-xl hover:from-[#98E093] hover:to-[#6BC9B5] transition-all duration-200 group"
-                title="Crear grupo"
-              >
-                <Plus size={18} className="group-hover:scale-110 transition-transform" />
-              </button>
-            )}
+            {/* Botón crear grupo eliminado: se moverá abajo */}
           </div>
         </div>
 
@@ -350,11 +340,12 @@ const ChatSidebar = ({
                 <div key={group.id} className="relative group">
                   <button
                     onClick={() => onGroupSelect(group.id)}
-                    className={`w-full flex items-center gap-3 p-3 text-left rounded-xl transition-all duration-200 ${
+                    className={`w-full flex items-center gap-3 p-3 text-left rounded-lg transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:ring-opacity-50 ${
                       activeGroup === group.id
                         ? 'bg-gradient-to-r from-[#A8E6A3]/20 to-[#7DD3C0]/20 border border-[#A8E6A3]/30 text-[#E8E8E8]'
                         : 'bg-[#252529] border border-[#3C4043] text-[#B8B8B8] hover:bg-[#3C4043] hover:border-[#A8E6A3]/30 hover:text-[#E8E8E8]'
-                    }`}                  >
+                    }`}
+                  >
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium text-white"
                       style={{ backgroundColor: getAvatarColor(group.name) }}
@@ -362,8 +353,11 @@ const ChatSidebar = ({
                       {getInitials(group.name)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{group.name}</div>
-                      <div className="text-xs text-[#A8E6A3] opacity-80">
+                      <div className="font-medium text-sm truncate">{group.name}</div>
+                      {group.description && (
+                        <div className="text-xs text-[#B8B8B8] truncate mt-1">{group.description}</div>
+                      )}
+                      <div className="text-xs text-[#A8E6A3] opacity-80 mt-1">
                         {group.id === "global" ? "Chat global" : "Grupo privado"}
                       </div>
                     </div>
@@ -384,7 +378,7 @@ const ChatSidebar = ({
                         <div className="absolute top-8 right-0 bg-[#1A1A1F] border border-[#3C4043] rounded-xl z-50 min-w-[150px] overflow-hidden">
                           <button
                             onClick={() => handleEditGroupClick(group)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-left text-[#E8E8E8] hover:bg-[#3C4043] transition-all"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-left text-[#E8E6E8] hover:bg-[#3C4043] transition-all"
                           >
                             <Edit2 size={14} className="text-[#A8E6A3]" />
                             Editar
@@ -465,7 +459,7 @@ const ChatSidebar = ({
             <div className="p-4">
               <div className="bg-[#252529] rounded-xl p-6 border border-[#3C4043] text-center">
                 <Target size={48} className="mx-auto mb-4 text-[#A8E6A3]" />
-                <h3 className="text-lg font-semibold text-[#E8E8E8] mb-2">Gestión de Objetivos</h3>
+                <h3 className="text-lg font-semibold text-[#E8E6E8] mb-2">Gestión de Objetivos</h3>
                 <p className="text-[#B8B8B8] text-sm mb-4">
                   Los objetivos y tareas se gestionan desde el área principal del chat.
                 </p>
@@ -479,7 +473,17 @@ const ChatSidebar = ({
 
         {/* Sección inferior del sidebar */}
         <div className="mt-auto border-t border-[#3C4043] bg-[#252529] p-4">
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            {userRole === "admin" && (
+              <button
+                onClick={handleCreateGroup}
+                className="flex items-center justify-center w-full h-12 gap-2 bg-[#A8E6A3]/20 rounded-xl hover:bg-[#A8E6A3]/30 transition-all duration-200"
+                title="Crear nuevo grupo"
+              >
+                <Plus size={18} className="text-[#A8E6A3]" />
+                <span className="text-[#A8E6A3] font-medium">Crear nuevo grupo</span>
+              </button>
+            )}
             {/* Botón de cerrar sesión */}
             <button
               onClick={handleLogout}
@@ -570,7 +574,7 @@ const ChatSidebar = ({
                       <button
                         key={suggestion}
                         onClick={() => setGroupForm({ ...groupForm, name: suggestion })}
-                        className="text-left px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg hover:border-[#A8E6A3]/50 hover:bg-[#252529] transition-all duration-200 text-sm text-[#E8E8E8] hover:text-[#A8E6A3]"
+                        className="text-left px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg hover:border-[#A8E6A3]/50 hover:bg-[#252529] transition-all duration-200 text-sm text-[#E8E6E8] hover:text-[#A8E6A3]"
                       >
                         {suggestion}
                       </button>
@@ -628,7 +632,7 @@ const ChatSidebar = ({
                       {groupForm.name ? getInitials(groupForm.name) : '?'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-[#E8E6E8] text-lg">
+                      <div className="font-semibold text-[#E6E6E8] text-lg">
                         {groupForm.name || 'Nombre del grupo'}
                       </div>
                       <div className="text-sm text-[#A8E6A3]">
@@ -647,7 +651,7 @@ const ChatSidebar = ({
                 {/* Información adicional */}
                 <div className="mt-6 space-y-4">
                   <div className="bg-[#1A1A1F] rounded-xl p-4 border border-[#3C4043]">
-                    <h5 className="text-sm font-semibold text-[#E8E8E8] mb-3 flex items-center gap-2">
+                    <h5 className="text-sm font-semibold text-[#E8E6E8] mb-3 flex items-center gap-2">
                       <Settings size={14} className="text-[#A8E6A3]" />
                       Configuración inicial
                     </h5>
@@ -669,7 +673,7 @@ const ChatSidebar = ({
 
                   {/* Características del grupo */}
                   <div className="bg-[#1A1A1F] rounded-xl p-4 border border-[#3C4043]">
-                    <h5 className="text-sm font-semibold text-[#E8E8E8] mb-3">Características incluidas</h5>
+                    <h5 className="text-sm font-semibold text-[#E8E6E8] mb-3">Características incluidas</h5>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2 text-[#A8E6A3]">
                         <div className="w-1.5 h-1.5 bg-[#A8E6A3] rounded-full"></div>

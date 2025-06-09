@@ -1,8 +1,10 @@
 import React from "react";
 import { Trash2, X, AlertTriangle } from "lucide-react";
 
-const DeleteChatModal = ({ isOpen, onClose, onConfirm, chatName, isDeleting }) => {
+const DeleteChatModal = ({ isOpen, onClose, onConfirm, chatName, isDeleting, isGlobalChat = false }) => {
   if (!isOpen) return null;
+
+  const isGlobal = isGlobalChat || chatName === "Chat Global";
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
@@ -12,8 +14,9 @@ const DeleteChatModal = ({ isOpen, onClose, onConfirm, chatName, isDeleting }) =
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-500/20 border border-red-500/50 rounded-xl flex items-center justify-center">
               <AlertTriangle className="text-red-400" size={20} />
-            </div>
-            <h2 className="text-xl font-bold text-[#E8E8E8]">Eliminar Chat</h2>
+            </div>            <h2 className="text-xl font-bold text-[#E8E8E8]">
+              {isGlobal ? "Limpiar Chat Global" : "Limpiar Grupo"}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -22,22 +25,22 @@ const DeleteChatModal = ({ isOpen, onClose, onConfirm, chatName, isDeleting }) =
           >
             <X size={20} />
           </button>
-        </div>
-
-        {/* Content */}
-        <div className="mb-6">
-          <p className="text-[#E8E8E8] mb-3">
-            ¿Estás seguro de que quieres eliminar el chat <span className="font-semibold text-[#A8E6A3]">"{chatName}"</span>?
+        </div>        {/* Content */}
+        <div className="mb-6">          <p className="text-[#E8E8E8] mb-3">
+            {isGlobal 
+              ? `¿Estás seguro de que quieres limpiar todo el contenido del ${chatName}?`
+              : `¿Estás seguro de que quieres limpiar todos los mensajes del grupo "${chatName}"?`
+            }
           </p>
           <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
             <div className="flex items-start gap-3">
               <Trash2 className="text-red-400 mt-0.5 flex-shrink-0" size={18} />
               <div className="text-sm text-red-300">
-                <p className="font-semibold mb-1">Esta acción no se puede deshacer:</p>
-                <ul className="space-y-1 text-red-400">
+                <p className="font-semibold mb-1">Esta acción no se puede deshacer:</p>                <ul className="space-y-1 text-red-400">
                   <li>• Se eliminarán todos los mensajes</li>
                   <li>• Se perderá el historial del chat</li>
-                  <li>• Los miembros perderán acceso al grupo</li>
+                  {!isGlobal && <li>• El grupo seguirá existiendo pero sin mensajes</li>}
+                  {isGlobal && <li>• El chat quedará completamente limpio</li>}
                 </ul>
               </div>
             </div>
@@ -52,21 +55,19 @@ const DeleteChatModal = ({ isOpen, onClose, onConfirm, chatName, isDeleting }) =
             disabled={isDeleting}
           >
             Cancelar
-          </button>
-          <button
+          </button>          <button
             onClick={onConfirm}
             disabled={isDeleting}
             className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 text-white rounded-xl transition-all duration-200 font-medium button-press flex items-center justify-center gap-2"
-          >
-            {isDeleting ? (
+          >            {isDeleting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Eliminando...
+                Limpiando...
               </>
             ) : (
               <>
                 <Trash2 size={16} />
-                Eliminar Chat
+                {isGlobal ? "Limpiar Chat" : "Limpiar Grupo"}
               </>
             )}
           </button>

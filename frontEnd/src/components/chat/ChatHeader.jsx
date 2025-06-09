@@ -67,14 +67,12 @@ const ChatHeader = ({
             title="Llamada de voz"
           >
             <Phone size={20} />
-          </button>
-
-          {/* Eliminar chat - Solo para admin y grupos no globales */}
-          {userRole === "admin" && activeGroup !== "global" && (
+          </button>          {/* Eliminar chat/limpiar contenido - Solo para admin */}
+          {userRole === "admin" && (
             <button
               onClick={() => onDeleteChat(activeGroup)}
               className="p-2 text-[#B8B8B8] hover:text-red-400 rounded-xl hover:bg-red-900/20 transition-all duration-200"
-              title="Eliminar chat"
+              title={activeGroup === "global" ? "Limpiar chat global" : "Eliminar grupo"}
             >
               <Trash2 size={20} />
             </button>

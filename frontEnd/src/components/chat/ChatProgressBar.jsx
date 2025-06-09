@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Target, TrendingUp, ChevronDown, ChevronUp, Users, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { fetchObjectivesByGroup } from '../../utils/api';
 import { getToken } from '../../utils/auth';
@@ -151,7 +151,8 @@ const ChatProgressBar = ({ groupId, onToggleObjectives }) => {  const [objective
     return `${completedObjectives}/${totalObjectives} objetivos completados`;
   };
 
-  return (    <div className="border-b border-[#3C4043] bg-gradient-to-r from-[#2C2C34] to-[#252529]">
+  return (
+    <div className="border-b border-[#3C4043] bg-gradient-to-r from-[#1E1E1E] to-[#2C2C34]">
       {/* Barra principal compacta - Responsiva */}
       <div 
         className="p-3 sm:p-4 cursor-pointer hover:bg-[#3C4043]/30 transition-all duration-200"
@@ -201,7 +202,7 @@ const ChatProgressBar = ({ groupId, onToggleObjectives }) => {  const [objective
 
       {/* Panel expandido */}
       {expanded && (
-        <div className="border-t border-[#3C4043]/50 bg-[#252529]/50 p-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="border-t border-[#3C4043]/50 bg-[#1E1E1E]/50 p-4 animate-in slide-in-from-top-2 duration-200">
           {loading ? (
             <div className="flex items-center justify-center py-4">
               <div className="flex items-center gap-2 text-[#B8B8B8]">
@@ -220,34 +221,36 @@ const ChatProgressBar = ({ groupId, onToggleObjectives }) => {  const [objective
                 Ir a Gestión de Objetivos
               </button>
             </div>
-          ) : (            <div className="space-y-3">
+          ) : (
+            <div className="space-y-3">
               {/* Resumen de estadísticas */}
               <div className="grid grid-cols-4 gap-2 mb-4">
-                <div className="text-center p-2 bg-[#3C4043]/30 rounded-lg">
+                <div className="text-center p-2 bg-[#2C2C34]/20 rounded-lg">
                   <div className="text-lg font-bold text-[#A8E6A3]">{totalObjectives}</div>
                   <div className="text-xs text-[#B8B8B8]">Objetivos</div>
                 </div>
-                <div className="text-center p-2 bg-[#3C4043]/30 rounded-lg">
+                <div className="text-center p-2 bg-[#2C2C34]/20 rounded-lg">
                   <div className="text-lg font-bold text-green-400">{completedObjectives}</div>
                   <div className="text-xs text-[#B8B8B8]">Completados</div>
                 </div>
-                <div className="text-center p-2 bg-[#3C4043]/30 rounded-lg">
+                <div className="text-center p-2 bg-[#2C2C34]/20 rounded-lg">
                   <div className="text-lg font-bold text-blue-400">{completedTasks}/{activeTasks}</div>
                   <div className="text-xs text-[#B8B8B8]">Tareas</div>
                 </div>
-                <div className="text-center p-2 bg-[#3C4043]/30 rounded-lg">
+                <div className="text-center p-2 bg-[#2C2C34]/20 rounded-lg">
                   <div className="text-lg font-bold text-[#A8E6A3]">{totalProgress}%</div>
                   <div className="text-xs text-[#B8B8B8]">Progreso</div>
                 </div>
-              </div>              {/* Lista de objetivos resumida */}
-              <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-[#A8E6A3] scrollbar-track-[#3C4043]">
+              </div>
+              {/* Lista de objetivos resumida */}
+              <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-[#A8E6A3] scrollbar-track-[#2C2C34]">
                 {objectives.slice(0, 3).map((objective) => {
                   const progress = objective.progress?.percentage ?? 0;
                   const isCompleted = progress === 100;
                   const isInProgress = progress > 0 && progress < 100;
-                  
+
                   return (
-                    <div key={objective.id} className="flex items-center gap-2 p-2 bg-[#3C4043]/20 rounded-lg">
+                    <div key={objective.id} className="flex items-center gap-2 p-2 bg-[#2C2C34]/20 rounded-lg">
                       <div className="flex-shrink-0">
                         {isCompleted ? (
                           <CheckCircle2 size={16} className="text-green-400" />
@@ -263,7 +266,7 @@ const ChatProgressBar = ({ groupId, onToggleObjectives }) => {  const [objective
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex-1 h-1.5 bg-[#3C4043] rounded-full">
-                            <div 
+                            <div
                               className={`h-full bg-gradient-to-r ${getProgressColor(progress)} rounded-full transition-all duration-300`}
                               style={{ width: `${progress}%` }}
                             />

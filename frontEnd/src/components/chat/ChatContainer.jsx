@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Target, Bell, X, MessageCircle, Users } from "lucide-react";
-import {
-  fetchMessages,
+import {  fetchMessages,
   fetchGroups,
   createGroup,
   updateGroup,
   deleteGroup,
+  deleteGroupMessages,
   fetchUsers,
 } from "../../utils/api";
 import { connectSocket, disconnectSocket } from "../../utils/socket";
@@ -496,32 +496,36 @@ const ChatContainer = () => {  // Estados principales
     console.log("Eliminando mensaje:", messageId);
     showNotification("Info", "Funcionalidad de eliminar mensaje próximamente");
   };
-
   const handleDeleteChat = (chatId) => {
-    const chatToDeleteData = groups.find(g => g.id === chatId);
+    // Buscar el chat/grupo para eliminar
+    let chatToDeleteData;
+    if (chatId === "global") {
+      chatToDeleteData = { id: "global", name: "Chat Global" };
+    } else {
+      chatToDeleteData = groups.find(g => g.id === chatId);
+    }
+    
     if (chatToDeleteData) {
       setChatToDelete(chatToDeleteData);
       setShowDeleteChatModal(true);
     }
-  };
-
-  const handleConfirmDeleteChat = async () => {
+  };  const handleConfirmDeleteChat = async () => {
     if (!chatToDelete) return;
     
     setIsDeletingChat(true);
     try {
-      await deleteGroup(chatToDelete.id, token);
-      const data = await fetchGroups(token);
-      const globalGroup = { id: "global", name: "Global" };
-      setGroups([globalGroup, ...data.filter((g) => g.id !== "global")]);
+      // Para TODOS los grupos (incluyendo global), solo limpiar mensajes
+      await deleteGroupMessages(chatToDelete.id, token);
       
-      if (activeGroup === chatToDelete.id) {
-        setActiveGroup("global");
-      }
+      // Limpiar mensajes del estado local para el grupo
+      setMessages(prevMessages => prevMessages.filter(msg => msg.group_id !== chatToDelete.id));
       
-      // Mostrar alarma/notificación de éxito
-      showNotification("¡CHAT ELIMINADO!", `El chat "${chatToDelete.name}" ha sido eliminado exitosamente`);
-        // Reproducir sonido de alarma (opcional)
+      // Mensaje de notificación apropiado
+      const isGlobal = chatToDelete.id === "global";
+      const chatName = isGlobal ? "Chat Global" : chatToDelete.name;
+      showNotification("¡CHAT LIMPIADO!", `El contenido del ${chatName} ha sido eliminado exitosamente`);
+      
+      // Reproducir sonido de éxito (opcional)
       try {
         const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiS1/LUeysEI3bC8N+VQAURWK3g67NbGAk9k9n0wnUlBSaByO3aiToHGGC36+OZURE');
         audio.play();
@@ -533,7 +537,7 @@ const ChatContainer = () => {  // Estados principales
       setChatToDelete(null);
     } catch (error) {
       console.error("Error eliminando chat:", error);
-      showNotification("ERROR", "No se pudo eliminar el chat");
+      showNotification("ERROR", "No se pudo eliminar el chat/contenido");
     } finally {
       setIsDeletingChat(false);
     }
@@ -674,28 +678,33 @@ const ChatContainer = () => {  // Estados principales
             )}
           </div>{/* Panel lateral de información del grupo */}
           {showGroupInfo && (
-            <div className="w-80 border-l border-[#3C4043] bg-gradient-to-b from-[#2C2C34] to-[#1A1A1F] overflow-y-auto custom-scrollbar">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4 text-[#A8E6A3] border-b border-[#3C4043] pb-2">
-                  Información del Grupo
-                </h3>
-                
-                {/* Información básica del grupo */}
-                <div className="mb-6 p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
-                  <h4 className="text-md font-medium mb-2 text-[#E8E8E8]">Detalles</h4>
-                  <div className="space-y-2 text-sm text-[#B8B8B8]">
-                    <p><span className="text-[#A8E6A3]">Grupo:</span> {groups.find(g => g.id === activeGroup)?.name || 'Global'}</p>
-                    <p><span className="text-[#A8E6A3]">Miembros:</span> {users.length} usuarios</p>
-                    <p><span className="text-[#A8E6A3]">Estado:</span> Activo</p>
-                  </div>
+            <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-[60] animate-in fade-in duration-300">
+              <div className="bg-gradient-to-br from-[#2C2C34] to-[#1A1A1F] rounded-2xl border border-[#3C4043] w-96 max-w-[90vw] overflow-hidden animate-in slide-in-from-top-4 duration-300">
+                {/* Header del modal */}
+                <div className="flex items-center justify-between p-6 border-b border-[#3C4043]">
+                  <h3 className="text-xl font-semibold text-[#A8E6A3]">Información del Grupo</h3>
+                  <button onClick={() => setShowGroupInfo(false)} className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043]/30 transition-all">
+                    <X size={20} />
+                  </button>
                 </div>
-
-                {/* Estadísticas de mensajes */}
-                <div className="p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
-                  <h4 className="text-md font-medium mb-2 text-[#E8E8E8]">Actividad</h4>
-                  <div className="space-y-2 text-sm text-[#B8B8B8]">
-                    <p><span className="text-[#A8E6A3]">Mensajes hoy:</span> {filteredMessages.length}</p>
-                    <p><span className="text-[#A8E6A3]">Última actividad:</span> {filteredMessages.length > 0 ? 'Hace unos minutos' : 'Sin actividad'}</p>
+                {/* Contenido del modal */}
+                <div className="p-6 space-y-6">
+                  {/* Información básica del grupo */}
+                  <div className="p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
+                    <h4 className="text-md font-medium mb-2 text-[#E8E8E8]">Detalles</h4>
+                    <div className="space-y-2 text-sm text-[#B8B8B8]">
+                      <p><span className="text-[#A8E6A3]">Grupo:</span> {groups.find(g => g.id === activeGroup)?.name || 'Global'}</p>
+                      <p><span className="text-[#A8E6A3]">Miembros:</span> {users.length} usuarios</p>
+                      <p><span className="text-[#A8E6A3]">Estado:</span> Activo</p>
+                    </div>
+                  </div>
+                  {/* Estadísticas de mensajes */}
+                  <div className="p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
+                    <h4 className="text-md font-medium mb-2 text-[#E8E8E8]">Actividad</h4>
+                    <div className="space-y-2 text-sm text-[#B8B8B8]">
+                      <p><span className="text-[#A8E6A3]">Mensajes hoy:</span> {filteredMessages.length}</p>
+                      <p><span className="text-[#A8E6A3]">Última actividad:</span> {filteredMessages.length > 0 ? 'Hace unos minutos' : 'Sin actividad'}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -803,15 +812,14 @@ const ChatContainer = () => {  // Estados principales
       <NotificationBanner
         notification={notification}
         onClose={() => setNotification(null)}
-      />
-
-      {/* Modal de confirmación para eliminar chat */}
+      />      {/* Modal de confirmación para eliminar chat */}
       <DeleteChatModal
         isOpen={showDeleteChatModal}
         onClose={() => setShowDeleteChatModal(false)}
         onConfirm={handleConfirmDeleteChat}
         chatName={chatToDelete?.name || ""}
         isDeleting={isDeletingChat}
+        isGlobalChat={chatToDelete?.id === "global"}
       />
     </div>
   );
