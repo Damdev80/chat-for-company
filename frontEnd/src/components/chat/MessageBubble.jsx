@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { Check, X, RotateCcw } from "lucide-react";
+import { Check, X, RotateCcw, Download, FileText, Image, Video, Music, Archive } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
 
 const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
-  const { content, isMine, sender_name, time, isOptimistic, error } = message;
+  const { content, isMine, sender_name, time, isOptimistic, error, attachments } = message;
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -15,6 +15,39 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
     setTimeout(() => {
       onDelete(message.id);
     }, 300);
+  };
+
+  // Función para obtener el icono según el tipo de archivo
+  const getFileIcon = (mimetype) => {
+    if (mimetype.startsWith('image/')) return <Image size={16} className="text-blue-400" />;
+    if (mimetype.startsWith('video/')) return <Video size={16} className="text-red-400" />;
+    if (mimetype.startsWith('audio/')) return <Music size={16} className="text-green-400" />;
+    if (mimetype.includes('zip') || mimetype.includes('rar') || mimetype.includes('7z')) return <Archive size={16} className="text-yellow-400" />;
+    return <FileText size={16} className="text-gray-400" />;
+  };
+
+  // Función para formatear el tamaño del archivo
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Función para manejar la descarga de archivos
+  const handleDownload = (file) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    const baseURL = API_URL.replace('/api', '');
+    const downloadUrl = `${baseURL}${file.url}`;
+    
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = file.originalName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (    <div
@@ -45,44 +78,75 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
           <div className="text-xs font-semibold text-[#A8E6A3] mb-2 border-b border-[#3C4043]/50 pb-1">
             {sender_name}
           </div>
-        )}
-
-        {/* Contenido del mensaje */}        <div className="message-content text-base leading-relaxed break-words overflow-wrap-anywhere">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeHighlight]}
-            components={{              p: ({ children }) => <p className="mb-2 last:mb-0 break-words">{children}</p>,
-              code: ({ inline, children }) =>
-                inline ? (
-                  <code className="bg-[#1A1A1F]/60 border border-[#3C4043]/40 px-2 py-1 rounded-lg text-xs text-[#A8E6A3] font-mono">
-                    {children}
-                  </code>
-                ) : (
-                  <pre className="bg-[#1A1A1F]/80 border border-[#3C4043]/60 text-[#E8E8E8] p-3 rounded-xl mt-2 overflow-x-auto backdrop-blur-sm">
-                    <code className="font-mono text-sm">{children}</code>
-                  </pre>
+        )}        {/* Contenido del mensaje */}
+        <div className="message-content text-base leading-relaxed break-words overflow-wrap-anywhere">
+          {content && (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+              components={{
+                p: ({ children }) => <p className="mb-2 last:mb-0 break-words">{children}</p>,
+                code: ({ inline, children }) =>
+                  inline ? (
+                    <code className="bg-[#1A1A1F]/60 border border-[#3C4043]/40 px-2 py-1 rounded-lg text-xs text-[#A8E6A3] font-mono">
+                      {children}
+                    </code>
+                  ) : (
+                    <pre className="bg-[#1A1A1F]/80 border border-[#3C4043]/60 text-[#E8E8E8] p-3 rounded-xl mt-2 overflow-x-auto backdrop-blur-sm">
+                      <code className="font-mono text-sm">{children}</code>
+                    </pre>
+                  ),
+                ul: ({ children }) => (
+                  <ul className="list-disc list-inside mb-2 space-y-1 text-[#E8E8E8]">{children}</ul>
                 ),
-              ul: ({ children }) => (
-                <ul className="list-disc list-inside mb-2 space-y-1 text-[#E8E8E8]">{children}</ul>
-              ),
-              ol: ({ children }) => (
-                <ol className="list-decimal list-inside mb-2 space-y-1 text-[#E8E8E8]">{children}</ol>
-              ),
-              blockquote: ({ children }) => (
-                <blockquote className="border-l-4 border-[#A8E6A3]/60 pl-4 py-2 my-2 bg-[#1A1A1F]/40 rounded-r-lg backdrop-blur-sm">
-                  {children}
-                </blockquote>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-bold text-[#A8E6A3]">{children}</strong>
-              ),
-              em: ({ children }) => (
-                <em className="italic text-[#7DD3C0]">{children}</em>
-              ),
-            }}
-          >
-            {content}
-          </ReactMarkdown>        </div>
+                ol: ({ children }) => (
+                  <ol className="list-decimal list-inside mb-2 space-y-1 text-[#E8E8E8]">{children}</ol>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote className="border-l-4 border-[#A8E6A3]/60 pl-4 py-2 my-2 bg-[#1A1A1F]/40 rounded-r-lg backdrop-blur-sm">
+                    {children}
+                  </blockquote>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-bold text-[#A8E6A3]">{children}</strong>
+                ),
+                em: ({ children }) => (
+                  <em className="italic text-[#7DD3C0]">{children}</em>
+                ),
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          )}
+        </div>
+
+        {/* Archivos adjuntos */}
+        {attachments && attachments.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {attachments.map((file, index) => (
+              <div key={index} className="flex items-center gap-3 p-2 bg-[#1A1A1F]/60 border border-[#3C4043]/40 rounded-lg hover:bg-[#1A1A1F]/80 transition-colors">
+                <div className="flex-shrink-0">
+                  {getFileIcon(file.mimetype)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-[#E8E8E8] truncate font-medium">
+                    {file.originalName}
+                  </div>
+                  <div className="text-xs text-[#B8B8B8]">
+                    {formatFileSize(file.size)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDownload(file)}
+                  className="flex-shrink-0 p-1.5 text-[#A8E6A3] hover:text-[#98E093] hover:bg-[#A8E6A3]/20 rounded-lg transition-all duration-200"
+                  title="Descargar archivo"
+                >
+                  <Download size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Tiempo y estado */}
         <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#3C4043]/30">

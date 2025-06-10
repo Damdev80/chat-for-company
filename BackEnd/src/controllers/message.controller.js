@@ -3,8 +3,7 @@ import { ModelsMessage } from '../models/message.js'
 import { messageSchema } from '../validations/message.validation.js'
 import { getConnection } from '../config/db.js'
 
-export class MessageController {
-  static async create(req, res) {
+export class MessageController {  static async create(req, res) {
     try {
       // Validar datos con Zod
       const result = messageSchema.safeParse(req.body)
@@ -12,11 +11,11 @@ export class MessageController {
         return res.status(400).json({ errors: result.error.issues })
       }
 
-      const { content, group_id } = result.data
+      const { content, group_id, attachments } = result.data
       const sender_id = req.user.id // ← Tomar el id del usuario autenticado
 
       // Crear el mensaje
-      await ModelsMessage.create({ content, sender_id, group_id })
+      await ModelsMessage.create({ content, sender_id, group_id, attachments })
 
       res.status(201).json({ message: 'Mensaje enviado correctamente' })
     } catch (error) {
@@ -43,11 +42,10 @@ export class MessageController {
         console.error('group_id inválido:', data.group_id);
         throw new Error('group_id inválido: ' + data.group_id);
       }
-      
-      // Si no hay content o está vacío, rechazar
-      if (!data.content || !data.content.trim()) {
-        console.error('content inválido o vacío');
-        throw new Error('El contenido del mensaje no puede estar vacío');
+        // Validar que hay contenido o attachments
+      if ((!data.content || !data.content.trim()) && (!data.attachments || data.attachments.length === 0)) {
+        console.error('Mensaje sin contenido ni archivos adjuntos');
+        throw new Error('El mensaje debe tener contenido o archivos adjuntos');
       }
       
       // Si no hay sender_id, rechazar

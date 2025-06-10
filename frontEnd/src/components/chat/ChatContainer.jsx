@@ -112,8 +112,7 @@ const ChatContainer = () => {  // Estados principales
       .then((msgs) => {
         const ordered = [...msgs].sort(
           (a, b) => new Date(a.created_at) - new Date(b.created_at)
-        );
-        setMessages(
+        );        setMessages(
           ordered.map((msg) => ({
             id: msg.id,
             content: msg.content,
@@ -126,6 +125,7 @@ const ChatContainer = () => {  // Estados principales
                   minute: "2-digit",
                 })
               : "",
+            attachments: msg.attachments || [],
           }))
         );
       })
@@ -171,19 +171,17 @@ const ChatContainer = () => {  // Estados principales
              msg.content === messageData.content && 
              msg.sender_name === messageData.sender_name && 
              msg.isOptimistic
-           ));
-
-        if (isMyOptimisticMessage) {
+           ));        if (isMyOptimisticMessage) {
           return prev.map(msg =>
             (messageData.temp_id && msg.id === messageData.temp_id) ||
             (msg.content === messageData.content && 
              msg.sender_name === messageData.sender_name && 
-             msg.isOptimistic)
-              ? {
+             msg.isOptimistic)              ? {
                   ...msg,
                   id: messageData.id || msg.id,
                   isOptimistic: false,
                   time: formatMessageTime(messageData.created_at) || msg.time,
+                  attachments: messageData.attachments || msg.attachments || [],
                 }
               : msg
           );
@@ -204,6 +202,7 @@ const ChatContainer = () => {  // Estados principales
             sender_name: messageData.sender_name,
             group_id: messageData.group_id || "global",
             time: formatMessageTime(messageData.created_at),
+            attachments: messageData.attachments || [],
           },
         ];
       });
@@ -370,10 +369,9 @@ const ChatContainer = () => {  // Estados principales
       socketRef.current.emit("join_group", activeGroup);
       console.log("Cambiando a grupo:", activeGroup);
     }
-  }, [activeGroup]);
-  // Funciones de manejo
-  const sendMessage = async (message) => {
-    if (!message.trim()) return;
+  }, [activeGroup]);  // Funciones de manejo
+  const sendMessage = async (message, attachments = null) => {
+    if (!message.trim() && (!attachments || attachments.length === 0)) return;
     if (!socketRef.current) {
       console.error("Socket no está conectado");
       showNotification("Error", "No hay conexión con el servidor");
@@ -389,6 +387,7 @@ const ChatContainer = () => {  // Estados principales
       group_id: activeGroup,
       time: formatMessageTime(new Date()),
       isOptimistic: true,
+      attachments: attachments || [],
     };
 
     // Agregar mensaje optimista
@@ -401,6 +400,7 @@ const ChatContainer = () => {  // Estados principales
         sender_name: user,
         group_id: activeGroup,
         temp_id: tempId,
+        attachments: attachments || [],
       });
       
       console.log("Mensaje enviado por Socket.IO:", {
@@ -408,6 +408,7 @@ const ChatContainer = () => {  // Estados principales
         sender_name: user,
         group_id: activeGroup,
         temp_id: tempId,
+        attachments: attachments || [],
       });
 
     } catch (error) {
@@ -484,9 +485,13 @@ const ChatContainer = () => {  // Estados principales
     setActiveGroup(groupId);
     setSidebarOpen(false);
   };
-
-  const handleSendMessage = async () => {
-    await sendMessage(newMessage);
+  const handleSendMessage = async (e, attachments = null) => {
+    // Si es un evento, prevenir default behavior
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
+    await sendMessage(newMessage, attachments);
     setNewMessage("");
   };
 
