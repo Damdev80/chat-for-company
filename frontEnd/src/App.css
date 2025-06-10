@@ -215,3 +215,79 @@
 .button-press:active {
   transform: scale(0.95);
 }
+
+/* Media Viewer Styles */
+.slider {
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-track {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider::-moz-range-track {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  height: 4px;
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Media Viewer Animations */
+@keyframes mediaFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.media-viewer-content {
+  animation: mediaFadeIn 0.3s ease-out;
+}
+
+/* Fullscreen video controls */
+.video-controls-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.video-controls-overlay:hover,
+.video-controls-overlay.show {
+  opacity: 1;
+}
