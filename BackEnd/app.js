@@ -53,7 +53,9 @@ app.get('/health', (req, res) => {
 // Test API route
 app.get('/api/test', (req, res) => {
   res.status(200).json({ 
-    message: 'API is working',    routes: {
+    message: 'API is working',
+    timestamp: new Date().toISOString(),
+    routes: {
       users: '/api/users',
       roles: '/api/roles', 
       messages: '/api/messages',
