@@ -10,13 +10,21 @@ import { serverError } from './src/middlewares/error.middlewar.js'
 import { requestLogger } from './src/middlewares/logger.middleware.js'
 
 // Importar rutas
+console.log('📦 Importando rutas...');
 import userRoutes from './src/routes/user.routes.js'
+console.log('✅ userRoutes imported');
 import roleRoutes from './src/routes/role.routes.js'
+console.log('✅ roleRoutes imported');
 import messageRoutes from './src/routes/message.routes.js'
+console.log('✅ messageRoutes imported');
 import groupRoutes from './src/routes/group.routes.js'
+console.log('✅ groupRoutes imported');
 import objectiveRoutes from './src/routes/objective.routes.js'
+console.log('✅ objectiveRoutes imported');
 import taskRoutes from './src/routes/task.routes.js'
+console.log('✅ taskRoutes imported');
 import uploadRoutes from './src/routes/upload.routes.js'
+console.log('✅ uploadRoutes imported');
 
 // Configurar variables de entorno
 dotenv.config()
@@ -67,17 +75,39 @@ app.get('/api/test', (req, res) => {
   })
 })
 
+// Test Upload route specifically
+app.get('/api/upload-check', (req, res) => {
+  res.status(200).json({ 
+    message: 'Upload routes check',
+    timestamp: new Date().toISOString(),
+    uploadRoutes: {
+      files: '/api/upload/files',
+      test: '/api/upload/test',
+      testUpload: '/api/upload/test-upload'
+    },
+    status: 'Upload module loaded successfully'
+  })
+})
+
 // Rutas
+console.log('🔄 Registrando rutas...');
 app.use('/api/users', userRoutes)
+console.log('✅ Ruta users registrada');
 app.use('/api/roles', roleRoutes)
+console.log('✅ Ruta roles registrada');
 app.use('/api/messages', messageRoutes)
+console.log('✅ Ruta messages registrada');
 app.use('/api/groups', groupRoutes)
+console.log('✅ Ruta groups registrada');
 app.use('/api/objectives', objectiveRoutes)
+console.log('✅ Ruta objectives registrada');
 app.use('/api/tasks', taskRoutes)
+console.log('✅ Ruta tasks registrada');
 app.use('/api/upload', uploadRoutes)
+console.log('✅ Ruta upload registrada');
 
 // Log para diagnóstico - rutas registradas
-console.error('Routes registered:', {
+console.error('📋 Routes registered:', {
   users: '/api/users',
   roles: '/api/roles',
   messages: '/api/messages',

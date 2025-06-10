@@ -7,6 +7,8 @@ import { verifyToken } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
+console.log('🔧 Inicializando rutas de upload...');
+
 // Configurar __dirname para ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -85,10 +87,15 @@ const upload = multer({
 
 // Ruta para subir archivos
 router.post('/files', verifyToken, upload.array('files', 5), (req, res) => {
+  console.log('📤 POST /files - Upload request received');
   try {
     if (!req.files || req.files.length === 0) {
+      console.log('❌ No files provided');
       return res.status(400).json({ error: 'No se proporcionaron archivos' });
-    }    // Procesar archivos subidos
+    }
+
+    console.log(`📁 Processing ${req.files.length} files`);
+    // Procesar archivos subidos
     const uploadedFiles = req.files.map(file => {
       const relativePath = path.relative(path.join(__dirname, '../../'), file.path);
       
@@ -171,8 +178,9 @@ router.use((error, req, res, next) => {
   if (error.message.includes('Tipo de archivo no permitido')) {
     return res.status(400).json({ error: error.message });
   }
-
   next(error);
 });
+
+console.log('✅ Upload routes configured and ready');
 
 export default router;
