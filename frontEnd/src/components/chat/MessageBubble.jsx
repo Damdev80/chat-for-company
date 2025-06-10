@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { Check, X, RotateCcw, Download, FileText, Image, Video, Music, Archive } from "lucide-react";
+import { Check, X, RotateCcw, Download, FileText, Image, Video, Music, Archive, Play, Eye } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
+import MediaViewer from "./MediaViewer";
 
 const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
   const { content, isMine, sender_name, time, isOptimistic, error, attachments } = message;
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState(null);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -34,7 +36,6 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
   // Función para manejar la descarga de archivos
   const handleDownload = (file) => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -48,6 +49,74 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Función para abrir el visor de medios
+  const handleMediaView = (file) => {
+    setSelectedMedia(file);
+  };
+
+  // Función para cerrar el visor de medios
+  const closeMediaViewer = () => {
+    setSelectedMedia(null);
+  };
+
+  // Función para renderizar preview de imagen
+  const renderImagePreview = (file) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    const baseURL = API_URL.replace('/api', '');
+    const imageUrl = `${baseURL}${file.url}`;
+
+    return (
+      <div 
+        className="relative group cursor-pointer overflow-hidden rounded-lg"
+        onClick={() => handleMediaView(file)}
+      >
+        <img
+          src={imageUrl}
+          alt={file.originalName}
+          className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={(e) => {
+            e.target.style.display = 'none';
+          }}
+        />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2 bg-black/50 rounded-full">
+            <Eye size={20} className="text-white" />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Función para renderizar preview de video
+  const renderVideoPreview = (file) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    const baseURL = API_URL.replace('/api', '');
+    const videoUrl = `${baseURL}${file.url}`;
+
+    return (
+      <div 
+        className="relative group cursor-pointer overflow-hidden rounded-lg bg-black"
+        onClick={() => handleMediaView(file)}
+      >
+        <video
+          src={videoUrl}
+          className="w-full h-32 object-cover"
+          muted
+          preload="metadata"
+        />
+        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
+          <div className="p-3 bg-black/60 rounded-full group-hover:scale-110 transition-transform duration-300">
+            <Play size={24} className="text-white ml-1" />
+          </div>
+        </div>
+        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
+          <Video size={12} className="inline mr-1" />
+          Video
+        </div>
+      </div>
+    );
   };
 
   return (    <div
@@ -118,33 +187,91 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
               {content}
             </ReactMarkdown>
           )}
-        </div>
-
-        {/* Archivos adjuntos */}
+        </div>        {/* Archivos adjuntos */}
         {attachments && attachments.length > 0 && (
           <div className="mt-3 space-y-2">
-            {attachments.map((file, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 bg-[#1A1A1F]/60 border border-[#3C4043]/40 rounded-lg hover:bg-[#1A1A1F]/80 transition-colors">
-                <div className="flex-shrink-0">
-                  {getFileIcon(file.mimetype)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-[#E8E8E8] truncate font-medium">
-                    {file.originalName}
+            {attachments.map((file, index) => {
+              const isImage = file.mimetype.startsWith('image/');
+              const isVideo = file.mimetype.startsWith('video/');
+              const isAudio = file.mimetype.startsWith('audio/');
+
+              // Renderizar multimedia con preview
+              if (isImage) {
+                return (
+                  <div key={index} className="space-y-2">
+                    {renderImagePreview(file)}
+                    <div className="flex items-center gap-2 text-xs text-[#B8B8B8]">
+                      <Image size={12} className="text-blue-400" />
+                      <span className="truncate flex-1">{file.originalName}</span>
+                      <span>{formatFileSize(file.size)}</span>
+                    </div>
                   </div>
-                  <div className="text-xs text-[#B8B8B8]">
-                    {formatFileSize(file.size)}
+                );
+              }
+
+              if (isVideo) {
+                return (
+                  <div key={index} className="space-y-2">
+                    {renderVideoPreview(file)}
+                    <div className="flex items-center gap-2 text-xs text-[#B8B8B8]">
+                      <Video size={12} className="text-red-400" />
+                      <span className="truncate flex-1">{file.originalName}</span>
+                      <span>{formatFileSize(file.size)}</span>
+                    </div>
                   </div>
+                );
+              }
+
+              if (isAudio) {
+                return (
+                  <div key={index} className="space-y-2">
+                    <div 
+                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-lg cursor-pointer hover:from-purple-900/60 hover:to-blue-900/60 transition-all duration-300"
+                      onClick={() => handleMediaView(file)}
+                    >
+                      <div className="p-2 bg-purple-500/30 rounded-lg">
+                        <Music size={20} className="text-purple-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-[#E8E8E8] font-medium truncate">
+                          {file.originalName}
+                        </div>
+                        <div className="text-xs text-purple-300">
+                          Audio • {formatFileSize(file.size)}
+                        </div>
+                      </div>
+                      <div className="p-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/40 transition-colors">
+                        <Play size={16} className="text-purple-300" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Renderizar otros tipos de archivo normalmente
+              return (
+                <div key={index} className="flex items-center gap-3 p-2 bg-[#1A1A1F]/60 border border-[#3C4043]/40 rounded-lg hover:bg-[#1A1A1F]/80 transition-colors">
+                  <div className="flex-shrink-0">
+                    {getFileIcon(file.mimetype)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-[#E8E8E8] truncate font-medium">
+                      {file.originalName}
+                    </div>
+                    <div className="text-xs text-[#B8B8B8]">
+                      {formatFileSize(file.size)}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDownload(file)}
+                    className="flex-shrink-0 p-1.5 text-[#A8E6A3] hover:text-[#98E093] hover:bg-[#A8E6A3]/20 rounded-lg transition-all duration-200"
+                    title="Descargar archivo"
+                  >
+                    <Download size={14} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleDownload(file)}
-                  className="flex-shrink-0 p-1.5 text-[#A8E6A3] hover:text-[#98E093] hover:bg-[#A8E6A3]/20 rounded-lg transition-all duration-200"
-                  title="Descargar archivo"
-                >
-                  <Download size={14} />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -190,9 +317,17 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
             title="Eliminar mensaje"
           >
             <X size={12} />
-          </button>
-        )}
+          </button>        )}
       </div>
+
+      {/* Media Viewer Modal */}
+      {selectedMedia && (
+        <MediaViewer
+          file={selectedMedia}
+          onClose={closeMediaViewer}
+          onDownload={handleDownload}
+        />
+      )}
     </div>
   );
 };
