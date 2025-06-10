@@ -77,9 +77,15 @@ const ChatContainer = () => {  // Estados principales
   const typingTimeoutRef = useRef(null);
 
   // Datos del usuario
-  const token = localStorage.getItem("token");
-  const user = localStorage.getItem("username") || "";
+  const token = localStorage.getItem("token");  const user = localStorage.getItem("username") || "";
   const userRole = localStorage.getItem("userRole") || "user";
+
+  // Inicializar monitoreo móvil
+  useEffect(() => {
+    const stopMonitoring = startMobileMonitoring();
+    return stopMonitoring;
+  }, []);
+
   // Función para mostrar notificaciones
   const showNotification = (title, message) => {
     setNotification({ title, message });
@@ -90,7 +96,6 @@ const ChatContainer = () => {  // Estados principales
   const handleShowNotifications = () => {
     setShowNotifications(!showNotifications);
   };
-
   const handleMarkNotificationAsRead = (notificationId) => {
     setNotifications(prev => 
       prev.map(notif => 
@@ -103,7 +108,6 @@ const ChatContainer = () => {  // Estados principales
     setNotifications([]);
     setShowNotifications(false);
   };
-
   // Cargar mensajes
   useEffect(() => {
     if (!token) return;
@@ -112,8 +116,7 @@ const ChatContainer = () => {  // Estados principales
       .then((msgs) => {
         const ordered = [...msgs].sort(
           (a, b) => new Date(a.created_at) - new Date(b.created_at)
-        );        setMessages(
-          ordered.map((msg) => ({
+        );        const processedMessages = ordered.map((msg) => ({
             id: msg.id,
             content: msg.content,
             isMine: msg.sender_name === user,
@@ -126,11 +129,36 @@ const ChatContainer = () => {  // Estados principales
                 })
               : "",
             attachments: msg.attachments || [],
-          }))
-        );
+          }));
+          setMessages(processedMessages);
+        
+        // Debug inicial después de cargar mensajes - MEJORADO
+        if (typeof window !== 'undefined' && window.innerWidth < 430) {
+          console.log('📱 [MOBILE INITIAL LOAD] Messages loaded from backend:', {
+            totalMessages: processedMessages.length,
+            messagesByGroup: processedMessages.reduce((acc, msg) => {
+              const groupId = msg.group_id || 'undefined';
+              if (!acc[groupId]) acc[groupId] = [];
+              acc[groupId].push({
+                id: msg.id,
+                content: msg.content?.substring(0, 30),
+                sender: msg.sender_name
+              });
+              return acc;
+            }, {}),
+            sampleMessages: processedMessages.slice(0, 3).map(m => ({
+              id: m.id,
+              group_id: m.group_id,
+              group_id_type: typeof m.group_id,
+              content: m.content?.substring(0, 40)
+            }))
+          });
+        }
+        
+        debugChatMessages(processedMessages, activeGroup, 'INITIAL_LOAD');
       })
       .catch(() => {});
-  }, [token, user]);
+  }, [token, user, activeGroup]);
 
   // Cargar grupos
   useEffect(() => {
@@ -479,9 +507,32 @@ const ChatContainer = () => {  // Estados principales
 
   const handleTaskUpdate = () => {
     setObjectiveRefreshKey(prev => prev + 1);
-  };
-
-  const handleGroupSelect = (groupId) => {
+  };  const handleGroupSelect = (groupId) => {
+    // Debug mejorado para el cambio de grupo
+    if (typeof window !== 'undefined' && window.innerWidth < 430) {
+      console.log('📱 [MOBILE GROUP CHANGE - DETAILED]', {
+        fromGroup: activeGroup,
+        toGroup: groupId,
+        fromGroupType: typeof activeGroup,
+        toGroupType: typeof groupId,
+        totalMessages: messages.length,
+        messagesInOldGroup: messages.filter(m => m.group_id === activeGroup).length,
+        messagesInNewGroup: messages.filter(m => m.group_id === groupId).length,
+        
+        // Verificar si el grupo existe en los mensajes
+        groupExists: messages.some(m => m.group_id === groupId),
+        availableGroups: [...new Set(messages.map(m => m.group_id))],
+        
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Debug usando la nueva utilidad
+    debugGroupChange(activeGroup, groupId, messages);
+    
+    // Crear snapshot del estado antes del cambio (solo en móvil)
+    createChatSnapshot(messages, groups, activeGroup, users);
+    
     setActiveGroup(groupId);
     setSidebarOpen(false);
   };
@@ -556,20 +607,73 @@ const ChatContainer = () => {  // Estados principales
     localStorage.removeItem("username");
     localStorage.removeItem("userRole");
     window.location.href = "/login";
-  };
-
-  const getFilteredMessages = (searchTerm) => {
-    return messages.filter(
-      (msg) =>
-        msg.group_id === activeGroup &&
-        msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+  };  const getFilteredMessages = (searchTerm) => {
+    // FIXED: Ensure proper string comparison for group IDs to handle UUID issues
+    const groupMessages = messages.filter(msg => {
+      // Convert both to strings to handle UUID comparison issues
+      const msgGroupId = String(msg.group_id || '');
+      const activeGroupId = String(activeGroup || '');
+      return msgGroupId === activeGroupId;
+    });
+    
+    // Debug mejorado para el problema específico - FIXED VERSION
+    if (typeof window !== 'undefined' && window.innerWidth < 430) {
+      console.log('📱 [MOBILE DEBUG - FIXED VERSION]', {
+        activeGroup,
+        activeGroupType: typeof activeGroup,
+        totalMessages: messages.length,
+        groupMessages: groupMessages.length,
+        searchTerm,
+        
+        // Análisis detallado de cada mensaje con string conversion
+        messageAnalysis: messages.slice(0, 5).map(msg => ({
+          id: msg.id,
+          group_id: msg.group_id,
+          group_id_string: String(msg.group_id || ''),
+          active_group_string: String(activeGroup || ''),
+          matches_original: msg.group_id === activeGroup,
+          matches_fixed: String(msg.group_id || '') === String(activeGroup || ''),
+          content_preview: msg.content?.substring(0, 30),
+          sender: msg.sender_name
+        })),
+        
+        // Estadísticas de comparación
+        comparisonStats: {
+          originalFilterCount: messages.filter(msg => msg.group_id === activeGroup).length,
+          fixedFilterCount: groupMessages.length,
+          improvement: groupMessages.length - messages.filter(msg => msg.group_id === activeGroup).length
+        }
+      });
+      
+      // Advertencia específica si no hay mensajes para el grupo activo
+      if (groupMessages.length === 0 && messages.length > 0) {
+        console.warn('⚠️ [MOBILE CRITICAL] Still no messages found after fix!', {
+          activeGroup,
+          activeGroupString: String(activeGroup || ''),
+          availableGroupIds: [...new Set(messages.map(m => String(m.group_id || '')))],
+          possibleIssue: 'ActiveGroup value might be incorrect'
+        });
+      } else if (groupMessages.length > 0) {
+        console.log('✅ [MOBILE SUCCESS] Messages found after string conversion fix!', {
+          foundMessages: groupMessages.length
+        });
+      }
+    }
+    
+    if (!searchTerm || !searchTerm.trim()) {
+      return groupMessages;
+    }
+    
+    return groupMessages.filter(msg =>
+      (msg.content && msg.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (msg.sender_name && msg.sender_name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   };
 
-  const filteredMessages = getFilteredMessages(search);
-  return (
-    <div className="h-screen bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] text-[#E8E8E8] flex overflow-hidden">
-      {/* Sidebar */}      <ChatSidebar
+  const filteredMessages = getFilteredMessages(search);  return (
+    <div className="h-screen bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] text-[#E8E8E8] flex overflow-hidden relative chat-container viewport-constrained no-horizontal-overflow">
+      {/* Sidebar - Mejorado para móvil */}
+      <ChatSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         activeTab={activeTab}
@@ -582,15 +686,22 @@ const ChatContainer = () => {  // Estados principales
         activeGroup={activeGroup}
         onGroupSelect={handleGroupSelect}
         userRole={userRole}
-        currentUser={user}onCreateGroup={(groupData) => handleCreateGroup(groupData.name)}
+        currentUser={user}
+        onCreateGroup={(groupData) => handleCreateGroup(groupData.name)}
         onEditGroup={(groupId, groupData) => handleEditGroup(groupId, groupData)}
         onDeleteGroup={handleDeleteGroup}
         onTaskUpdate={handleTaskUpdate}
         objectiveRefreshKey={objectiveRefreshKey}
       />
 
-      {/* Área principal */}
-      <div className="flex-1 flex flex-col min-w-0">        {/* Header */}        <ChatHeader
+      {/* Overlay para móvil cuando sidebar está abierto */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}      {/* Área principal - Mejorada para móvil */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 viewport-constrained no-horizontal-overflow">{/* Header */}<ChatHeader
           activeGroup={activeGroup}
           groups={groups}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
@@ -603,37 +714,41 @@ const ChatContainer = () => {  // Estados principales
           userRole={userRole}
           notifications={notifications}
           onShowNotifications={handleShowNotifications}
-        />        <div className="flex-1 flex min-h-0">
+        />        <div className="flex-1 flex min-h-0 no-horizontal-overflow">
           {/* Contenido principal - Mensajes o Objetivos */}
-          <div className="flex-1 flex flex-col">
-            {activeTab === 'objectives' ? (
-              // Área de gestión de objetivos
+          <div className="flex-1 flex flex-col no-horizontal-overflow">{activeTab === 'objectives' ? (
+              // Área de gestión de objetivos - Mejorada para móvil
               <div className="flex-1 flex flex-col bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] overflow-hidden">
-                <div className="border-b border-[#3C4043] bg-[#252529] p-4">
-                  <h2 className="text-xl font-bold text-[#A8E6A3] flex items-center gap-2">
-                    <Target size={24} />
-                    Gestión de Objetivos
+                <div className="border-b border-[#3C4043] bg-[#252529] p-3 sm:p-4">
+                  <h2 className="text-lg sm:text-xl font-bold text-[#A8E6A3] flex items-center gap-2">
+                    <Target size={20} className="sm:w-6 sm:h-6" />
+                    <span className="hidden sm:inline">Gestión de Objetivos</span>
+                    <span className="sm:hidden">Objetivos</span>
                     {activeGroup !== "global" && (
-                      <span className="text-sm text-[#B8B8B8] font-normal">
+                      <span className="text-xs sm:text-sm text-[#B8B8B8] font-normal truncate">
                         - {groups.find(g => g.id === activeGroup)?.name || "Grupo"}
                       </span>
                     )}
                   </h2>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {/* Resumen de progreso */}
-                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-4">
-                    <h3 className="text-lg font-semibold text-[#E8E8E8] mb-4">Resumen de Progreso</h3>
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+                  {/* Resumen de progreso - Adaptado para móvil */}
+                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
+                      Resumen de Progreso
+                    </h3>
                     <ObjectiveProgressSummary 
                       groupId={activeGroup}
                       refreshKey={objectiveRefreshKey}
                     />
                   </div>
 
-                  {/* Gestión de objetivos */}
-                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-4">
-                    <h3 className="text-lg font-semibold text-[#E8E8E8] mb-4">Objetivos del Grupo</h3>
+                  {/* Gestión de objetivos - Adaptada para móvil */}
+                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
+                      Objetivos del Grupo
+                    </h3>
                     <ObjectiveManager 
                       groupId={activeGroup}
                       userRole={userRole}
@@ -642,9 +757,11 @@ const ChatContainer = () => {  // Estados principales
                     />
                   </div>
 
-                  {/* Vista de tareas del usuario */}
-                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-4">
-                    <h3 className="text-lg font-semibold text-[#E8E8E8] mb-4">Mis Tareas</h3>
+                  {/* Vista de tareas del usuario - Adaptada para móvil */}
+                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
+                      Mis Tareas
+                    </h3>
                     <UserTaskView 
                       groupId={activeGroup}
                       onTaskUpdate={() => setObjectiveRefreshKey(prev => prev + 1)}
@@ -681,32 +798,32 @@ const ChatContainer = () => {  // Estados principales
                 />
               </>
             )}
-          </div>{/* Panel lateral de información del grupo */}
+          </div>          {/* Panel lateral de información del grupo - Mejorado para móvil */}
           {showGroupInfo && (
-            <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-[60] animate-in fade-in duration-300">
-              <div className="bg-gradient-to-br from-[#2C2C34] to-[#1A1A1F] rounded-2xl border border-[#3C4043] w-96 max-w-[90vw] overflow-hidden animate-in slide-in-from-top-4 duration-300">
+            <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-[60] animate-in fade-in duration-300 p-4">
+              <div className="bg-gradient-to-br from-[#2C2C34] to-[#1A1A1F] rounded-2xl border border-[#3C4043] w-full max-w-sm sm:max-w-md max-h-[90vh] overflow-hidden animate-in slide-in-from-top-4 duration-300">
                 {/* Header del modal */}
-                <div className="flex items-center justify-between p-6 border-b border-[#3C4043]">
-                  <h3 className="text-xl font-semibold text-[#A8E6A3]">Información del Grupo</h3>
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-[#3C4043]">
+                  <h3 className="text-lg sm:text-xl font-semibold text-[#A8E6A3]">Info del Grupo</h3>
                   <button onClick={() => setShowGroupInfo(false)} className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043]/30 transition-all">
                     <X size={20} />
                   </button>
                 </div>
                 {/* Contenido del modal */}
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto max-h-[70vh]">
                   {/* Información básica del grupo */}
-                  <div className="p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
-                    <h4 className="text-md font-medium mb-2 text-[#E8E8E8]">Detalles</h4>
-                    <div className="space-y-2 text-sm text-[#B8B8B8]">
+                  <div className="p-3 sm:p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
+                    <h4 className="text-sm sm:text-md font-medium mb-2 text-[#E8E8E8]">Detalles</h4>
+                    <div className="space-y-2 text-xs sm:text-sm text-[#B8B8B8]">
                       <p><span className="text-[#A8E6A3]">Grupo:</span> {groups.find(g => g.id === activeGroup)?.name || 'Global'}</p>
                       <p><span className="text-[#A8E6A3]">Miembros:</span> {users.length} usuarios</p>
                       <p><span className="text-[#A8E6A3]">Estado:</span> Activo</p>
                     </div>
                   </div>
                   {/* Estadísticas de mensajes */}
-                  <div className="p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
-                    <h4 className="text-md font-medium mb-2 text-[#E8E8E8]">Actividad</h4>
-                    <div className="space-y-2 text-sm text-[#B8B8B8]">
+                  <div className="p-3 sm:p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
+                    <h4 className="text-sm sm:text-md font-medium mb-2 text-[#E8E8E8]">Actividad</h4>
+                    <div className="space-y-2 text-xs sm:text-sm text-[#B8B8B8]">
                       <p><span className="text-[#A8E6A3]">Mensajes hoy:</span> {filteredMessages.length}</p>
                       <p><span className="text-[#A8E6A3]">Última actividad:</span> {filteredMessages.length > 0 ? 'Hace unos minutos' : 'Sin actividad'}</p>
                     </div>
@@ -714,21 +831,21 @@ const ChatContainer = () => {  // Estados principales
                 </div>
               </div>
             </div>
-          )}        </div>
-      </div>      {/* Modal de notificaciones mejorado */}
+          )}</div>
+      </div>      {/* Modal de notificaciones mejorado para móvil */}
       {showNotifications && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-start justify-center pt-20 z-[60] animate-in fade-in duration-300">
-          <div className="bg-gradient-to-br from-[#2C2C34] via-[#252529] to-[#1A1A1F] rounded-2xl border border-[#3C4043] w-96 max-w-[90vw] max-h-[80vh] overflow-hidden animate-in slide-in-from-top-4 duration-300">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-start justify-center pt-16 sm:pt-20 z-[60] animate-in fade-in duration-300 p-4">
+          <div className="bg-gradient-to-br from-[#2C2C34] via-[#252529] to-[#1A1A1F] rounded-2xl border border-[#3C4043] w-full max-w-sm sm:max-w-md max-h-[80vh] overflow-hidden animate-in slide-in-from-top-4 duration-300">
             {/* Header del modal */}
-            <div className="bg-gradient-to-r from-[#A8E6A3]/10 to-[#7DD3C0]/10 border-b border-[#3C4043] p-6">
+            <div className="bg-gradient-to-r from-[#A8E6A3]/10 to-[#7DD3C0]/10 border-b border-[#3C4043] p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-[#A8E6A3]/20 rounded-xl">
-                    <Bell size={20} className="text-[#A8E6A3]" />
+                    <Bell size={18} className="text-[#A8E6A3] sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-[#E8E8E8]">Notificaciones</h3>
-                    <p className="text-sm text-[#B8B8B8]">
+                    <h3 className="text-lg sm:text-xl font-bold text-[#E8E8E8]">Notificaciones</h3>
+                    <p className="text-xs sm:text-sm text-[#B8B8B8]">
                       {notifications.filter(n => !n.read).length} sin leer
                     </p>
                   </div>
@@ -743,42 +860,41 @@ const ChatContainer = () => {  // Estados principales
             </div>
             
             {/* Contenido del modal */}
-            <div className="p-4">
+            <div className="p-3 sm:p-4">
               {notifications.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="p-4 bg-[#A8E6A3]/10 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                    <Bell size={32} className="text-[#A8E6A3]" />
-                  </div>
-                  <h4 className="text-lg font-semibold text-[#E8E8E8] mb-2">Todo al día</h4>
-                  <p className="text-[#B8B8B8]">No tienes notificaciones pendientes</p>
+                <div className="text-center py-8 sm:py-12">
+                  <div className="p-3 sm:p-4 bg-[#A8E6A3]/10 rounded-full w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 flex items-center justify-center">
+                    <Bell size={24} className="text-[#A8E6A3] sm:w-8 sm:h-8" />                </div>
+                  <h4 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-2">Todo al día</h4>
+                  <p className="text-sm sm:text-base text-[#B8B8B8]">No tienes notificaciones pendientes</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-[#A8E6A3] scrollbar-track-[#3C4043] pr-2">
+                <div className="space-y-3 max-h-48 sm:max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-[#A8E6A3] scrollbar-track-[#3C4043] pr-2">
                   {notifications.map((notif) => (
                     <div
                       key={notif.id}
-                      className={`group p-4 rounded-xl border transition-all duration-200 cursor-pointer hover:scale-[1.02] ${
+                      className={`group p-3 sm:p-4 rounded-xl border transition-all duration-200 cursor-pointer hover:scale-[1.02] ${
                         notif.read 
                           ? 'bg-[#252529] border-[#3C4043] text-[#B8B8B8] hover:bg-[#2C2C34]' 
                           : 'bg-gradient-to-r from-[#A8E6A3]/10 to-[#7DD3C0]/10 border-[#A8E6A3]/30 text-[#E8E8E8] hover:from-[#A8E6A3]/20 hover:to-[#7DD3C0]/20'
                       }`}
                       onClick={() => handleMarkNotificationAsRead(notif.id)}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-lg ${notif.read ? 'bg-[#3C4043]' : 'bg-[#A8E6A3]/20'}`}>
-                          {notif.type === 'message' && <MessageCircle size={16} className={notif.read ? 'text-[#B8B8B8]' : 'text-[#A8E6A3]'} />}
-                          {notif.type === 'objective' && <Target size={16} className={notif.read ? 'text-[#B8B8B8]' : 'text-[#A8E6A3]'} />}
-                          {notif.type === 'user' && <Users size={16} className={notif.read ? 'text-[#B8B8B8]' : 'text-[#A8E6A3]'} />}
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className={`p-1.5 sm:p-2 rounded-lg ${notif.read ? 'bg-[#3C4043]' : 'bg-[#A8E6A3]/20'}`}>
+                          {notif.type === 'message' && <MessageCircle size={14} className={`sm:w-4 sm:h-4 ${notif.read ? 'text-[#B8B8B8]' : 'text-[#A8E6A3]'}`} />}
+                          {notif.type === 'objective' && <Target size={14} className={`sm:w-4 sm:h-4 ${notif.read ? 'text-[#B8B8B8]' : 'text-[#A8E6A3]'}`} />}
+                          {notif.type === 'user' && <Users size={14} className={`sm:w-4 sm:h-4 ${notif.read ? 'text-[#B8B8B8]' : 'text-[#A8E6A3]'}`} />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
-                            <h4 className="font-semibold text-sm leading-snug">{notif.title}</h4>
+                            <h4 className="font-semibold text-xs sm:text-sm leading-snug truncate">{notif.title}</h4>
                             <span className="text-xs opacity-60 whitespace-nowrap">{notif.time}</span>
                           </div>
-                          <p className="text-xs mt-1 opacity-80 leading-relaxed">{notif.content}</p>
+                          <p className="text-xs sm:text-sm mt-1 opacity-80 leading-relaxed line-clamp-2">{notif.content}</p>
                           {!notif.read && (
                             <div className="flex items-center gap-1 mt-2">
-                              <div className="w-2 h-2 bg-[#A8E6A3] rounded-full animate-pulse"></div>
+                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#A8E6A3] rounded-full animate-pulse"></div>
                               <span className="text-xs text-[#A8E6A3] font-medium">Nuevo</span>
                             </div>
                           )}
@@ -792,19 +908,19 @@ const ChatContainer = () => {  // Estados principales
             
             {/* Footer del modal */}
             {notifications.length > 0 && (
-              <div className="border-t border-[#3C4043] p-4 bg-[#252529]/50">
+              <div className="border-t border-[#3C4043] p-3 sm:p-4 bg-[#252529]/50">
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
                       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
                     }}
-                    className="flex-1 px-4 py-2.5 bg-[#3C4043] text-[#E8E8E8] rounded-xl hover:bg-[#4A4A4F] transition-all duration-200 text-sm font-medium"
+                    className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#3C4043] text-[#E8E8E8] rounded-xl hover:bg-[#4A4A4F] transition-all duration-200 text-xs sm:text-sm font-medium"
                   >
                     Marcar todas como leídas
                   </button>
                   <button
                     onClick={handleClearAllNotifications}
-                    className="px-4 py-2.5 bg-red-900/20 text-red-400 rounded-xl hover:bg-red-900/30 transition-all duration-200 text-sm font-medium border border-red-800/30"
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-red-900/20 text-red-400 rounded-xl hover:bg-red-900/30 transition-all duration-200 text-xs sm:text-sm font-medium border border-red-800/30"
                   >
                     Limpiar
                   </button>
@@ -821,8 +937,7 @@ const ChatContainer = () => {  // Estados principales
       <DeleteChatModal
         isOpen={showDeleteChatModal}
         onClose={() => setShowDeleteChatModal(false)}
-        onConfirm={handleConfirmDeleteChat}
-        chatName={chatToDelete?.name || ""}
+        onConfirm={handleConfirmDeleteChat}        chatName={chatToDelete?.name || ""}
         isDeleting={isDeletingChat}
         isGlobalChat={chatToDelete?.id === "global"}
       />

@@ -207,29 +207,25 @@ const ChatSidebar = ({
       onDeleteGroup(groupId);
       setShowGroupOptions(null);
     }
-  };
-  return (
+  };  return (
     <>
-      {/* Overlay móvil con blur */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 backdrop-blur-md bg-black/20 z-40 lg:hidden animate-in fade-in duration-300"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Sidebar mejorado para móvil */}
       <div 
         className={`
           fixed lg:relative top-0 left-0 h-screen bg-gradient-to-b from-[#2C2C34] via-[#252529] to-[#1A1A1F] border-r border-[#3C4043] 
           transform transition-transform duration-300 ease-in-out z-50 flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          w-full max-w-xs sm:max-w-sm lg:max-w-none
         `}
-        style={{ width: sidebarWidth, minWidth: '280px' }}
+        style={{ 
+          width: window.innerWidth < 1024 ? '100vw' : `${sidebarWidth}px`, 
+          maxWidth: window.innerWidth < 1024 ? '320px' : 'none',
+          minWidth: window.innerWidth < 1024 ? '280px' : '280px'
+        }}
       >
-        {/* Header del sidebar */}
-        <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#252529]">
-          <h1 className="text-xl font-bold text-[#A8E6A3]">Chat Hub</h1>
+        {/* Header del sidebar - Responsivo */}
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-[#3C4043] bg-[#252529]">
+          <h1 className="text-lg sm:text-xl font-bold text-[#A8E6A3]">Chat Hub</h1>
           
           {/* Botón cerrar móvil */}
           <button
@@ -240,21 +236,20 @@ const ChatSidebar = ({
           </button>
         </div>
 
-        {/* Menú de usuario */}
-        <div className="p-4 border-b border-[#3C4043] relative bg-[#252529]">
+        {/* Menú de usuario - Mejorado para móvil */}
+        <div className="p-3 sm:p-4 border-b border-[#3C4043] relative bg-[#252529]">
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="w-full flex items-center justify-between p-3 text-left text-[#E8E6E8] hover:bg-[#3C4043] rounded-xl transition-all duration-200 group"
+            className="w-full flex items-center justify-between p-2 sm:p-3 text-left text-[#E8E6E8] hover:bg-[#3C4043] rounded-xl transition-all duration-200 group"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium text-white border-2 border-[#A8E6A3]"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium text-white border-2 border-[#A8E6A3]"
                 style={{ backgroundColor: getAvatarColor(currentUser) }}
               >
                 {getInitials(currentUser)}
-              </div>
-              <div>
-                <div className="font-semibold text-[#E8E6E8] group-hover:text-[#A8E6A3] transition-colors">
+              </div>              <div className="min-w-0">
+                <div className="font-semibold text-[#E8E6E8] group-hover:text-[#A8E6A3] transition-colors truncate text-sm sm:text-base">
                   {currentUser}
                 </div>
                 <div className="text-xs text-[#A8E6A3] capitalize font-medium">
@@ -264,8 +259,8 @@ const ChatSidebar = ({
               </div>
             </div>
             <ChevronDown 
-              size={16} 
-              className={`transform transition-all duration-200 text-[#A8E6A3] ${userMenuOpen ? 'rotate-180' : ''}`}
+              size={14} 
+              className={`transform transition-all duration-200 text-[#A8E6A3] sm:w-4 sm:h-4 ${userMenuOpen ? 'rotate-180' : ''}`}
             />
           </button>
             {userMenuOpen && (
@@ -278,82 +273,82 @@ const ChatSidebar = ({
           )}
         </div>
 
-        {/* Barra de búsqueda */}
-        <div className="p-4 bg-[#252529]">
+        {/* Barra de búsqueda - Mejorada para móvil */}
+        <div className="p-3 sm:p-4 bg-[#252529]">
           <div className="flex gap-2 items-center">
             <div className="relative flex-1">
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A8E6A3]" />
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A8E6A3] sm:w-4 sm:h-4" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar..."
-                className="w-full pl-10 pr-4 py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200"
+                className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200 text-sm sm:text-base"
               />
             </div>
-            {/* Botón crear grupo eliminado: se moverá abajo */}
           </div>
         </div>
 
-        {/* Tabs de navegación */}
+        {/* Tabs de navegación - Mejoradas para móvil */}
         <div className="flex border-b border-[#3C4043] bg-[#252529]">
           <button
             onClick={() => setActiveTab('chats')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeTab === 'chats'
                 ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
-                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-            }`}
+                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'            }`}
           >
-            <MessageCircle size={16} />
-            Chats
+            <MessageCircle size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Chats</span>
+            <span className="sm:hidden">Chat</span>
           </button>          <button
             onClick={() => setActiveTab('users')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeTab === 'users'
                 ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                 : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
             }`}
           >
-            <Users size={16} />
+            <Users size={14} className="sm:w-4 sm:h-4" />
             Online
           </button>
           <button
             onClick={() => setActiveTab('objectives')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeTab === 'objectives'
                 ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                 : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
             }`}
           >
-            <Target size={16} />
-            Objetivos
+            <Target size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Objetivos</span>
+            <span className="sm:hidden">Tasks</span>
           </button>
         </div>
 
-        {/* Contenido de tabs */}
+        {/* Contenido de tabs - Mejorado para móvil */}
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#3C4043] scrollbar-track-[#252529]">
           {activeTab === "chats" && (
-            <div className="p-4 space-y-2">
-              {/* Lista de grupos */}
+            <div className="p-3 sm:p-4 space-y-2">
+              {/* Lista de grupos - Adaptada para móvil */}
               {filteredGroups.map((group) => (
                 <div key={group.id} className="relative group">
                   <button
                     onClick={() => onGroupSelect(group.id)}
-                    className={`w-full flex items-center gap-3 p-3 text-left rounded-lg transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:ring-opacity-50 ${
+                    className={`w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 text-left rounded-lg transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:ring-opacity-50 ${
                       activeGroup === group.id
                         ? 'bg-gradient-to-r from-[#A8E6A3]/20 to-[#7DD3C0]/20 border border-[#A8E6A3]/30 text-[#E8E8E8]'
                         : 'bg-[#252529] border border-[#3C4043] text-[#B8B8B8] hover:bg-[#3C4043] hover:border-[#A8E6A3]/30 hover:text-[#E8E8E8]'
                     }`}
                   >
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium text-white flex-shrink-0"
                       style={{ backgroundColor: getAvatarColor(group.name) }}
                     >
                       {getInitials(group.name)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{group.name}</div>
+                      <div className="font-medium text-xs sm:text-sm truncate">{group.name}</div>
                       {group.description && (
                         <div className="text-xs text-[#B8B8B8] truncate mt-1">{group.description}</div>
                       )}

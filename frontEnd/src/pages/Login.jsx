@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, User } from "lucide-react"
 import { loginUser } from "../utils/auth"
 import { useNavigate } from "react-router-dom"
 import "../../styles/index.css"
@@ -9,6 +9,7 @@ function Login() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -37,22 +38,22 @@ function Login() {
       setLoading(false)
     }
   }
-
   return (
-    <div className="min-h-screen bg-[#1E1E2E] text-white flex flex-col">
-      {/* Fondo con gradiente */}
+    <div className="min-h-screen bg-[#1E1E2E] text-[#FFFFFF] flex flex-col">
+      {/* Fondo con gradiente mejorado */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[#1E1E2E]"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#3C3C4E] to-[#1E1E2E] opacity-20 animate-gradient"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#3C3C4E] via-[#1E1E2E] to-[#1E1E2E] opacity-30 animate-gradient"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#4ADE80]/5 via-transparent to-transparent"></div>
       </div>
 
-      {/* Botón de volver */}
+      {/* Botón de volver mejorado */}
       <div className="relative z-10 p-6">
         <a
           href="/"
-          className="inline-flex items-center text-[#A0A0B0] hover:text-[#4ADE80] transition-colors duration-300 animate-fadeIn"
+          className="inline-flex items-center gap-2 text-[#A0A0B0] hover:text-[#4ADE80] transition-all duration-300 animate-fadeIn group"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
           Volver al inicio
         </a>
       </div>
@@ -60,62 +61,91 @@ function Login() {
       {/* Contenido principal */}
       <div className="flex-1 flex items-center justify-center relative z-10 px-4">
         <div className="w-full max-w-md animate-fadeIn animation-delay-100">
-          <div className="bg-[#2D2D3A] bg-opacity-70 backdrop-blur-sm rounded-xl shadow-xl border border-[#3C3C4E] p-8">
+          {/* Formulario principal */}
+          <div className="bg-gradient-to-br from-[#2D2D3A]/80 to-[#252530]/80 backdrop-blur-md rounded-2xl shadow-2xl border border-[#3C3C4E]/50 p-8 hover:border-[#4ADE80]/30 transition-all duration-500">
+            {/* Header del formulario */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-2">Iniciar Sesión</h1>
-              <p className="text-[#A0A0B0]">Accede a tu cuenta de ChatEmpresa</p>
+              <div className="w-16 h-16 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#4ADE80]/20">
+                <User className="h-8 w-8 text-black" />
+              </div>
+              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-[#FFFFFF] to-[#A0A0B0] bg-clip-text text-transparent">
+                Iniciar Sesión
+              </h1>
+              <p className="text-[#A0A0B0]">Bienvenido de vuelta a ChatEmpresa</p>
             </div>
 
+            {/* Error message mejorado */}
             {error && (
-              <div className="bg-red-700 bg-opacity-10 border border-red-700 text-white px-4 py-3 rounded-lg mb-6 animate-scaleIn">
-                {error}
+              <div className="bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/50 text-red-300 px-4 py-3 rounded-xl mb-6 animate-scaleIn backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  {error}
+                </div>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Campo de usuario */}
               <div className="space-y-2">
-                <label htmlFor="username" className="block text-sm font-medium text-[#A0A0B0]">
+                <label htmlFor="username" className="block text-sm font-medium text-[#A0A0B0] mb-2">
                   Usuario
                 </label>
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-[#1E1E2E] border border-[#3C3C4E] text-white focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:border-transparent transition-all duration-300"
-                  placeholder="Tu usuario"
-                />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-[#A0A0B0] group-focus-within:text-[#4ADE80] transition-colors duration-300" />
+                  </div>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#1E1E2E]/70 border border-[#3C3C4E] text-[#FFFFFF] placeholder-[#A0A0B0] focus:outline-none focus:ring-2 focus:ring-[#4ADE80]/50 focus:border-[#4ADE80] transition-all duration-300 backdrop-blur-sm"
+                    placeholder="Ingresa tu usuario"
+                  />
+                </div>
               </div>
 
+              {/* Campo de contraseña */}
               <div className="space-y-2">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <label htmlFor="password" className="block text-sm font-medium text-[#A0A0B0]">
                     Contraseña
                   </label>
-                  <a href="#" className="text-sm text-[#4ADE80] hover:text-opacity-80 transition-colors duration-300">
+                  <a href="#" className="text-sm text-[#4ADE80] hover:text-[#22C55E] transition-colors duration-300">
                     ¿Olvidaste tu contraseña?
                   </a>
                 </div>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-[#1E1E2E] border border-[#3C3C4E] text-white focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:border-transparent transition-all duration-300"
-                  placeholder="••••••••"
-                />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-[#A0A0B0] group-focus-within:text-[#4ADE80] transition-colors duration-300" />
+                  </div>
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-12 py-3 rounded-xl bg-[#1E1E2E]/70 border border-[#3C3C4E] text-[#FFFFFF] placeholder-[#A0A0B0] focus:outline-none focus:ring-2 focus:ring-[#4ADE80]/50 focus:border-[#4ADE80] transition-all duration-300 backdrop-blur-sm"
+                    placeholder="Ingresa tu contraseña"
+                  />                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#A0A0B0] hover:text-[#4ADE80] transition-colors duration-300"
+                  >
+                    {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
 
-
+              {/* Botón de submit mejorado */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#4ADE80] hover:bg-opacity-90 text-black font-semibold py-3 px-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#4ADE80]/20 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full bg-gradient-to-r from-[#4ADE80] to-[#22C55E] hover:from-[#22C55E] hover:to-[#16A34A] text-black font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#4ADE80]/30 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:from-[#4ADE80] disabled:to-[#22C55E] transform active:scale-[0.98]"
               >
                 {loading ? (
-                  <span className="flex items-center justify-center">
+                  <span className="flex items-center justify-center gap-2">
                     <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-black"
+                      className="animate-spin h-5 w-5 text-black"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -142,19 +172,24 @@ function Login() {
               </button>
             </form>
 
+            {/* Footer del formulario */}
             <div className="mt-8 text-center">
               <p className="text-[#A0A0B0]">
                 ¿No tienes una cuenta?{" "}
-                <a href="/register" className="text-[#4ADE80] hover:text-opacity-80 transition-colors duration-300">
-                  Regístrate
+                <a 
+                  href="/register" 
+                  className="text-[#4ADE80] hover:text-[#22C55E] transition-colors duration-300 font-medium"
+                >
+                  Regístrate aquí
                 </a>
               </p>
             </div>
           </div>
 
+          {/* Copyright mejorado */}
           <div className="mt-8 text-center animate-fadeIn animation-delay-300">
             <p className="text-[#A0A0B0] text-sm">
-              © {new Date().getFullYear()} ChatEmpresa. Todos los derechos reservados.
+              © {new Date().getFullYear()} ChatEmpresa. Comunicación segura y privada.
             </p>
           </div>
         </div>

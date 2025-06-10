@@ -117,22 +117,22 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
         </div>
       </div>
     );
-  };
-
-  return (    <div
-      className={`flex items-start gap-3 ${
+  };  return (
+    <div
+      className={`flex items-start gap-2 sm:gap-3 ${
         isMine ? "flex-row-reverse" : "flex-row"
-      } mb-4 group animate-messageIn ${isDeleting ? 'animate-messageOut' : ''}`}
+      } mb-2 sm:mb-4 group animate-messageIn ${isDeleting ? 'animate-messageOut' : ''} min-w-0 px-1 w-full max-w-full overflow-hidden message-bubble-container viewport-constrained`}
     >{/* Avatar */}
       {!isMine && (
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
+          className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
           style={{ backgroundColor: getAvatarColor(sender_name) }}
         >
           {getInitials(sender_name)}
         </div>
       )}      {/* Mensaje */}
-      <div        className={`max-w-[85%] sm:max-w-md relative transition-all duration-300 break-words ${
+      <div
+        className={`max-w-[calc(100vw-6rem)] sm:max-w-[85%] md:max-w-md relative transition-all duration-300 break-all min-w-0 overflow-hidden message-bubble force-word-break ${
           isMine
             ? error
               ? "backdrop-blur-md bg-red-900/20 border border-red-500/50 text-red-300"
@@ -140,56 +140,58 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
               ? "backdrop-blur-md bg-blue-900/20 border border-blue-500/50 text-blue-300"
               : "backdrop-blur-md bg-gradient-to-br from-[#A8E6A3]/20 to-[#7DD3C0]/20 border border-[#A8E6A3]/40 text-[#E8E8E8]"
             : "backdrop-blur-md bg-gradient-to-br from-[#2C2C34]/80 to-[#252529]/80 border border-[#3C4043]/60 text-[#E8E8E8]"
-        } px-3 py-2 rounded-lg animate-messageIn overflow-hidden`}
+        } px-2 sm:px-3 py-2 rounded-lg animate-messageIn`}
+        style={{ wordBreak: 'break-all', overflowWrap: 'break-word', maxWidth: window.innerWidth < 430 ? 'calc(100vw - 6rem)' : undefined }}
       >
         {/* Nombre del remitente (solo si no es mío) */}
         {!isMine && (
-          <div className="text-xs font-semibold text-[#A8E6A3] mb-2 border-b border-[#3C4043]/50 pb-1">
+          <div className="text-xs font-semibold text-[#A8E6A3] mb-1 sm:mb-2 border-b border-[#3C4043]/50 pb-1 truncate">
             {sender_name}
           </div>
         )}        {/* Contenido del mensaje */}
-        <div className="message-content text-base leading-relaxed break-words overflow-wrap-anywhere">
+        <div className="message-content text-sm sm:text-base leading-relaxed break-all overflow-wrap-anywhere word-break-break-all hyphens-auto min-w-0 max-w-full force-word-break"
+             style={{ wordBreak: 'break-all', overflowWrap: 'break-word' }}>
           {content && (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}
               components={{
-                p: ({ children }) => <p className="mb-2 last:mb-0 break-words">{children}</p>,
+                p: ({ children }) => <p className="mb-2 last:mb-0 break-all overflow-wrap-anywhere max-w-full force-word-break" style={{ wordBreak: 'break-all' }}>{children}</p>,
                 code: ({ inline, children }) =>
                   inline ? (
-                    <code className="bg-[#1A1A1F]/60 border border-[#3C4043]/40 px-2 py-1 rounded-lg text-xs text-[#A8E6A3] font-mono">
+                    <code className="bg-[#1A1A1F]/60 border border-[#3C4043]/40 px-2 py-1 rounded-lg text-xs text-[#A8E6A3] font-mono break-all force-word-break" style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}>
                       {children}
                     </code>
                   ) : (
-                    <pre className="bg-[#1A1A1F]/80 border border-[#3C4043]/60 text-[#E8E8E8] p-3 rounded-xl mt-2 overflow-x-auto backdrop-blur-sm">
-                      <code className="font-mono text-sm">{children}</code>
+                    <pre className="bg-[#1A1A1F]/80 border border-[#3C4043]/60 text-[#E8E8E8] p-3 rounded-xl mt-2 overflow-x-hidden backdrop-blur-sm max-w-full" style={{ overflowX: 'hidden' }}>
+                      <code className="font-mono text-sm break-all whitespace-pre-wrap force-word-break" style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}>{children}</code>
                     </pre>
                   ),
                 ul: ({ children }) => (
-                  <ul className="list-disc list-inside mb-2 space-y-1 text-[#E8E8E8]">{children}</ul>
+                  <ul className="list-disc list-inside mb-2 space-y-1 text-[#E8E8E8] break-all force-word-break" style={{ wordBreak: 'break-all' }}>{children}</ul>
                 ),
                 ol: ({ children }) => (
-                  <ol className="list-decimal list-inside mb-2 space-y-1 text-[#E8E8E8]">{children}</ol>
+                  <ol className="list-decimal list-inside mb-2 space-y-1 text-[#E8E8E8] break-all force-word-break" style={{ wordBreak: 'break-all' }}>{children}</ol>
                 ),
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-[#A8E6A3]/60 pl-4 py-2 my-2 bg-[#1A1A1F]/40 rounded-r-lg backdrop-blur-sm">
+                  <blockquote className="border-l-4 border-[#A8E6A3]/60 pl-4 py-2 my-2 bg-[#1A1A1F]/40 rounded-r-lg backdrop-blur-sm break-all overflow-hidden force-word-break" style={{ wordBreak: 'break-all' }}>
                     {children}
                   </blockquote>
                 ),
                 strong: ({ children }) => (
-                  <strong className="font-bold text-[#A8E6A3]">{children}</strong>
+                  <strong className="font-bold text-[#A8E6A3] break-all force-word-break" style={{ wordBreak: 'break-all' }}>{children}</strong>
                 ),
                 em: ({ children }) => (
-                  <em className="italic text-[#7DD3C0]">{children}</em>
+                  <em className="italic text-[#7DD3C0] break-all force-word-break" style={{ wordBreak: 'break-all' }}>{children}</em>
                 ),
               }}
             >
               {content}
             </ReactMarkdown>
           )}
-        </div>        {/* Archivos adjuntos */}
+        </div>{/* Archivos adjuntos */}
         {attachments && attachments.length > 0 && (
-          <div className="mt-3 space-y-2">
+          <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2 min-w-0">
             {attachments.map((file, index) => {
               const isImage = file.mimetype.startsWith('image/');
               const isVideo = file.mimetype.startsWith('video/');
@@ -198,12 +200,12 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
               // Renderizar multimedia con preview
               if (isImage) {
                 return (
-                  <div key={index} className="space-y-2">
+                  <div key={index} className="space-y-1 sm:space-y-2 min-w-0">
                     {renderImagePreview(file)}
-                    <div className="flex items-center gap-2 text-xs text-[#B8B8B8]">
-                      <Image size={12} className="text-blue-400" />
-                      <span className="truncate flex-1">{file.originalName}</span>
-                      <span>{formatFileSize(file.size)}</span>
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs text-[#B8B8B8] min-w-0">
+                      <Image size={10} className="text-blue-400 flex-shrink-0 sm:w-3 sm:h-3" />
+                      <span className="truncate flex-1 min-w-0">{file.originalName}</span>
+                      <span className="flex-shrink-0">{formatFileSize(file.size)}</span>
                     </div>
                   </div>
                 );
@@ -211,12 +213,12 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
 
               if (isVideo) {
                 return (
-                  <div key={index} className="space-y-2">
+                  <div key={index} className="space-y-1 sm:space-y-2 min-w-0">
                     {renderVideoPreview(file)}
-                    <div className="flex items-center gap-2 text-xs text-[#B8B8B8]">
-                      <Video size={12} className="text-red-400" />
-                      <span className="truncate flex-1">{file.originalName}</span>
-                      <span>{formatFileSize(file.size)}</span>
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs text-[#B8B8B8] min-w-0">
+                      <Video size={10} className="text-red-400 flex-shrink-0 sm:w-3 sm:h-3" />
+                      <span className="truncate flex-1 min-w-0">{file.originalName}</span>
+                      <span className="flex-shrink-0">{formatFileSize(file.size)}</span>
                     </div>
                   </div>
                 );
@@ -224,24 +226,24 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
 
               if (isAudio) {
                 return (
-                  <div key={index} className="space-y-2">
+                  <div key={index} className="space-y-1 sm:space-y-2 min-w-0">
                     <div 
-                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-lg cursor-pointer hover:from-purple-900/60 hover:to-blue-900/60 transition-all duration-300"
+                      className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-lg cursor-pointer hover:from-purple-900/60 hover:to-blue-900/60 transition-all duration-300 min-w-0"
                       onClick={() => handleMediaView(file)}
                     >
-                      <div className="p-2 bg-purple-500/30 rounded-lg">
-                        <Music size={20} className="text-purple-300" />
+                      <div className="p-1 sm:p-2 bg-purple-500/30 rounded-lg flex-shrink-0">
+                        <Music size={16} className="text-purple-300 sm:w-5 sm:h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-[#E8E8E8] font-medium truncate">
+                        <div className="text-xs sm:text-sm text-[#E8E8E8] font-medium truncate">
                           {file.originalName}
                         </div>
                         <div className="text-xs text-purple-300">
                           Audio • {formatFileSize(file.size)}
                         </div>
                       </div>
-                      <div className="p-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/40 transition-colors">
-                        <Play size={16} className="text-purple-300" />
+                      <div className="p-1 sm:p-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/40 transition-colors flex-shrink-0">
+                        <Play size={12} className="text-purple-300 sm:w-4 sm:h-4" />
                       </div>
                     </div>
                   </div>
@@ -250,12 +252,12 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
 
               // Renderizar otros tipos de archivo normalmente
               return (
-                <div key={index} className="flex items-center gap-3 p-2 bg-[#1A1A1F]/60 border border-[#3C4043]/40 rounded-lg hover:bg-[#1A1A1F]/80 transition-colors">
+                <div key={index} className="flex items-center gap-2 sm:gap-3 p-2 bg-[#1A1A1F]/60 border border-[#3C4043]/40 rounded-lg hover:bg-[#1A1A1F]/80 transition-colors min-w-0">
                   <div className="flex-shrink-0">
                     {getFileIcon(file.mimetype)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-[#E8E8E8] truncate font-medium">
+                    <div className="text-xs sm:text-sm text-[#E8E8E8] truncate font-medium">
                       {file.originalName}
                     </div>
                     <div className="text-xs text-[#B8B8B8]">
@@ -264,19 +266,17 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
                   </div>
                   <button
                     onClick={() => handleDownload(file)}
-                    className="flex-shrink-0 p-1.5 text-[#A8E6A3] hover:text-[#98E093] hover:bg-[#A8E6A3]/20 rounded-lg transition-all duration-200"
+                    className="flex-shrink-0 p-1 sm:p-1.5 text-[#A8E6A3] hover:text-[#98E093] hover:bg-[#A8E6A3]/20 rounded-lg transition-all duration-200"
                     title="Descargar archivo"
                   >
-                    <Download size={14} />
+                    <Download size={12} className="sm:w-3.5 sm:h-3.5" />
                   </button>
                 </div>
               );
             })}
           </div>
-        )}
-
-        {/* Tiempo y estado */}
-        <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#3C4043]/30">
+        )}        {/* Tiempo y estado */}
+        <div className="flex items-center justify-between mt-2 sm:mt-3 pt-1 sm:pt-2 border-t border-[#3C4043]/30">
           <span className={`text-xs font-medium ${
             isMine ? "text-[#A8E6A3]/70" : "text-[#B8B8B8]"
           }`}>
@@ -285,39 +285,39 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
           
           {/* Estados del mensaje */}
           {isMine && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {error && (
                 <button
                   onClick={() => onRetry(message)}
-                  className="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-900/20 transition-all duration-200"
+                  className="text-red-400 hover:text-red-300 p-1 sm:p-1.5 rounded-lg hover:bg-red-900/20 transition-all duration-200"
                   title="Reintentar envío"
                 >
-                  <RotateCcw size={14} />
+                  <RotateCcw size={12} className="sm:w-3.5 sm:h-3.5" />
                 </button>
               )}
               {isOptimistic && !error && (
                 <div className="text-blue-400 flex items-center gap-1" title="Enviando...">
-                  <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-xs">Enviando...</span>
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs hidden sm:inline">Enviando...</span>
                 </div>
               )}
               {!isOptimistic && !error && (
-                <div className="flex items-center gap-1 text-[#A8E6A3]" title="Enviado">
-                  <Check size={14} />
-                  <span className="text-xs">Enviado</span>
-                </div>
+                <Check size={12} className="text-[#A8E6A3] sm:w-3.5 sm:h-3.5" />
+              )}
+              
+              {/* Botón de eliminar (solo admins o el remitente) */}
+              {(userRole === 'admin' || isMine) && (
+                <button
+                  onClick={handleDelete}
+                  className="text-[#B8B8B8] hover:text-red-400 p-1 sm:p-1.5 rounded-lg hover:bg-red-900/20 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                  title="Eliminar mensaje"
+                >
+                  <X size={12} className="sm:w-3.5 sm:h-3.5" />
+                </button>
               )}
             </div>
           )}
-        </div>        {/* Botón de eliminar (solo admin) */}
-        {userRole === "admin" && (
-          <button
-            onClick={handleDelete}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500/80 backdrop-blur-sm border border-red-400/50 text-white rounded-full flex items-center justify-center hover:bg-red-500 hover:scale-110 text-xs opacity-0 group-hover:opacity-100 transition-all duration-200 button-press"
-            title="Eliminar mensaje"
-          >
-            <X size={12} />
-          </button>        )}
+        </div>
       </div>
 
       {/* Media Viewer Modal */}

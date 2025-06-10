@@ -1,3 +1,141 @@
+/* Estilos responsivos para chat móvil */
+@media (max-width: 768px) {
+  /* Mejorar scrolling en móvil */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  /* Optimizar tamaños de texto en móvil */
+  .chat-message {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  
+  /* Mejorar espaciado en móvil */
+  .mobile-compact {
+    padding: 8px 12px;
+  }
+  
+  /* Overlay para modales en móvil */
+  .mobile-overlay {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Ajustes para pantallas muy pequeñas */
+  .text-responsive {
+    font-size: 13px;
+  }
+  
+  /* Botones más pequeños en móvil */
+  .btn-mobile {
+    padding: 6px 8px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+/* Mejoras de responsividad para chat móvil */
+@media (max-width: 430px) {
+  .chat-container {
+    overflow-x: hidden !important;
+  }
+  
+  .message-area {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  .message-bubble {
+    max-width: calc(100vw - 4rem) !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  .message-content {
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+  
+  .attachment-preview {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  .sidebar-mobile {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  
+  .chat-header {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  
+  .message-input-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  /* Asegurar que los modales no se salgan de la pantalla */
+  .modal-mobile {
+    margin: 0.5rem !important;
+    max-width: calc(100vw - 1rem) !important;
+    max-height: calc(100vh - 2rem) !important;
+  }
+  
+  /* Overflow específico para contenido de mensajes */
+  .message-list {
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Mejoras adicionales para pantallas muy pequeñas */
+@media (max-width: 360px) {
+  .message-bubble {
+    max-width: calc(100vw - 3rem) !important;
+    font-size: 0.875rem !important;
+  }
+  
+  .avatar-mobile {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    font-size: 0.625rem !important;
+  }
+  
+  .attachment-mobile {
+    padding: 0.5rem !important;
+  }
+}
+
+/* Utilidades para truncar texto */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mejorar touch targets en móvil */
+@media (max-width: 768px) {
+  button, .btn, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 /* Progress Bar Animations */
 .progress-bar-shine {
   position: relative;
@@ -290,4 +428,146 @@
 .video-controls-overlay:hover,
 .video-controls-overlay.show {
   opacity: 1;
+}
+
+/* Efectos Neón Pastel Interactivos */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    box-shadow: 
+      0 0 5px rgba(255, 182, 193, 0.3),
+      0 0 10px rgba(173, 216, 230, 0.2),
+      0 0 15px rgba(152, 251, 152, 0.1);
+  }
+  50% { 
+    box-shadow: 
+      0 0 10px rgba(255, 182, 193, 0.5),
+      0 0 20px rgba(173, 216, 230, 0.4),
+      0 0 30px rgba(152, 251, 152, 0.3);
+  }
+}
+
+@keyframes neon-border {
+  0%, 100% { 
+    border-color: rgba(138, 43, 226, 0.3);
+    box-shadow: 0 0 5px rgba(138, 43, 226, 0.2);
+  }
+  25% { 
+    border-color: rgba(255, 182, 193, 0.4);
+    box-shadow: 0 0 10px rgba(255, 182, 193, 0.3);
+  }
+  50% { 
+    border-color: rgba(173, 216, 230, 0.4);
+    box-shadow: 0 0 10px rgba(173, 216, 230, 0.3);
+  }
+  75% { 
+    border-color: rgba(152, 251, 152, 0.4);
+    box-shadow: 0 0 10px rgba(152, 251, 152, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(100%) skewX(-15deg); }
+}
+
+@keyframes particle-float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-15px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@keyframes rainbow-glow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* Clases para animaciones */
+.animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 3s linear infinite; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+.animate-neon-border { animation: neon-border 4s ease-in-out infinite; }
+.animate-shimmer { animation: shimmer 1.5s ease-in-out; }
+.animate-particle-float { animation: particle-float 4s ease-in-out infinite; }
+.animate-rainbow-glow { animation: rainbow-glow 3s linear infinite; }
+
+/* Delays para animaciones escalonadas */
+.animation-delay-100 { animation-delay: 0.1s; }
+.animation-delay-300 { animation-delay: 0.3s; }
+.animation-delay-500 { animation-delay: 0.5s; }
+.animation-delay-1000 { animation-delay: 1s; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-3000 { animation-delay: 3s; }
+
+/* Efectos de hover mejorados */
+.neon-hover:hover {
+  transform: scale(1.05) translateZ(0);
+  box-shadow: 
+    0 0 20px rgba(138, 43, 226, 0.4),
+    0 0 40px rgba(255, 182, 193, 0.3),
+    0 0 60px rgba(173, 216, 230, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pastel-glow {
+  background: linear-gradient(45deg, 
+    rgba(255, 182, 193, 0.1), 
+    rgba(173, 216, 230, 0.1), 
+    rgba(152, 251, 152, 0.1),
+    rgba(255, 218, 185, 0.1)
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Efectos de partículas */
+.particle-effect::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(255, 182, 193, 0.8), transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: particle-float 3s ease-in-out infinite;
+}
+
+.particle-effect::after {
+  content: '';
+  position: absolute;
+  top: 30%;
+  right: 20%;
+  width: 3px;
+  height: 3px;
+  background: radial-gradient(circle, rgba(173, 216, 230, 0.8), transparent);
+  border-radius: 50%;
+  animation: particle-float 3s ease-in-out infinite 1.5s;
 }

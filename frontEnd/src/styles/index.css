@@ -1,0 +1,442 @@
+/* Efectos neón pastel circulares */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(5px) rotate(-1deg);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Clases de utilidad para efectos neón pastel */
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-gradient {
+  background-size: 400% 400%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Delays para animaciones escalonadas */
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+
+.animation-delay-3000 {
+  animation-delay: 3000ms;
+}
+
+/* Efectos de sombra circular neón específicos */
+.neon-circle-green {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3),
+              0 0 40px rgba(34, 197, 94, 0.2),
+              0 0 60px rgba(34, 197, 94, 0.1);
+}
+
+.neon-circle-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3),
+              0 0 40px rgba(59, 130, 246, 0.2),
+              0 0 60px rgba(59, 130, 246, 0.1);
+}
+
+.neon-circle-purple {
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.3),
+              0 0 40px rgba(147, 51, 234, 0.2),
+              0 0 60px rgba(147, 51, 234, 0.1);
+}
+
+.neon-circle-pink {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3),
+              0 0 40px rgba(236, 72, 153, 0.2),
+              0 0 60px rgba(236, 72, 153, 0.1);
+}
+
+/* Cursor personalizado con efecto neón */
+.cursor-glow {
+  cursor: pointer;
+  position: relative;
+}
+
+.cursor-glow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.4), transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.cursor-glow:hover::after {
+  width: 100px;
+  height: 100px;
+}
+
+/* Mejoras para elementos interactivos */
+.interactive-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  filter: drop-shadow(0 10px 20px rgba(74, 222, 128, 0.2));
+}
+
+/* Efectos de partículas */
+.particle-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.particle-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(74, 222, 128, 0.1) 1px, transparent 1px),
+    radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+    radial-gradient(circle at 60% 20%, rgba(236, 72, 153, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px, 80px 80px, 60px 60px;
+  animation: float 20s linear infinite;
+  pointer-events: none;
+}
+
+/* ===============================================
+   MOBILE RESPONSIVE FIXES - OVERFLOW PREVENTION
+   =============================================== */
+
+/* Prevenir overflow horizontal en toda la aplicación */
+.no-horizontal-overflow {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+}
+
+/* Específico para el área de mensajes */
+.message-area {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.message-list {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Clases específicas para móviles (ancho < 430px) */
+@media (max-width: 430px) {
+  /* Contenedor principal del chat */
+  .chat-container {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+  
+  /* Área de mensajes en móvil */
+  .message-area {
+    overflow-x: hidden !important;
+    max-width: calc(100vw - 0.5rem) !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  /* Lista de mensajes */
+  .message-list {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+  
+  /* Burbujas de mensaje individuales */
+  .message-bubble {
+    max-width: calc(100vw - 4rem) !important;
+    overflow: hidden !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  /* Contenedor principal del mensaje */
+  .message-bubble-container {
+    max-width: 100% !important;
+    overflow: hidden;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Contenido de texto dentro de mensajes */
+  .message-content {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  /* Texto dentro de párrafos */
+  .message-content p {
+    max-width: 100% !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important;
+  }
+  
+  /* Código inline */
+  .message-content code {
+    word-break: break-all !important;
+    white-space: pre-wrap !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Bloques de código */
+  .message-content pre {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+  }
+  
+  /* Listas */
+  .message-content ul,
+  .message-content ol {
+    max-width: 100% !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Citas */
+  .message-content blockquote {
+    max-width: 100% !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    overflow: hidden !important;
+  }
+  
+  /* Links y elementos inline */
+  .message-content a,
+  .message-content strong,
+  .message-content em {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+}
+
+/* Clases específicas para prevenir overflow horizontal en móvil */
+.viewport-constrained {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.no-horizontal-overflow {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+}
+
+.force-word-break {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  hyphens: auto !important;
+}
+
+.message-bubble-container {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.message-bubble {
+  max-width: 100%;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.chat-container {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.message-area {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.message-list {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Específico para móviles */
+@media (max-width: 430px) {
+  /* Reglas agresivas para prevenir overflow horizontal */
+  body, html {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+  
+  .viewport-constrained,
+  .chat-container,
+  .message-area,
+  .message-list,
+  .message-bubble-container,
+  .message-bubble {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+  }
+  
+  /* Forzar word-break en TODO el contenido de mensajes */
+  .message-content,
+  .message-content *,
+  .message-bubble p,
+  .message-bubble div,
+  .message-bubble span,
+  .message-bubble code,
+  .message-bubble pre,
+  .message-bubble li,
+  .message-bubble blockquote,
+  .message-bubble strong,
+  .message-bubble em {
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    hyphens: auto !important;
+    max-width: 100% !important;
+    white-space: pre-wrap !important;
+  }
+  
+  /* Específico para código inline y bloques */
+  .message-bubble code {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+  }
+  
+  .message-bubble pre {
+    white-space: pre-wrap !important;
+    overflow-x: hidden !important;
+    word-break: break-all !important;
+  }
+  
+  .message-bubble pre code {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+  }
+  
+  /* Asegurar que el área de entrada de mensaje también sea visible */
+  .message-input-container {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Prevenir cualquier elemento que cause overflow */
+  .chat-container * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Específico para el contenedor principal del mensaje */
+  .message-bubble {
+    max-width: calc(100vw - 4rem) !important;
+    word-break: break-all !important;
+  }
+  
+  /* Excepción para elementos que deben mantener su ancho */
+  .sidebar,
+  .modal,
+  .dropdown {
+    max-width: none !important;
+  }
+}
+
+/* Animaciones que no afecten el layout en móvil */
+@media (max-width: 430px) {
+  .animate-messageIn {
+    animation: none !important;
+  }
+  
+  .animate-messageOut {
+    animation: none !important;
+  }
+}
