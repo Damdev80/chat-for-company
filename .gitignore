@@ -49,20 +49,27 @@ Thumbs.db
 desktop.ini
 
 # Temporary files
+temp/
 *.tmp
 *.temp
-*.bak
-*~
+
+# Testing and debugging files
+**/test-*.js
+**/test-*.html
+**/check-*.js
+**/debug-*.js
+**/debug-*.html
+**/create-test-*.js
+**/add-*.js
+**/*-test.js
+**/*-debug.js
+test-upload.txt
+
+# Upload directories (exclude actual uploaded files from version control)
+**/uploads/
+!**/uploads/.gitkeep
 
 # Database files
 *.db
 *.sqlite
 *.sqlite3
-
-# Test files and examples
-test-*.html
-debug-*.html
-debug-*.js
-test-*.js
-verify-*.js
-fix-*.js
