@@ -77,14 +77,7 @@ const ChatContainer = () => {  // Estados principales
   const typingTimeoutRef = useRef(null);
 
   // Datos del usuario
-  const token = localStorage.getItem("token");  const user = localStorage.getItem("username") || "";
-  const userRole = localStorage.getItem("userRole") || "user";
-
-  // Inicializar monitoreo móvil
-  useEffect(() => {
-    const stopMonitoring = startMobileMonitoring();
-    return stopMonitoring;
-  }, []);
+  const token = localStorage.getItem("token");  const user = localStorage.getItem("username") || "";  const userRole = localStorage.getItem("userRole") || "user";
 
   // Función para mostrar notificaciones
   const showNotification = (title, message) => {
@@ -152,10 +145,8 @@ const ChatContainer = () => {  // Estados principales
               group_id_type: typeof m.group_id,
               content: m.content?.substring(0, 40)
             }))
-          });
-        }
+          });        }
         
-        debugChatMessages(processedMessages, activeGroup, 'INITIAL_LOAD');
       })
       .catch(() => {});
   }, [token, user, activeGroup]);
@@ -524,14 +515,7 @@ const ChatContainer = () => {  // Estados principales
         availableGroups: [...new Set(messages.map(m => m.group_id))],
         
         timestamp: new Date().toISOString()
-      });
-    }
-    
-    // Debug usando la nueva utilidad
-    debugGroupChange(activeGroup, groupId, messages);
-    
-    // Crear snapshot del estado antes del cambio (solo en móvil)
-    createChatSnapshot(messages, groups, activeGroup, users);
+      });    }
     
     setActiveGroup(groupId);
     setSidebarOpen(false);
@@ -615,52 +599,7 @@ const ChatContainer = () => {  // Estados principales
       const activeGroupId = String(activeGroup || '');
       return msgGroupId === activeGroupId;
     });
-    
-    // Debug mejorado para el problema específico - FIXED VERSION
-    if (typeof window !== 'undefined' && window.innerWidth < 430) {
-      console.log('📱 [MOBILE DEBUG - FIXED VERSION]', {
-        activeGroup,
-        activeGroupType: typeof activeGroup,
-        totalMessages: messages.length,
-        groupMessages: groupMessages.length,
-        searchTerm,
-        
-        // Análisis detallado de cada mensaje con string conversion
-        messageAnalysis: messages.slice(0, 5).map(msg => ({
-          id: msg.id,
-          group_id: msg.group_id,
-          group_id_string: String(msg.group_id || ''),
-          active_group_string: String(activeGroup || ''),
-          matches_original: msg.group_id === activeGroup,
-          matches_fixed: String(msg.group_id || '') === String(activeGroup || ''),
-          content_preview: msg.content?.substring(0, 30),
-          sender: msg.sender_name
-        })),
-        
-        // Estadísticas de comparación
-        comparisonStats: {
-          originalFilterCount: messages.filter(msg => msg.group_id === activeGroup).length,
-          fixedFilterCount: groupMessages.length,
-          improvement: groupMessages.length - messages.filter(msg => msg.group_id === activeGroup).length
-        }
-      });
-      
-      // Advertencia específica si no hay mensajes para el grupo activo
-      if (groupMessages.length === 0 && messages.length > 0) {
-        console.warn('⚠️ [MOBILE CRITICAL] Still no messages found after fix!', {
-          activeGroup,
-          activeGroupString: String(activeGroup || ''),
-          availableGroupIds: [...new Set(messages.map(m => String(m.group_id || '')))],
-          possibleIssue: 'ActiveGroup value might be incorrect'
-        });
-      } else if (groupMessages.length > 0) {
-        console.log('✅ [MOBILE SUCCESS] Messages found after string conversion fix!', {
-          foundMessages: groupMessages.length
-        });
-      }
-    }
-    
-    if (!searchTerm || !searchTerm.trim()) {
+      if (!searchTerm || !searchTerm.trim()) {
       return groupMessages;
     }
     
