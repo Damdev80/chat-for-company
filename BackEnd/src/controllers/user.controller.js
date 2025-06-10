@@ -40,12 +40,9 @@ export class UserController {  static async register(req, res) {
       let userRole = await ModelsRole.getByName('user');
       
       if (!userRole) {
-        console.log('Rol "user" no encontrado, creándolo');
-        // Crear el rol "user" si no existe
-        // Para SQLite/Turso, adaptamos la función UUID
-        const createRoleQuery = process.env.NODE_ENV === 'production' 
-          ? 'INSERT INTO roles (id, name, description) VALUES (lower(hex(randomblob(16))), ?, ?)'
-          : 'INSERT INTO roles (id, name, description) VALUES (UUID(), ?, ?)';
+        console.log('Rol "user" no encontrado, creándolo');        // Crear el rol "user" si no existe
+        // Para SQLite/Turso, usamos hex(randomblob(16))
+        const createRoleQuery = 'INSERT INTO roles (id, name, description) VALUES (lower(hex(randomblob(16))), ?, ?)';
           
         const connection = await getConnection();
         const [result] = await connection.execute(

@@ -3,11 +3,8 @@ export class ModelsUser {    static async create({ username, email, password, ro
       try {
         console.log('Creando usuario en la base de datos:', { username, email, role_id });
         const connection = await getConnection();
-        
-        // Para SQLite/Turso: Si no existe la función UUID(), usamos un id aleatorio generado de otra forma
-        const query = process.env.NODE_ENV === 'production' 
-          ? 'INSERT INTO users (id, username, email, password, role_id) VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?)'
-          : 'INSERT INTO users (id, username, email, password, role_id) VALUES (UUID(), ?, ?, ?, ?)';
+          // Para SQLite/Turso: usamos hex(randomblob(16)) en lugar de UUID()
+        const query = 'INSERT INTO users (id, username, email, password, role_id) VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?)';
         
         console.log('Ejecutando query:', query);
         const [result] = await connection.execute(

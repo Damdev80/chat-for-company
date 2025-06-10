@@ -12,14 +12,14 @@ export async function fetchMessages(token) {
   return res.json();
 }
 
-export async function sendMessage(content, group_id, token) {
+export async function sendMessage(content, group_id, token, attachments = null) {
   const res = await fetch(`${API_URL}/messages`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ content, group_id }),
+    body: JSON.stringify({ content, group_id, attachments }),
   });
   if (!res.ok) throw new Error('Error al enviar mensaje');
   return res.json();
@@ -303,5 +303,31 @@ export async function fetchUserTaskStats(token) {
     },
   });
   if (!res.ok) throw new Error('Error al obtener estadísticas de tareas');
+  return res.json();
+}
+
+// --- UPLOAD DE ARCHIVOS ---
+
+export async function uploadFiles(files, token) {
+  const formData = new FormData();
+  
+  // Agregar archivos al FormData
+  for (let i = 0; i < files.length; i++) {
+    formData.append('files', files[i]);
+  }
+  
+  const res = await fetch(`${API_URL}/upload/files`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Error al subir archivos');
+  }
+  
   return res.json();
 }

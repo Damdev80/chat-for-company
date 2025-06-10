@@ -41,16 +41,16 @@ export function configureSocket(io) {
       }
       socket.join(groupId);
       socket.currentGroup = groupId;
-    });
-
-    socket.on('send_message', async (data) => {
+    });    socket.on('send_message', async (data) => {
       const messageData = {
         sender_id: socket.user.id,
         content: data.content,
         group_id: data.group_id,
         created_at: new Date(),
         // Preservar temp_id si está presente para poder identificar mensajes optimistas
-        temp_id: data.temp_id
+        temp_id: data.temp_id,
+        // Incluir attachments si están presentes
+        attachments: data.attachments || null
       };
 
       try {
