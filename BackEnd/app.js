@@ -129,13 +129,21 @@ const io = new SocketServer(server, {
 })
 
 // Set Socket.IO instance in manager for access from controllers
-setSocketInstance(io)
-configureSocket(io)
+try {
+  setSocketInstance(io)
+  configureSocket(io)
+  console.log('✅ Socket.IO configured successfully')
+} catch (error) {
+  console.error('❌ Socket.IO configuration error:', error)
+}
 
 
 
 // Iniciar servidor
 const PORT = process.env.PORT || 3000
-server.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto http://localhost:${PORT}`)
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
+  console.log(`🌐 Server started at ${new Date().toISOString()}`)
+  console.log(`✅ All routes loaded successfully`)
+  console.log(`🔧 Build version: ${new Date().toISOString()}`) // Force rebuild
 })
