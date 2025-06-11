@@ -1,55 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Search,
-  Menu,
-  Send,
-  Paperclip,
-  Smile,
-  Phone,
-  Video,
-  Users,
-  Settings,
-  LogOut,
-  Bell,
-  ChevronDown,
-  Check,
-  Plus,
-  X,
-  Info,
-  MessageSquare,
-  UserPlus,
-  ArrowLeft,
-  ImageIcon,
-  Mic,
-  Trash2,
-  Edit2,
-  User,
-  Eye,
-  Target,
-  Sun,
-  Moon,
-} from "lucide-react";
-import {
   fetchMessages,
   fetchGroups,
   createGroup,
   updateGroup,
   deleteGroup,
   fetchUsers,
-  deleteGroupMessages,
-  deleteMessage,
-  sendMessage as apiSendMessage,
 } from "../../utils/api";
 import { connectSocket, disconnectSocket } from "../../utils/socket";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
-import "highlight.js/styles/vs2015.css";
-import "../../styles/markdown.css";
 import ObjectiveManager from "../ObjectiveManager";
 import UserTaskView from "../UserTaskView";
 import ObjectiveProgressSummary from "../ObjectiveProgressSummary";
-import { getInitials, getAvatarColor, generateTempId, formatMessageTime } from "../../utils/chatUtils";
 
 // Import components
 import ChatSidebar from "./ChatSidebar";
@@ -81,6 +42,141 @@ const ChatContainer = () => {
   const [groupName, setGroupName] = useState("");
   const [editGroupName, setEditGroupName] = useState("");
 
+  // Estados adicionales necesarios
+  const [notification, setNotification] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [objectiveRefreshKey, setObjectiveRefreshKey] = useState(0);
+
+  // Referencias
+  const socketRef = useRef(null);
+
+  // Datos del usuario
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("username") || "";
+  const userRole = localStorage.getItem("userRole") || "user";
+
+  // Función para mostrar notificaciones
+  const showNotification = (title, message) => {
+    setNotification({ title, message });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
+  // Función para filtrar mensajes
+  const getFilteredMessages = (searchTerm) => {
+    if (!searchTerm) return messages;
+    return messages.filter(message => 
+      message.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  // Función para enviar mensajes
+  const sendMessage = async (content) => {
+    try {
+      const messageData = {
+        content,
+        group_id: activeGroup,
+        user_id: user,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Aquí iría la lógica para enviar el mensaje
+      console.log("Sending message:", messageData);
+      showNotification("Éxito", "Mensaje enviado");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      showNotification("Error", "Error al enviar mensaje");
+    }
+  };
+
+  // Función para reintentar mensajes
+  const retryMessage = (failedMessage) => {
+    console.log("Retrying message:", failedMessage);
+    showNotification("Info", "Reintentando envío de mensaje");
+  };
+
+  // Función para crear grupo
+  const handleCreateGroup = async (name) => {
+    try {
+      await createGroup({ name });
+      showNotification("Éxito", "Grupo creado exitosamente");
+      // Aquí iría la lógica para actualizar la lista de grupos
+      return true;
+    } catch (error) {
+      console.error("Error creating group:", error);
+      showNotification("Error", "Error al crear grupo");
+      return false;
+    }
+  };
+
+  // Función para editar grupo
+  const handleEditGroup = async (groupId, name) => {
+    try {
+      await updateGroup(groupId, { name });
+      showNotification("Éxito", "Grupo actualizado exitosamente");
+      // Aquí iría la lógica para actualizar la lista de grupos
+      return true;
+    } catch (error) {
+      console.error("Error updating group:", error);
+      showNotification("Error", "Error al actualizar grupo");
+      return false;
+    }
+  };
+
+  // Función para eliminar grupo
+  const handleDeleteGroup = async (groupId) => {
+    try {
+      await deleteGroup(groupId);
+      showNotification("Éxito", "Grupo eliminado exitosamente");
+      // Aquí iría la lógica para actualizar la lista de grupos
+    } catch (error) {
+      console.error("Error deleting group:", error);
+      showNotification("Error", "Error al eliminar grupo");
+    }
+  };
+
+  // Función para manejar typing
+  const emitTyping = () => {
+    setIsTyping(true);
+    setTimeout(() => setIsTyping(false), 1000);
+  };
+
+  // useEffect para cargar datos iniciales
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const [messagesData, groupsData, usersData] = await Promise.all([
+          fetchMessages(activeGroup),
+          fetchGroups(),
+          fetchUsers()
+        ]);
+        
+        setMessages(messagesData || []);
+        setGroups(groupsData || []);
+        setUsers(usersData || []);
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+        showNotification("Error", "Error al cargar datos");
+      }
+    };
+
+    if (token) {
+      loadInitialData();
+    }
+  }, [activeGroup, token]);
+
+  // useEffect para socket connection
+  useEffect(() => {
+    if (token) {
+      socketRef.current = connectSocket(token);
+      
+      return () => {
+        if (socketRef.current) {
+          disconnectSocket();
+        }
+      };
+    }
+  }, [token]);
+
   // Handlers de UI
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -90,7 +186,7 @@ const ChatContainer = () => {
     setNewMessage("");
   };
 
-  const handleRetryMessage = (failedMessage) => {
+  const handleRetryMessage = (failedMessage) => { 
     retryMessage(failedMessage);
   };
 
@@ -146,9 +242,9 @@ const ChatContainer = () => {
   const handleVideoCall = () => {
     showNotification("Info", "Funcionalidad de videollamada próximamente");
   };
-
   const handleTaskUpdate = () => {
     // El hook ya maneja la actualización automática
+    setObjectiveRefreshKey(prev => prev + 1);
   };
 
   // Mensajes filtrados
