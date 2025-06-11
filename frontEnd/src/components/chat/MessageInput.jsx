@@ -147,16 +147,17 @@ const MessageInput = ({
             ))}
           </div>
         </div>
-      )}
-        {/* Emoji Picker - Mejorado con mejor posicionamiento y funcionalidad */}
+      )}      {/* Emoji Picker - Completamente responsivo con posicionamiento inteligente */}
       {showEmojis && (
         <>
-          {/* Backdrop para cerrar al hacer clic fuera */}
+          {/* Backdrop para cerrar al hacer clic fuera - solo en móvil */}
           <div 
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none"
             onClick={() => setShowEmojis(false)}
           />
-          <div className="absolute bottom-full right-0 sm:right-4 mb-2 z-50 animate-in slide-in-from-bottom-4 duration-300">
+          
+          {/* EmojiPicker con posicionamiento responsivo */}
+          <div className="absolute bottom-full right-0 sm:right-4 mb-3 z-50 emoji-picker-entrance">
             <EmojiPicker 
               onEmojiSelect={handleEmojiSelect}
               onClose={() => setShowEmojis(false)}
@@ -205,24 +206,34 @@ const MessageInput = ({
               {newMessage.length}/1000
             </div>
           )}
-        </div>        {/* Botón de emojis - Mejorado con indicador visual */}
+        </div>        {/* Botón de emojis - Completamente rediseñado */}
         <button
           type="button"
           onClick={() => {
             setShowEmojis(!showEmojis);
             setShowAttachOptions(false);
           }}
-          className={`relative p-2 sm:p-3 rounded-xl backdrop-blur-sm transition-all duration-200 border flex-shrink-0 group ${
+          className={`relative p-2 sm:p-3 rounded-xl backdrop-blur-sm transition-all duration-300 border flex-shrink-0 group overflow-hidden ${
             showEmojis 
-              ? 'bg-gradient-to-r from-[#A8E6A3]/20 to-[#7DD3C0]/20 text-[#A8E6A3] border-[#A8E6A3]/30 shadow-lg shadow-[#A8E6A3]/10' 
+              ? 'bg-gradient-to-r from-[#A8E6A3]/25 to-[#7DD3C0]/25 text-[#A8E6A3] border-[#A8E6A3]/40 shadow-lg shadow-[#A8E6A3]/15 scale-105' 
               : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]/60 border-transparent hover:border-[#A8E6A3]/30'
           } hover:scale-105 active:scale-95`}
-          title="Agregar emoji"
+          title="Seleccionar emoji"
         >
-          <Smile size={16} className="sm:w-5 sm:h-5 transition-transform group-hover:rotate-12" />
+          {/* Efecto de brillo cuando está activo */}
           {showEmojis && (
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#A8E6A3] rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#A8E6A3]/10 to-transparent animate-pulse"></div>
           )}
+          
+          <Smile size={16} className={`sm:w-5 sm:h-5 transition-all duration-300 ${showEmojis ? 'rotate-12 scale-110' : 'group-hover:rotate-6'}`} />
+          
+          {/* Indicador activo mejorado */}
+          {showEmojis && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-[#A8E6A3] to-[#7DD3C0] rounded-full animate-soft-pulse shadow-lg shadow-[#A8E6A3]/40"></div>
+          )}
+          
+          {/* Efecto de ondas cuando está hover */}
+          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-[#A8E6A3]/5 via-[#A8E6A3]/10 to-[#A8E6A3]/5"></div>
         </button>{/* Botón de enviar - Adaptado para móvil */}
         <button
           type="submit"

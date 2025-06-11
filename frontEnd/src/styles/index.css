@@ -441,14 +441,14 @@
   }
 }
 
-/* Estilos específicos para EmojiPicker */
+/* Estilos específicos para EmojiPicker mejorado */
 .emoji-picker-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #3C4043 transparent;
 }
 
 .emoji-picker-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .emoji-picker-scrollbar::-webkit-scrollbar-track {
@@ -457,7 +457,7 @@
 
 .emoji-picker-scrollbar::-webkit-scrollbar-thumb {
   background-color: #3C4043;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .emoji-picker-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -470,12 +470,28 @@
     transform: scale(1);
   }
   50% {
-    transform: scale(1.2);
+    transform: scale(1.1);
   }
 }
 
 .emoji-bounce:hover {
-  animation: emoji-bounce 0.3s ease-in-out;
+  animation: emoji-bounce 0.4s ease-in-out;
+}
+
+/* Animación de escala suave para botones de emoji */
+@keyframes emoji-hover {
+  0% {
+    transform: scale(1);
+    background-color: transparent;
+  }
+  100% {
+    transform: scale(1.1);
+    background-color: rgba(60, 64, 67, 0.6);
+  }
+}
+
+.emoji-button:hover {
+  animation: emoji-hover 0.2s ease-out forwards;
 }
 
 /* Efecto de parpadeo suave para indicadores */
@@ -505,16 +521,109 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(168, 230, 163, 0.1), transparent);
-  transition: left 0.5s;
+  background: linear-gradient(90deg, transparent, rgba(168, 230, 163, 0.15), transparent);
+  transition: left 0.6s ease-in-out;
 }
 
 .emoji-category-tab:hover::before {
   left: 100%;
 }
 
-/* Mejoras para tooltips de emojis */
-.emoji-tooltip {
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+/* Mejoras móviles para EmojiPicker */
+@media (max-width: 640px) {
+  .emoji-picker-mobile {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    max-height: 70vh !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .emoji-grid-mobile {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mejor táctil para botones de emoji en móvil */
+  .emoji-button-mobile {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+}
+
+/* Animación para aparición de categorías */
+@keyframes category-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.category-slide-in {
+  animation: category-slide-in 0.3s ease-out;
+}
+
+/* Efecto de hover mejorado para botones de emoji */
+.emoji-grid-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.emoji-grid-button:hover {
+  transform: scale(1.1);
+  background-color: rgba(60, 64, 67, 0.6);
+  border-color: rgba(168, 230, 163, 0.3);
+}
+
+.emoji-grid-button:active {
+  transform: scale(0.95);
+}
+
+/* Animación de carga para el selector */
+@keyframes emoji-picker-load {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.emoji-picker-entrance {
+  animation: emoji-picker-load 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Efecto de brillo para emojis frecuentes */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.emoji-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, transparent 0%, rgba(168, 230, 163, 0.1) 50%, transparent 100%);
+  background-size: 468px 100%;
+  animation: shimmer 2s infinite;
+  pointer-events: none;
 }
