@@ -98,17 +98,30 @@ const MessageInput = ({
   const removeFile = (index) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
-
-  // Establecer referencia del input y añadir event listener para paste
+  // Establecer referencia del input y añadir event listeners
   useEffect(() => {
     const inputElement = inputRef.current;
     if (inputElement) {
       inputElement.addEventListener('paste', handlePaste);
-      return () => {
-        inputElement.removeEventListener('paste', handlePaste);
-      };
     }
-  }, []);  return (
+
+    // Manejar tecla Escape para cerrar paneles
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowEmojis(false);
+        setShowAttachOptions(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      if (inputElement) {
+        inputElement.removeEventListener('paste', handlePaste);
+      }
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);return (
     <div className="border-t border-[#3C4043]/50 p-3 sm:p-4 bg-gradient-to-r from-[#2C2C34]/95 to-[#252529]/95 backdrop-blur-md relative message-input-container no-horizontal-overflow">
       {/* Top gradient overlay */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#A8E6A3]/30 to-transparent"></div>
@@ -135,12 +148,21 @@ const MessageInput = ({
           </div>
         </div>
       )}
-      
-      {/* Emoji Picker - Posicionado mejor para móvil */}
+        {/* Emoji Picker - Mejorado con mejor posicionamiento y funcionalidad */}
       {showEmojis && (
-        <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 right-2 sm:right-auto z-50 animate-in slide-in-from-bottom-2">
-          <EmojiPicker onEmojiSelect={handleEmojiSelect} />
-        </div>
+        <>
+          {/* Backdrop para cerrar al hacer clic fuera */}
+          <div 
+            className="fixed inset-0 z-40"
+            onClick={() => setShowEmojis(false)}
+          />
+          <div className="absolute bottom-full right-0 sm:right-4 mb-2 z-50 animate-in slide-in-from-bottom-4 duration-300">
+            <EmojiPicker 
+              onEmojiSelect={handleEmojiSelect}
+              onClose={() => setShowEmojis(false)}
+            />
+          </div>
+        </>
       )}
 
       {/* Attachment Options - Posicionado mejor para móvil */}
@@ -183,19 +205,25 @@ const MessageInput = ({
               {newMessage.length}/1000
             </div>
           )}
-        </div>        {/* Botón de emojis - Adaptado para móvil */}
+        </div>        {/* Botón de emojis - Mejorado con indicador visual */}
         <button
           type="button"
           onClick={() => {
             setShowEmojis(!showEmojis);
             setShowAttachOptions(false);
-          }}          className={`p-2 sm:p-3 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043]/60 backdrop-blur-sm transition-all duration-200 border border-transparent hover:border-[#A8E6A3]/30 hover:scale-105 flex-shrink-0 ${
-            showEmojis ? 'bg-[#3C4043]/60 text-[#A8E6A3] border-[#A8E6A3]/30' : ''
-          }`}
+          }}
+          className={`relative p-2 sm:p-3 rounded-xl backdrop-blur-sm transition-all duration-200 border flex-shrink-0 group ${
+            showEmojis 
+              ? 'bg-gradient-to-r from-[#A8E6A3]/20 to-[#7DD3C0]/20 text-[#A8E6A3] border-[#A8E6A3]/30 shadow-lg shadow-[#A8E6A3]/10' 
+              : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]/60 border-transparent hover:border-[#A8E6A3]/30'
+          } hover:scale-105 active:scale-95`}
           title="Agregar emoji"
         >
-          <Smile size={16} className="sm:w-5 sm:h-5" />
-        </button>        {/* Botón de enviar - Adaptado para móvil */}
+          <Smile size={16} className="sm:w-5 sm:h-5 transition-transform group-hover:rotate-12" />
+          {showEmojis && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#A8E6A3] rounded-full animate-pulse"></div>
+          )}
+        </button>{/* Botón de enviar - Adaptado para móvil */}
         <button
           type="submit"
           disabled={(!newMessage.trim() && selectedFiles.length === 0) || isUploading}

@@ -440,3 +440,81 @@
     animation: none !important;
   }
 }
+
+/* Estilos específicos para EmojiPicker */
+.emoji-picker-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #3C4043 transparent;
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #3C4043;
+  border-radius: 3px;
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #A8E6A3;
+}
+
+/* Animación para el selector de emojis */
+@keyframes emoji-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.emoji-bounce:hover {
+  animation: emoji-bounce 0.3s ease-in-out;
+}
+
+/* Efecto de parpadeo suave para indicadores */
+@keyframes soft-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+/* Estilos para categorías de emojis */
+.emoji-category-tab {
+  position: relative;
+  overflow: hidden;
+}
+
+.emoji-category-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(168, 230, 163, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.emoji-category-tab:hover::before {
+  left: 100%;
+}
+
+/* Mejoras para tooltips de emojis */
+.emoji-tooltip {
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
