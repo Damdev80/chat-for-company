@@ -230,7 +230,6 @@ export const emojiNames = {
   "🎪": ["circo", "circus"],
   "🎨": ["arte", "art", "palette"],
   "🎭": ["teatro", "theater", "masks"],
-  "🎪": ["carpa", "tent"],
   "🎡": ["rueda", "ferris", "wheel"],
   "🎢": ["montana", "rusa", "roller", "coaster"],
   "🎠": ["carrusel", "carousel"],
