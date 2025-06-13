@@ -38,11 +38,9 @@ export function NotFound() {
           </div>
 
           {/* Elementos decorativos */}
-          
-
-          <div className="mt-24 text-center animate-fadeIn animation-delay-300">
+              <div className="mt-24 text-center animate-fadeIn animation-delay-300">
             <p className="text-[#A0A0B0] text-sm">
-              © {new Date().getFullYear()} ChatEmpresa. Todos los derechos reservados.
+              © {new Date().getFullYear()} Thinkchat. Todos los derechos reservados.
             </p>
           </div>
         </div>

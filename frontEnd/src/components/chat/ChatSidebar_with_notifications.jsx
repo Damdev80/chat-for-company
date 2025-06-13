@@ -164,7 +164,7 @@ const ChatSidebar = ({
       >
         {/* Header del sidebar */}
         <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#252529]">
-          <h1 className="text-xl font-bold text-[#A8E6A3] drop-shadow-sm">Chat Hub</h1>
+          <h1 className="text-xl font-bold text-[#A8E6A3] drop-shadow-sm">Thinkchat</h1>
           
           {/* Botón cerrar móvil */}
           <button

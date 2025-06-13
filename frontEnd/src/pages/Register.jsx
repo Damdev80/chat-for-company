@@ -93,7 +93,7 @@ function Register() {
               <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-[#FFFFFF] to-[#A0A0B0] bg-clip-text text-transparent">
                 Crear Cuenta
               </h1>
-              <p className="text-[#A0A0B0]">Únete a ChatEmpresa y mejora la comunicación de tu equipo</p>
+              <p className="text-[#A0A0B0]">Únete a Thinkchat y mejora la comunicación de tu equipo</p>
             </div>
 
             {/* Error message mejorado */}
@@ -285,10 +285,9 @@ function Register() {
             </div>
           </div>
 
-          {/* Copyright mejorado */}
-          <div className="mt-8 text-center animate-fadeIn animation-delay-300">
+          {/* Copyright mejorado */}          <div className="mt-8 text-center animate-fadeIn animation-delay-300">
             <p className="text-[#A0A0B0] text-sm">
-              © {new Date().getFullYear()} ChatEmpresa. Comunicación segura y privada.
+              © {new Date().getFullYear()} Thinkchat. Comunicación segura y privada.
             </p>
           </div>
         </div>
