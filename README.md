@@ -1,4 +1,4 @@
-# 💬 ChatEmpresa
+# 💬 Thinkchat
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Versión">
@@ -25,7 +25,7 @@
 
 ## 📝 Descripción
 
-ChatEmpresa es una solución de mensajería empresarial en tiempo real, diseñada para facilitar la comunicación dentro de equipos de trabajo. Permite intercambio de mensajes instantáneos, creación de grupos y gestión de usuarios con diferentes niveles de permisos.
+Thinkchat es una solución de mensajería empresarial en tiempo real, diseñada para facilitar la comunicación dentro de equipos de trabajo. Permite intercambio de mensajes instantáneos, creación de grupos y gestión de usuarios con diferentes niveles de permisos.
 
 La aplicación está construida con una arquitectura moderna:
 - **Frontend**: React + Vite con Tailwind CSS
@@ -98,8 +98,8 @@ BackEnd/
 
 1. **Clonar el repositorio**
 ```bash
-git clone https://github.com/tu-usuario/chatempresa.git
-cd chatempresa
+git clone https://github.com/tu-usuario/thinkchat.git
+cd thinkchat
 ```
 
 2. **Instalar dependencias del backend**
@@ -219,7 +219,7 @@ La API RESTful proporciona los siguientes endpoints principales:
 
 ## 👥 Contribuciones
 
-¡Nos encantaría recibir tu ayuda para mejorar ChatEmpresa! Consulta nuestras [guías de contribución](CONTRIBUTING.md) para empezar.
+¡Nos encantaría recibir tu ayuda para mejorar Thinkchat! Consulta nuestras [guías de contribución](CONTRIBUTING.md) para empezar.
 
 ## 📄 Licencia
 
@@ -228,5 +228,5 @@ Este proyecto está licenciado bajo la [Licencia MIT](LICENSE) - Consulta el arc
 ---
 
 <p align="center">
-  Desarrollado con ❤️ por el equipo de ChatEmpresa
+  Desarrollado con ❤️ por el equipo de Thinkchat
 </p>

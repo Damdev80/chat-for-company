@@ -682,7 +682,7 @@ function Chat() {
             >
               <Menu size={20} />
             </button>
-            <h1 className="text-xl font-bold text-[#4ADE80]">ChatEmpresa</h1>
+            <h1 className="text-xl font-bold text-[#4ADE80]">Thinkchat</h1>
           </div>
           <div className="flex items-center space-x-4">
             <button
@@ -772,7 +772,7 @@ function Chat() {
               >
                 {/* Contenido de la barra lateral móvil */}
                 <div className="p-4 flex justify-between items-center border-b border-[#3C3C4E]">
-                  <h2 className="font-bold text-[#4ADE80]">ChatEmpresa</h2>
+                  <h2 className="font-bold text-[#4ADE80]">Thinkchat</h2>
                   <button
                     className="text-[#A0A0B0] hover:text-white"
                     onClick={toggleSidebar}

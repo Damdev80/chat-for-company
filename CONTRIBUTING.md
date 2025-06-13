@@ -1,4 +1,4 @@
-# Guía de Contribución a ChatEmpresa
+# Guía de Contribución a Thinkchat
 
 ¡Gracias por tu interés en contribuir a ChatEmpresa! Este documento proporciona las directrices y procesos recomendados para contribuir exitosamente a este proyecto.
 

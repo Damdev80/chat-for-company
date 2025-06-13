@@ -303,11 +303,13 @@ export function Home() {
         </div>
       </section>      {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-[#3C3C4E] relative">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
-          <div className="animate-fadeInLeft animation-delay-100">
-            <h3 className="text-xl font-bold mb-4 text-[#FFFFFF] hover:text-[#4ADE80] transition-colors duration-300">
-              ChatEmpresa
-            </h3>
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">          <div className="animate-fadeInLeft animation-delay-100">
+            <div className="flex items-center gap-3 mb-4">
+              <img src="/src/assets/logo-app.png" alt="Thinkchat" className="h-8 w-8" />
+              <h3 className="text-xl font-bold text-[#FFFFFF] hover:text-[#4ADE80] transition-colors duration-300">
+                Thinkchat
+              </h3>
+            </div>
             <p className="text-[#A0A0B0] hover:text-[#B0B0C0] transition-colors duration-300">
               Soluciones de comunicación segura para empresas de todos los tamaños.
             </p>
@@ -391,10 +393,9 @@ export function Home() {
             </ul>
           </div>
         </div>
-        
-        <div className="mt-12 text-center text-[#A0A0B0] animate-fadeIn animation-delay-500">
+          <div className="mt-12 text-center text-[#A0A0B0] animate-fadeIn animation-delay-500">
           <p className="hover:text-[#B0B0C0] transition-colors duration-300">
-            © {new Date().getFullYear()} ChatEmpresa. Todos los derechos reservados.
+            © {new Date().getFullYear()} Thinkchat. Todos los derechos reservados.
           </p>
         </div>
       </footer>
