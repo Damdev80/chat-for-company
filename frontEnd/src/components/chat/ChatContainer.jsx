@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Target, Bell, X, MessageCircle, Users } from "lucide-react";
+import { Target, Bell, X, MessageCircle, Users, ClipboardCheck } from "lucide-react";
 import {  fetchMessages,
   fetchGroups,
   createGroup,
@@ -9,8 +9,10 @@ import {  fetchMessages,
   fetchUsers,
 } from "../../utils/api";
 import { connectSocket, disconnectSocket } from "../../utils/socket";
+import { canReviewTasks, isAdmin } from "../../utils/auth";
 import ObjectiveManager from "../ObjectiveManager";
 import UserTaskView from "../UserTaskView";
+import TaskReviewPanel from "../TaskReviewPanel";
 import ObjectiveProgressSummary from "../ObjectiveProgressSummary";
 import { generateTempId, formatMessageTime } from "../../utils/chatUtils";
 
@@ -654,15 +656,23 @@ const ChatContainer = () => {  // Estados principales
           notifications={notifications}
           onShowNotifications={handleShowNotifications}
         />        <div className="flex-1 flex min-h-0 no-horizontal-overflow">
-          {/* Contenido principal - Mensajes o Objetivos */}
-          <div className="flex-1 flex flex-col no-horizontal-overflow">{activeTab === 'objectives' ? (
-              // Área de gestión de objetivos - Mejorada para móvil
+          {/* Contenido principal - Mensajes o Objetivos */}          <div className="flex-1 flex flex-col no-horizontal-overflow">            {activeTab === 'objectives' ? (
+              // Área de gestión de objetivos/tareas - Diferente para admin vs usuario
               <div className="flex-1 flex flex-col bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] overflow-hidden">
                 <div className="border-b border-[#3C4043] bg-[#252529] p-3 sm:p-4">
                   <h2 className="text-lg sm:text-xl font-bold text-[#A8E6A3] flex items-center gap-2">
                     <Target size={20} className="sm:w-6 sm:h-6" />
-                    <span className="hidden sm:inline">Gestión de Objetivos</span>
-                    <span className="sm:hidden">Objetivos</span>
+                    {isAdmin(userRole) ? (
+                      <>
+                        <span className="hidden sm:inline">Gestión de Objetivos</span>
+                        <span className="sm:hidden">Objetivos</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Mis Tareas</span>
+                        <span className="sm:hidden">Tareas</span>
+                      </>
+                    )}
                     {activeGroup !== "global" && (
                       <span className="text-xs sm:text-sm text-[#B8B8B8] font-normal truncate">
                         - {groups.find(g => g.id === activeGroup)?.name || "Grupo"}
@@ -672,40 +682,80 @@ const ChatContainer = () => {  // Estados principales
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-                  {/* Resumen de progreso - Adaptado para móvil */}
-                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
-                    <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
-                      Resumen de Progreso
-                    </h3>
-                    <ObjectiveProgressSummary 
-                      groupId={activeGroup}
-                      refreshKey={objectiveRefreshKey}
-                    />
-                  </div>
+                  {isAdmin(userRole) ? (
+                    // Vista completa para admins
+                    <>
+                      {/* Resumen de progreso - Adaptado para móvil */}
+                      <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
+                          Resumen de Progreso
+                        </h3>
+                        <ObjectiveProgressSummary 
+                          groupId={activeGroup}
+                          refreshKey={objectiveRefreshKey}
+                        />
+                      </div>
 
-                  {/* Gestión de objetivos - Adaptada para móvil */}
-                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
-                    <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
-                      Objetivos del Grupo
-                    </h3>
-                    <ObjectiveManager 
-                      groupId={activeGroup}
-                      userRole={userRole}
-                      refreshKey={objectiveRefreshKey}
-                      onRefresh={() => setObjectiveRefreshKey(prev => prev + 1)}
-                    />
-                  </div>
+                      {/* Gestión de objetivos - Adaptada para móvil */}
+                      <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
+                          Objetivos del Grupo
+                        </h3>
+                        <ObjectiveManager 
+                          groupId={activeGroup}
+                          userRole={userRole}
+                          refreshKey={objectiveRefreshKey}
+                          onRefresh={() => setObjectiveRefreshKey(prev => prev + 1)}
+                        />
+                      </div>
 
-                  {/* Vista de tareas del usuario - Adaptada para móvil */}
-                  <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
-                    <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
-                      Mis Tareas
-                    </h3>
-                    <UserTaskView 
-                      groupId={activeGroup}
-                      onTaskUpdate={() => setObjectiveRefreshKey(prev => prev + 1)}
-                    />
-                  </div>
+                      {/* Vista de tareas del usuario - Adaptada para móvil */}
+                      <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
+                        <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
+                          Mis Tareas
+                        </h3>
+                        <UserTaskView 
+                          groupId={activeGroup}
+                          onTaskUpdate={() => setObjectiveRefreshKey(prev => prev + 1)}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    // Vista simplificada para usuarios normales - Solo sus tareas
+                    <div className="bg-[#252529] rounded-xl border border-[#3C4043] p-3 sm:p-4">
+                      <h3 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-3 sm:mb-4">
+                        Tareas Asignadas
+                      </h3>
+                      <UserTaskView 
+                        groupId={activeGroup}
+                        onTaskUpdate={() => setObjectiveRefreshKey(prev => prev + 1)}
+                        showOnlyMyTasks={true}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : activeTab === 'review' && canReviewTasks() ? (
+              // Área de revisión de tareas - Solo para admins/supervisores
+              <div className="flex-1 flex flex-col bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] overflow-hidden">
+                <div className="border-b border-[#3C4043] bg-[#252529] p-3 sm:p-4">
+                  <h2 className="text-lg sm:text-xl font-bold text-[#A8E6A3] flex items-center gap-2">
+                    <ClipboardCheck size={20} className="sm:w-6 sm:h-6" />
+                    <span className="hidden sm:inline">Revisión de Tareas</span>
+                    <span className="sm:hidden">Revisión</span>
+                    {activeGroup !== "global" && (
+                      <span className="text-xs sm:text-sm text-[#B8B8B8] font-normal truncate">
+                        - {groups.find(g => g.id === activeGroup)?.name || "Grupo"}
+                      </span>
+                    )}
+                  </h2>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+                  <TaskReviewPanel 
+                    groupId={activeGroup}
+                    onTaskUpdate={() => setObjectiveRefreshKey(prev => prev + 1)}
+                  />
                 </div>
               </div>
             ) : (

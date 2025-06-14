@@ -303,9 +303,8 @@ export function Home() {
         </div>
       </section>      {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-[#3C3C4E] relative">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">          <div className="animate-fadeInLeft animation-delay-100">
-            <div className="flex items-center gap-3 mb-4">
-              <img src="/src/assets/logo-app.png" alt="Thinkchat" className="h-8 w-8" />
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">          <div className="animate-fadeInLeft animation-delay-100">            <div className="flex items-center gap-3 mb-4">
+              <img src="/src/assets/logo-app.png" alt="Thinkchat" className="h-16 w-16" />
               <h3 className="text-xl font-bold text-[#FFFFFF] hover:text-[#4ADE80] transition-colors duration-300">
                 Thinkchat
               </h3>

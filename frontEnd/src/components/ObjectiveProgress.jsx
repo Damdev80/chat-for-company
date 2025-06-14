@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { CheckCircle, Clock, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, Clock, Target, ChevronDown, ChevronUp, Eye, RotateCcw } from 'lucide-react';
 
 const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
   const [progress, setProgress] = useState(null);
@@ -17,33 +17,32 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
       colors: ['#4ADE80', '#60A5FA', '#F59E0B']
     });
   }, []);
-
   // Calculate progress from tasks
   const calculateProgress = useCallback((tasks) => {
     if (!Array.isArray(tasks) || tasks.length === 0) {
-      return { total: 0, completed: 0, percentage: 0, pendingTasks: [] };
+      return { total: 0, completed: 0, percentage: 0, pendingTasks: [], inReviewTasks: [], returnedTasks: [] };
     }
 
     const completed = tasks.filter(task => {
-      const isCompleted = task && (
-        task.status === 'completed' || 
-        task.status === 'completada' ||
-        task.status === 'complete' ||
-        task.status === 'finalizada'
-      );
+      const isCompleted = task && task.status === 'completed';
       return isCompleted;
     }).length;
     
     const total = tasks.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    const pendingTasks = tasks.filter(task => task && (
-      task.status === 'pending' || 
-      task.status === 'pendiente' ||
-      task.status === 'in_progress' ||
-      task.status === 'en_progreso'
-    ));
+    
+    const pendingTasks = tasks.filter(task => task && task.status === 'pending');
+    const inReviewTasks = tasks.filter(task => task && task.status === 'in_review');
+    const returnedTasks = tasks.filter(task => task && task.status === 'returned');
 
-    return { total, completed, percentage, pendingTasks };
+    return { 
+      total, 
+      completed, 
+      percentage, 
+      pendingTasks, 
+      inReviewTasks, 
+      returnedTasks 
+    };
   }, []);
 
   useEffect(() => {
@@ -200,9 +199,8 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
 
       {/* Minimalist Expanded View */}
       {isExpanded && (
-        <div className="border-t border-[#3C3C4E]/30 bg-[#1E1E2E] p-2">
-          {/* Mini Stats */}
-          <div className="flex justify-around text-center mb-2">
+        <div className="border-t border-[#3C3C4E]/30 bg-[#1E1E2E] p-2">          {/* Mini Stats */}
+          <div className="grid grid-cols-5 gap-2 text-center mb-2">
             <div className="flex flex-col items-center">
               <CheckCircle size={12} className="text-[#10B981] mb-0.5" />
               <div className="text-xs font-bold text-[#10B981]">{progress.completed}</div>
@@ -211,13 +209,25 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
             
             <div className="flex flex-col items-center">
               <Clock size={12} className="text-[#F59E0B] mb-0.5" />
-              <div className="text-xs font-bold text-[#F59E0B]">{progress.total - progress.completed}</div>
+              <div className="text-xs font-bold text-[#F59E0B]">{progress.pendingTasks?.length || 0}</div>
               <div className="text-xs text-[#A0A0B0]">Pendientes</div>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <Eye size={12} className="text-[#3B82F6] mb-0.5" />
+              <div className="text-xs font-bold text-[#3B82F6]">{progress.inReviewTasks?.length || 0}</div>
+              <div className="text-xs text-[#A0A0B0]">Revisión</div>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <RotateCcw size={12} className="text-[#EF4444] mb-0.5" />
+              <div className="text-xs font-bold text-[#EF4444]">{progress.returnedTasks?.length || 0}</div>
+              <div className="text-xs text-[#A0A0B0]">Devueltas</div>
             </div>
             
             <div className="flex flex-col items-center">
-              <Target size={12} className="text-[#3B82F6] mb-0.5" />
-              <div className="text-xs font-bold text-[#3B82F6]">{progress.total}</div>
+              <Target size={12} className="text-[#6B7280] mb-0.5" />
+              <div className="text-xs font-bold text-[#6B7280]">{progress.total}</div>
               <div className="text-xs text-[#A0A0B0]">Total</div>
             </div>
           </div>

@@ -11,7 +11,9 @@ import {
   AlertCircle,
   X,
   Flag,
-  Users
+  Users,
+  Eye,
+  RotateCcw
 } from 'lucide-react';
 import { 
   fetchTasksByObjective, 
@@ -32,7 +34,8 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
     title: '',
     description: '',
     assigned_to: '',
-    priority: 'medium'
+    priority: 'medium',
+    due_date: ''
   });
   const loadTasks = useCallback(async () => {
     try {
@@ -133,28 +136,36 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
       console.error('Error al completar tarea:', error);
       alert('Error al completar la tarea');
     }
-  };
-  const resetForm = () => {
-    setFormData({ title: '', description: '', assigned_to: '', priority: 'medium' });
+  };  const resetForm = () => {
+    setFormData({ 
+      title: '', 
+      description: '', 
+      assigned_to: '', 
+      priority: 'medium',
+      due_date: ''
+    });
     setShowCreateForm(false);
     setEditingTask(null);
-  };
-  const startEdit = (task) => {
+  };  const startEdit = (task) => {
     setEditingTask(task);
     setFormData({
       title: task.title,
       description: task.description || '',
       assigned_to: task.assigned_to || '',
-      priority: task.priority || 'medium'
+      priority: task.priority || 'medium',
+      due_date: task.due_date ? task.due_date.split('T')[0] : '' // Formatear fecha para input date
     });
     setShowCreateForm(true);
-  };
-  const getStatusIcon = (status) => {
+  };const getStatusIcon = (status) => {
     switch (status) {
       case 'completed':
         return <CheckCircle size={16} className="text-[#4ADE80]" />;
       case 'pending':
         return <Clock size={16} className="text-orange-400" />;
+      case 'in_review':
+        return <Eye size={16} className="text-blue-400" />;
+      case 'returned':
+        return <RotateCcw size={16} className="text-red-400" />;
       default:
         return <AlertCircle size={16} className="text-[#A0A0B0]" />;
     }
@@ -165,6 +176,10 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
         return 'Completada';
       case 'pending':
         return 'Pendiente';
+      case 'in_review':
+        return 'En Revisión';
+      case 'returned':
+        return 'Devuelta';
       default:
         return 'Desconocido';
     }
@@ -338,9 +353,7 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
                   }
                 </p>
               </div>
-            </div>
-
-            {/* Description field - full width */}
+            </div>            {/* Description field - full width */}
             <div>
               <label className="block text-sm font-medium text-white mb-1">
                 Descripción
@@ -352,6 +365,32 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
                 placeholder="Describe la tarea en detalle (opcional)"
                 rows="3"
               />
+            </div>
+
+            {/* Due date field */}
+            <div>
+              <label className="flex items-center space-x-2 text-sm font-medium text-white mb-1">
+                <Calendar size={14} className="text-[#4ADE80]" />
+                <span>Fecha Límite</span>
+              </label>
+              <input
+                type="date"
+                value={formData.due_date}
+                onChange={(e) => setFormData({...formData, due_date: e.target.value})}
+                className="w-full bg-[#1E1E2E] border border-[#3C3C4E] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:border-transparent transition-all"
+                min={new Date().toISOString().split('T')[0]} // No permitir fechas pasadas
+              />
+              <p className="text-xs text-[#A0A0B0] mt-1">
+                {formData.due_date 
+                  ? `📅 Fecha límite establecida para ${new Date(formData.due_date).toLocaleDateString('es-ES', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}` 
+                  : "⚠️ Sin fecha límite - opcional pero recomendado"
+                }
+              </p>
             </div>
 
             {/* Buttons - always visible at bottom */}
@@ -388,12 +427,15 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
             </button>
           </div>
         ) : (
-          tasks.map(task => (
-            <div
+          tasks.map(task => (            <div
               key={task.id}
               className={`border rounded-lg p-4 transition-all ${
                 task.status === 'completed' 
                   ? 'bg-[#4ADE80]/10 border-[#4ADE80]/30' 
+                  : task.status === 'in_review'
+                  ? 'bg-blue-500/10 border-blue-500/30'
+                  : task.status === 'returned'
+                  ? 'bg-red-500/10 border-red-500/30'
                   : 'bg-[#2D2D3A] border-[#3C3C4E] hover:border-[#4ADE80]/50'
               }`}
             >
@@ -404,10 +446,13 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
                       task.status === 'completed' ? 'line-through text-[#A0A0B0]' : 'text-white'
                     }`}>
                       {task.title}
-                    </h4>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                    </h4>                    <span className={`text-xs px-2 py-1 rounded-full ${
                       task.status === 'completed' 
                         ? 'bg-[#4ADE80]/20 text-[#4ADE80]' 
+                        : task.status === 'in_review'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : task.status === 'returned'
+                        ? 'bg-red-500/20 text-red-400'
                         : 'bg-orange-400/20 text-orange-400'
                     }`}>
                       {getStatusText(task.status)}
@@ -435,10 +480,19 @@ const TaskManager = ({ objectiveId, onTaskUpdate }) => {
                         <Users size={14} className="text-[#A0A0B0]" />
                         <span className="text-[#A0A0B0]">🔄 Tarea libre</span>
                       </div>
-                    )}{task.completed_at && (
-                      <div className="flex items-center space-x-1">
-                        <Calendar size={14} />
-                        <span>Completado: {new Date(task.completed_at).toLocaleDateString()}</span>
+                    )}
+
+                    {/* Due date display */}
+                    {task.due_date && (
+                      <div className="flex items-center space-x-1 bg-blue-500/10 px-2 py-1 rounded-lg">
+                        <Calendar size={14} className="text-blue-400" />
+                        <span className="text-blue-400 font-medium">
+                          📅 {new Date(task.due_date).toLocaleDateString('es-ES', { 
+                            day: 'numeric', 
+                            month: 'short',
+                            year: new Date(task.due_date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                          })}
+                        </span>
                       </div>
                     )}
                   </div>
