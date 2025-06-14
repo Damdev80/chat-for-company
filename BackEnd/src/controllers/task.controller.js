@@ -1,6 +1,6 @@
 import { ModelsTask } from '../models/task.js'
 import { ModelsObjective } from '../models/objective.js'
-import { taskSchema, updateTaskSchema, assignTaskSchema } from '../validations/task.validation.js'
+import { taskSchema, updateTaskSchema, assignTaskSchema, reviewTaskSchema, returnTaskSchema } from '../validations/task.validation.js'
 import { emitTaskCompleted, emitProgressUpdate, emitObjectiveCompleted } from '../utils/socketManager.js'
 
 export class TaskController {
@@ -268,6 +268,152 @@ export class TaskController {
       res.json(stats)
     } catch (error) {
       console.error('Error al obtener mis estadísticas:', error)
+      res.status(500).json({ message: 'Error interno del servidor' })
+    }
+  }
+
+  static async submitForReview(req, res) {
+    try {
+      const { id } = req.params
+      const userId = req.user.id
+
+      console.log('=== TASK SUBMIT FOR REVIEW REQUEST ===')
+      console.log('Task ID:', id)
+      console.log('User ID:', userId)
+
+      // Enviar tarea a revisión (verificará permisos internamente)
+      await ModelsTask.submitForReview(id, userId)
+
+      // Obtener la tarea actualizada
+      const task = await ModelsTask.getById(id)
+      
+      res.json({ 
+        message: 'Tarea enviada a revisión',
+        task
+      })
+    } catch (error) {
+      console.error('Error al enviar tarea a revisión:', error)
+      
+      if (error.message === 'Tarea no encontrada') {
+        return res.status(404).json({ message: error.message })
+      }
+      
+      if (error.message === 'No tienes permisos para enviar esta tarea a revisión') {
+        return res.status(403).json({ message: error.message })
+      }
+      
+      res.status(500).json({ message: 'Error interno del servidor' })
+    }
+  }
+  static async approveTask(req, res) {
+    try {
+      const { id } = req.params
+      const reviewerId = req.user.id
+
+      // Validar datos con Zod
+      const result = reviewTaskSchema.safeParse(req.body)
+      if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues })
+      }
+
+      const { comments } = result.data
+
+      console.log('=== TASK APPROVAL REQUEST ===')
+      console.log('Task ID:', id)
+      console.log('Reviewer ID:', reviewerId)
+      console.log('Comments:', comments)
+
+      // Verificar que el usuario tiene permisos de admin/supervisor
+      if (req.user.role !== 'admin' && req.user.role !== 'supervisor') {
+        return res.status(403).json({ message: 'No tienes permisos para aprobar tareas' })
+      }
+
+      // Aprobar tarea
+      await ModelsTask.approveTask(id, reviewerId, comments)
+
+      // Obtener la tarea completada con detalles completos
+      const completedTask = await ModelsTask.getById(id)
+      console.log('Approved task details:', completedTask)
+
+      // Obtener los detalles del objetivo
+      const objective = await ModelsObjective.getById(completedTask.objective_id)
+      console.log('Objective details:', objective)
+
+      if (objective) {
+        // Emitir evento de tarea completada
+        await emitTaskCompleted(completedTask, objective)
+
+        // Calcular y emitir actualización de progreso
+        const progress = await ModelsObjective.getProgress(objective.id)
+        console.log('Updated progress:', progress)
+        
+        await emitProgressUpdate(objective, progress)
+
+        // Verificar si el objetivo está ahora completo (100% progreso)
+        if (progress.progress >= 100) {
+          console.log('🎉 Objective completed! Emitting objective_completed event')
+          await emitObjectiveCompleted(objective)
+        }
+      }
+      
+      res.json({ 
+        message: 'Tarea aprobada y marcada como completada',
+        task: completedTask,
+        progress: objective ? await ModelsObjective.getProgress(objective.id) : null
+      })
+    } catch (error) {
+      console.error('Error al aprobar tarea:', error)
+      res.status(500).json({ message: 'Error interno del servidor' })
+    }
+  }
+  static async returnTask(req, res) {
+    try {
+      const { id } = req.params
+      const reviewerId = req.user.id
+
+      // Validar datos con Zod
+      const result = returnTaskSchema.safeParse(req.body)
+      if (!result.success) {
+        return res.status(400).json({ errors: result.error.issues })
+      }
+
+      const { comments } = result.data
+
+      console.log('=== TASK RETURN REQUEST ===')
+      console.log('Task ID:', id)
+      console.log('Reviewer ID:', reviewerId)
+      console.log('Comments:', comments)      // Verificar que el usuario tiene permisos de admin/supervisor
+      if (req.user.role !== 'admin' && req.user.role !== 'supervisor') {
+        return res.status(403).json({ message: 'No tienes permisos para revisar tareas' })
+      }
+
+      // Devolver tarea
+      await ModelsTask.returnTask(id, reviewerId, comments)
+
+      // Obtener la tarea actualizada
+      const task = await ModelsTask.getById(id)
+      
+      res.json({ 
+        message: 'Tarea devuelta con comentarios',
+        task
+      })
+    } catch (error) {
+      console.error('Error al devolver tarea:', error)
+      res.status(500).json({ message: 'Error interno del servidor' })
+    }
+  }
+
+  static async getTasksInReview(req, res) {
+    try {
+      // Verificar que el usuario tiene permisos de admin/supervisor
+      if (req.user.role !== 'admin' && req.user.role !== 'supervisor') {
+        return res.status(403).json({ message: 'No tienes permisos para ver tareas en revisión' })
+      }
+
+      const tasks = await ModelsTask.getTasksInReview()
+      res.json(tasks)
+    } catch (error) {
+      console.error('Error al obtener tareas en revisión:', error)
       res.status(500).json({ message: 'Error interno del servidor' })
     }
   }

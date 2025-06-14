@@ -16,7 +16,7 @@ import {
   updateObjective,
   deleteObjective
 } from '../utils/api';
-import { getToken } from '../utils/auth';
+import { getToken, isAdmin } from '../utils/auth';
 import ObjectiveProgress from './ObjectiveProgress';
 import TaskManager from './TaskManager';
 
@@ -156,8 +156,7 @@ const ObjectiveManager = ({ groupId, groupName, token, onObjectiveCreated, onTas
     );
   }  return (
     <div className="p-6 pt-8">
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="space-y-6">        {/* Header */}
         <div className="bg-[#2D2D3A] rounded-lg border border-[#3C3C4E] p-8">
           <div className="flex justify-between items-center">
             <div>
@@ -167,13 +166,15 @@ const ObjectiveManager = ({ groupId, groupName, token, onObjectiveCreated, onTas
               </h2>
               <p className="text-[#A0A0B0] mt-2">{groupName}</p>
             </div>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-[#4ADE80] hover:bg-[#3BC470] text-black px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors font-medium"
-            >
-              <Plus size={18} />
-              <span>Nuevo Objetivo</span>
-            </button>
+            {isAdmin() && (
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-[#4ADE80] hover:bg-[#3BC470] text-black px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors font-medium"
+              >
+                <Plus size={18} />
+                <span>Nuevo Objetivo</span>
+              </button>
+            )}
           </div>
         </div>
         {/* Create/Edit Form */}
@@ -258,40 +259,46 @@ const ObjectiveManager = ({ groupId, groupName, token, onObjectiveCreated, onTas
               <Target size={64} className="mx-auto mb-4 text-[#4ADE80]" />
               <h3 className="text-lg font-medium text-white mb-2">
                 No hay objetivos definidos
-              </h3>
-              <p className="text-[#A0A0B0] mb-6">
-                Los objetivos te ayudan a organizar y hacer seguimiento del progreso del equipo
+              </h3>              <p className="text-[#A0A0B0] mb-6">
+                {isAdmin() 
+                  ? "Los objetivos te ayudan a organizar y hacer seguimiento del progreso del equipo"
+                  : "Los objetivos del grupo aparecerán aquí cuando el administrador los cree"
+                }
               </p>
               
-              {/* Mini tutorial */}
-              <div className="bg-[#1E1E2E] border border-[#3C3C4E] rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
-                <h4 className="text-sm font-medium text-[#4ADE80] mb-3">¿Cómo funciona?</h4>
-                <div className="space-y-2 text-xs text-[#A0A0B0]">
-                  <div className="flex items-start space-x-2">
-                    <span className="text-[#4ADE80] font-bold">1.</span>
-                    <span>Crea un objetivo (ej: "Desarrollar nueva feature")</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-[#4ADE80] font-bold">2.</span>
-                    <span>Haz clic en el objetivo para expandirlo</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-[#4ADE80] font-bold">3.</span>
-                    <span>Crea tareas específicas y asígnalas al equipo</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-[#4ADE80] font-bold">4.</span>
-                    <span>Marca tareas como completadas para seguir progreso</span>
+              {/* Mini tutorial - solo para admins */}
+              {isAdmin() && (
+                <div className="bg-[#1E1E2E] border border-[#3C3C4E] rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
+                  <h4 className="text-sm font-medium text-[#4ADE80] mb-3">¿Cómo funciona?</h4>
+                  <div className="space-y-2 text-xs text-[#A0A0B0]">
+                    <div className="flex items-start space-x-2">
+                      <span className="text-[#4ADE80] font-bold">1.</span>
+                      <span>Crea un objetivo (ej: "Desarrollar nueva feature")</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="text-[#4ADE80] font-bold">2.</span>
+                      <span>Haz clic en el objetivo para expandirlo</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="text-[#4ADE80] font-bold">3.</span>
+                      <span>Crea tareas específicas y asígnalas al equipo</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="text-[#4ADE80] font-bold">4.</span>
+                      <span>El equipo enviará tareas a revisión y tú las aprobarás</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="bg-[#4ADE80] hover:bg-[#3BC470] text-black px-6 py-3 rounded-lg transition-colors font-medium"
-              >
-                Crear Primer Objetivo
-              </button>
+              {isAdmin() && (
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-[#4ADE80] hover:bg-[#3BC470] text-black px-6 py-3 rounded-lg transition-colors font-medium"
+                >
+                  Crear Primer Objetivo
+                </button>
+              )}
             </div>
           ) : (            objectives.map(objective => (
               <div
@@ -315,30 +322,31 @@ const ObjectiveManager = ({ groupId, groupName, token, onObjectiveCreated, onTas
                       </div>
                     </div>
                     <p className="text-[#A0A0B0] text-sm mt-1">{objective.description}</p>
-                    <ObjectiveProgress objective={objective} />
-                  </div>
-                  <div className="flex space-x-2 ml-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEdit(objective);
-                      }}
-                      className="text-[#A0A0B0] hover:text-[#4ADE80] transition-colors"
-                      title="Editar objetivo"
-                    >
-                      <Edit3 size={18} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(objective.id);
-                      }}
-                      className="text-[#A0A0B0] hover:text-red-500 transition-colors"
-                      title="Eliminar objetivo"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                    <ObjectiveProgress objective={objective} />                  </div>
+                  {isAdmin() && (
+                    <div className="flex space-x-2 ml-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEdit(objective);
+                        }}
+                        className="text-[#A0A0B0] hover:text-[#4ADE80] transition-colors"
+                        title="Editar objetivo"
+                      >
+                        <Edit3 size={18} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(objective.id);
+                        }}
+                        className="text-[#A0A0B0] hover:text-red-500 transition-colors"
+                        title="Eliminar objetivo"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  )}
                 </div>
                   {/* Expanded content - Task Manager */}
                 {expandedObjective === objective.id && (

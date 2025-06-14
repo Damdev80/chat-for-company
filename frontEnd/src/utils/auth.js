@@ -63,6 +63,23 @@ export function getToken() {
   return localStorage.getItem('token');
 }
 
+// Función para obtener el rol del usuario
+export function getUserRole() {
+  return localStorage.getItem('userRole');
+}
+
+// Función para verificar si el usuario es admin
+export function isAdmin() {
+  const role = getUserRole();
+  return role === 'admin';
+}
+
+// Función para verificar si el usuario es admin o supervisor
+export function canReviewTasks() {
+  const role = getUserRole();
+  return role === 'admin' || role === 'supervisor';
+}
+
 // Función para verificar si el usuario está autenticado
 export function isAuthenticated() {
   return !!getToken();

@@ -7,9 +7,12 @@ import {
   Calendar,
   TrendingUp,
   AlertCircle,
-  Flag
+  Flag,
+  Eye,
+  RotateCcw,
+  Send
 } from 'lucide-react';
-import { fetchMyTasks, markTaskCompleted } from '../utils/api';
+import { fetchMyTasks, markTaskCompleted, submitTaskForReview } from '../utils/api';
 import { getToken } from '../utils/auth';
 
 const UserTaskView = ({ onTaskUpdate }) => {
@@ -69,6 +72,29 @@ const UserTaskView = ({ onTaskUpdate }) => {
     }
   };
 
+  const handleSubmitForReview = async (taskId) => {
+    try {
+      console.log('UserTaskView: Submitting task for review:', taskId);
+      const token = getToken();
+      await submitTaskForReview(taskId, token);
+      console.log('UserTaskView: Task submitted for review');
+      await loadTasks();
+      console.log('UserTaskView: Tasks reloaded');
+      
+      // Notify parent component about task update
+      if (onTaskUpdate) {
+        console.log('UserTaskView: Calling onTaskUpdate callback');
+        await onTaskUpdate();
+        console.log('UserTaskView: onTaskUpdate callback completed');
+      } else {
+        console.warn('UserTaskView: onTaskUpdate callback is not provided');
+      }
+    } catch (error) {
+      console.error('Error al enviar tarea a revisión:', error);
+      alert('Error al enviar la tarea a revisión');
+    }
+  };
+
   // Filtering is disabled since filter state is unused
   const getFilteredTasks = () => tasks;  const getStatusIcon = (status) => {
     switch (status) {
@@ -76,8 +102,27 @@ const UserTaskView = ({ onTaskUpdate }) => {
         return <CheckCircle size={16} className="text-[#4ADE80]" />;
       case 'pending':
         return <Clock size={16} className="text-orange-400" />;
+      case 'in_review':
+        return <Eye size={16} className="text-blue-400" />;
+      case 'returned':
+        return <RotateCcw size={16} className="text-red-400" />;
       default:
         return <AlertCircle size={16} className="text-[#A0A0B0]" />;
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'Completada';
+      case 'pending':
+        return 'Pendiente';
+      case 'in_review':
+        return 'En Revisión';
+      case 'returned':
+        return 'Devuelta';
+      default:
+        return 'Desconocido';
     }
   };
 
@@ -156,9 +201,13 @@ const UserTaskView = ({ onTaskUpdate }) => {
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         task.status === 'completed' 
                           ? 'bg-[#4ADE80]/20 text-[#4ADE80]' 
+                          : task.status === 'in_review'
+                          ? 'bg-blue-500/20 text-blue-400'
+                          : task.status === 'returned'
+                          ? 'bg-red-500/20 text-red-400'
                           : 'bg-orange-500/20 text-orange-400'
                       }`}>
-                        {task.status === 'completed' ? 'Completada' : 'Pendiente'}
+                        {getStatusText(task.status)}
                       </span>
                       {/* Priority indicator */}
                       {task.priority && (
@@ -168,9 +217,19 @@ const UserTaskView = ({ onTaskUpdate }) => {
                         </span>
                       )}
                     </div>
-                    
-                    {task.description && (
+                      {task.description && (
                       <p className="text-sm text-[#A0A0B0]">{task.description}</p>
+                    )}
+
+                    {/* Mostrar comentarios de revisión si la tarea fue devuelta */}
+                    {task.status === 'returned' && task.review_comments && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                        <h5 className="text-red-400 font-medium text-sm mb-1">Comentarios de revisión:</h5>
+                        <p className="text-red-300 text-sm">{task.review_comments}</p>
+                        {task.reviewed_by_name && (
+                          <p className="text-red-400/70 text-xs mt-1">Revisado por: {task.reviewed_by_name}</p>
+                        )}
+                      </div>
                     )}
                     
                     <div className="flex items-center space-x-4 text-sm text-[#A0A0B0]">
@@ -190,20 +249,52 @@ const UserTaskView = ({ onTaskUpdate }) => {
                           <span>Completado: {formatDate(task.completed_at)}</span>
                         </div>
                       )}
-                    </div>
-                  </div>
+                    </div>                  </div>
                   
-                  {task.status === 'pending' && (
-                    <div className="ml-4">
+                  {/* Botones de acción según el estado */}
+                  <div className="ml-4 flex flex-col space-y-2">
+                    {task.status === 'pending' && (
                       <button
-                        onClick={() => handleComplete(task.id)}
-                        className="bg-[#4ADE80] hover:bg-[#4ADE80]/80 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                        onClick={() => handleSubmitForReview(task.id)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                       >
-                        <CheckCircle size={16} />
-                        <span>Completar</span>
+                        <Send size={16} />
+                        <span>Enviar a Revisión</span>
                       </button>
-                    </div>
-                  )}
+                    )}
+                    
+                    {task.status === 'returned' && (
+                      <button
+                        onClick={() => handleSubmitForReview(task.id)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                      >
+                        <Send size={16} />
+                        <span>Reenviar a Revisión</span>
+                      </button>
+                    )}
+                    
+                    {task.status === 'in_review' && (
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2">
+                        <div className="flex items-center space-x-2 text-blue-400">
+                          <Eye size={16} />
+                          <span className="text-sm font-medium">En Revisión</span>
+                        </div>
+                        <p className="text-blue-300/70 text-xs mt-1">Esperando aprobación del administrador</p>
+                      </div>
+                    )}
+                    
+                    {task.status === 'completed' && (
+                      <div className="bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-lg px-3 py-2">
+                        <div className="flex items-center space-x-2 text-[#4ADE80]">
+                          <CheckCircle size={16} />
+                          <span className="text-sm font-medium">Completada</span>
+                        </div>
+                        {task.reviewed_by_name && (
+                          <p className="text-[#4ADE80]/70 text-xs mt-1">Aprobada por: {task.reviewed_by_name}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

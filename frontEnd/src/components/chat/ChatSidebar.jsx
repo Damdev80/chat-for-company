@@ -21,9 +21,11 @@ import {
   Volume2,
   VolumeX,
   Palette,
-  Globe
+  Globe,
+  ClipboardCheck
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
+import { canReviewTasks } from "../../utils/auth";
 
 // Componente de menú de usuario mejorado
 const UserMenu = ({ onLogout, onClose, onOpenProfile, onOpenSettings }) => {
@@ -104,7 +106,7 @@ const ChatSidebar = ({
   };
 
   const [showGroupOptions, setShowGroupOptions] = useState(null);
-  const [sidebarWidth, setSidebarWidth] = useState(320);
+  const [sidebarWidth, setSidebarWidth] = useState(380);
   const [isResizing, setIsResizing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -216,11 +218,10 @@ const ChatSidebar = ({
           transform transition-transform duration-300 ease-in-out z-50 flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           w-full max-w-xs sm:max-w-sm lg:max-w-none
-        `}
-        style={{ 
+        `}        style={{ 
           width: window.innerWidth < 1024 ? '100vw' : `${sidebarWidth}px`, 
-          maxWidth: window.innerWidth < 1024 ? '320px' : 'none',
-          minWidth: window.innerWidth < 1024 ? '280px' : '280px'
+          maxWidth: window.innerWidth < 1024 ? '380px' : 'none',
+          minWidth: window.innerWidth < 1024 ? '320px' : '320px'
         }}
       >
         {/* Header del sidebar - Responsivo */}
@@ -287,34 +288,46 @@ const ChatSidebar = ({
               />
             </div>
           </div>
-        </div>
-
-        {/* Tabs de navegación - Mejoradas para móvil */}
+        </div>        {/* Tabs de navegación - Mejoradas para móvil */}
         <div className="flex border-b border-[#3C4043] bg-[#252529]">
           <button
             onClick={() => setActiveTab('chats')}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeTab === 'chats'
                 ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                 : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'            }`}
           >
             <MessageCircle size={14} className="sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Chats</span>
-            <span className="sm:hidden">Chat</span>
+            <span className="sm:hidden text-xs">Chat</span>
           </button>          <button
             onClick={() => setActiveTab('users')}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeTab === 'users'
                 ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                 : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
             }`}
           >
             <Users size={14} className="sm:w-4 sm:h-4" />
-            Online
-          </button>
-          <button
+            <span className="hidden sm:inline">Online</span>
+            <span className="sm:hidden text-xs">User</span>
+          </button>            {/* Tab de revisión de tareas - Solo para admins/supervisores */}
+          {canReviewTasks() && (
+            <button
+              onClick={() => setActiveTab('review')}
+              className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                activeTab === 'review'
+                  ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+            >
+              <ClipboardCheck size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Revisión</span>
+              <span className="sm:hidden text-xs">Rev</span>
+            </button>
+          )}            <button
             onClick={() => setActiveTab('objectives')}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeTab === 'objectives'
                 ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                 : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
@@ -322,7 +335,7 @@ const ChatSidebar = ({
           >
             <Target size={14} className="sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Objetivos</span>
-            <span className="sm:hidden">Tasks</span>
+            <span className="sm:hidden text-xs">Obj</span>
           </button>
         </div>
 
@@ -447,6 +460,21 @@ const ChatSidebar = ({
                   <p>No hay usuarios conectados</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "review" && (
+            <div className="p-4">
+              <div className="bg-[#252529] rounded-xl p-6 border border-[#3C4043] text-center">
+                <ClipboardCheck size={48} className="mx-auto mb-4 text-[#A8E6A3]" />
+                <h3 className="text-lg font-semibold text-[#E8E6E8] mb-2">Revisión de Tareas</h3>
+                <p className="text-[#B8B8B8] text-sm mb-4">
+                  Revisar, aprobar o rechazar tareas enviadas por los usuarios.
+                </p>
+                <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3">
+                  💡 Selecciona un grupo y accede al panel de revisión desde el área principal
+                </div>
+              </div>
             </div>
           )}
 

@@ -306,6 +306,100 @@ export async function fetchUserTaskStats(token) {
   return res.json();
 }
 
+// Nuevas funciones para el flujo de revisión de tareas
+export async function submitTaskForReview(id, token) {
+  const res = await fetch(`${API_URL}/tasks/${id}/submit-review`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Error al enviar tarea a revisión');
+  return res.json();
+}
+
+export async function fetchTasksInReview(token) {
+  console.log('🔍 [API] Fetching tasks in review...');
+  console.log('🔍 [API] URL:', `${API_URL}/tasks/review/pending`);
+  console.log('🔍 [API] Token:', token?.substring(0, 20) + '...');
+  
+  try {
+    const res = await fetch(`${API_URL}/tasks/review/pending`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    console.log('🔍 [API] Response status:', res.status);
+    console.log('🔍 [API] Response ok:', res.ok);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('🔍 [API] Error response:', errorText);
+      throw new Error('Error al obtener tareas en revisión');
+    }
+    
+    const data = await res.json();
+    console.log('🔍 [API] Response data:', data);
+    
+    return data;
+  } catch (error) {
+    console.error('🔍 [API] Fetch error:', error);
+    throw error;
+  }
+}
+
+export async function approveTask(id, comments, token) {
+  console.log('🔍 [API] Approving task:', { id, comments });
+  
+  const res = await fetch(`${API_URL}/tasks/${id}/approve`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ comments }),
+  });
+  
+  console.log('🔍 [API] Approve response status:', res.status);
+  console.log('🔍 [API] Approve response ok:', res.ok);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('🔍 [API] Approve error response:', errorData);
+    throw new Error(`Error al aprobar tarea: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('🔍 [API] Approve success:', result);
+  return result;
+}
+
+export async function returnTask(id, comments, token) {
+  console.log('🔍 [API] Returning task:', { id, comments });
+  
+  const res = await fetch(`${API_URL}/tasks/${id}/return`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ comments }),
+  });
+  
+  console.log('🔍 [API] Return response status:', res.status);
+  console.log('🔍 [API] Return response ok:', res.ok);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('🔍 [API] Return error response:', errorData);
+    throw new Error(`Error al retornar tarea: ${errorData.message || 'Error desconocido'}`);
+  }
+    const result = await res.json();
+  console.log('🔍 [API] Return success:', result);
+  return result;
+}
+
 // --- UPLOAD DE ARCHIVOS ---
 
 export async function uploadFiles(files, token) {

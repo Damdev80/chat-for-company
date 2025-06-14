@@ -201,7 +201,6 @@ export class ModelsTask {  static async create({ title, description, objective_i
     connection.end()
     return result
   }
-
   static async getStatsByUser(user_id) {
     const connection = await getConnection()
     
@@ -219,18 +218,107 @@ export class ModelsTask {  static async create({ title, description, objective_i
       'SELECT COUNT(*) as pending FROM tasks WHERE assigned_to = ? AND status = "pending"',
       [user_id]
     )
+
+    const [inReviewRows] = await connection.execute(
+      'SELECT COUNT(*) as in_review FROM tasks WHERE assigned_to = ? AND status = "in_review"',
+      [user_id]
+    )
+
+    const [returnedRows] = await connection.execute(
+      'SELECT COUNT(*) as returned FROM tasks WHERE assigned_to = ? AND status = "returned"',
+      [user_id]
+    )
     
     connection.end()
     
     const total = totalRows[0].total
     const completed = completedRows[0].completed
     const pending = pendingRows[0].pending
+    const in_review = inReviewRows[0].in_review
+    const returned = returnedRows[0].returned
     
     return {
       total,
       completed,
       pending,
+      in_review,
+      returned,
       completion_rate: total > 0 ? Math.round((completed / total) * 100) : 0
     }
+  }
+
+  static async submitForReview(id, user_id) {
+    const connection = await getConnection()
+    
+    // Verificar que el usuario puede enviar esta tarea a revisión
+    const [taskRows] = await connection.execute(
+      'SELECT assigned_to FROM tasks WHERE id = ?',
+      [id]
+    )
+    
+    if (!taskRows[0]) {
+      connection.end()
+      throw new Error('Tarea no encontrada')
+    }
+    
+    if (taskRows[0].assigned_to !== user_id) {
+      connection.end()
+      throw new Error('No tienes permisos para enviar esta tarea a revisión')
+    }
+    
+    const [result] = await connection.execute(
+      'UPDATE tasks SET status = "in_review", updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [id]
+    )
+    
+    connection.end()
+    return result
+  }
+  static async approveTask(id, reviewer_id, comments = null) {
+    const connection = await getConnection()
+    
+    const [result] = await connection.execute(
+      'UPDATE tasks SET status = "completed", completed_at = CURRENT_TIMESTAMP, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, review_comment = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [reviewer_id, comments, id]
+    )
+    
+    connection.end()
+    return result
+  }
+  static async returnTask(id, reviewer_id, comments) {
+    const connection = await getConnection()
+    
+    const [result] = await connection.execute(
+      'UPDATE tasks SET status = "returned", reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, review_comment = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [reviewer_id, comments, id]
+    )
+    
+    connection.end()
+    return result
+  }
+
+  static async getTasksInReview() {
+    const connection = await getConnection()
+    const [rows] = await connection.execute(
+      `SELECT t.*, 
+              o.title as objective_title,
+              o.group_id,
+              u_assigned.username as assigned_to_name,
+              u_created.username as created_by_name,
+              u_reviewed.username as reviewed_by_name
+       FROM tasks t 
+       LEFT JOIN objectives o ON t.objective_id = o.id
+       LEFT JOIN users u_assigned ON t.assigned_to = u_assigned.id
+       LEFT JOIN users u_created ON t.created_by = u_created.id
+       LEFT JOIN users u_reviewed ON t.reviewed_by = u_reviewed.id
+       WHERE t.status = "in_review"
+       ORDER BY t.updated_at ASC`
+    )
+    connection.end()
+    
+    return rows.map(row => ({
+      ...row,
+      group_id: row.group_id ? bufferToUuid(row.group_id) : row.group_id
+    }))
   }
 }
