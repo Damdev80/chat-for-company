@@ -25,7 +25,7 @@ import {
   ClipboardCheck
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
-import { canReviewTasks } from "../../utils/auth";
+import { canReviewTasks, isAdmin } from "../../utils/auth";
 
 // Componente de menú de usuario mejorado
 const UserMenu = ({ onLogout, onClose, onOpenProfile, onOpenSettings }) => {
@@ -325,7 +325,7 @@ const ChatSidebar = ({
               <span className="hidden sm:inline">Revisión</span>
               <span className="sm:hidden text-xs">Rev</span>
             </button>
-          )}            <button
+          )}          <button
             onClick={() => setActiveTab('objectives')}
             className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeTab === 'objectives'
@@ -334,8 +334,8 @@ const ChatSidebar = ({
             }`}
           >
             <Target size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Objetivos</span>
-            <span className="sm:hidden text-xs">Obj</span>
+            <span className="hidden sm:inline">{isAdmin(userRole) ? 'Objetivos' : 'Tareas'}</span>
+            <span className="sm:hidden text-xs">{isAdmin(userRole) ? 'Obj' : 'Tar'}</span>
           </button>
         </div>
 

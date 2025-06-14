@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   CheckCircle, 
   Clock, 
@@ -12,31 +12,41 @@ import {
   RotateCcw,
   Send
 } from 'lucide-react';
-import { fetchMyTasks, markTaskCompleted, submitTaskForReview } from '../utils/api';
+import { fetchMyTasks, submitTaskForReview } from '../utils/api';
 import { getToken } from '../utils/auth';
 
-const UserTaskView = ({ onTaskUpdate }) => {
+const UserTaskView = ({ groupId, onTaskUpdate }) => {
   const [tasks, setTasks] = useState([]);
   // const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   // const [filter, setFilter] = useState('all'); // all, pending, completed
-
-  useEffect(() => {
-    loadTasks();
-    // loadStats();
-  }, []);
-
-  const loadTasks = async () => {
+  
+  const loadTasks = useCallback(async () => {
     try {
       const token = getToken();
       const response = await fetchMyTasks(token);
-      setTasks(response.tasks || []);
+      let filteredTasks = response.tasks || [];
+      
+      // Filtrar por grupo si se especifica
+      if (groupId && groupId !== 'global') {
+        filteredTasks = filteredTasks.filter(task => task.group_id === groupId);
+      }
+      
+      // Si showOnlyMyTasks es true, ya fetchMyTasks devuelve solo las tareas del usuario
+      // No necesitamos filtrado adicional aquí
+      
+      setTasks(filteredTasks);
     } catch (error) {
       console.error('Error al cargar mis tareas:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [groupId]); // Incluimos groupId como dependencia
+
+  useEffect(() => {
+    loadTasks();
+    // loadStats();
+  }, [loadTasks]); // Ahora loadTasks es estable
 
   // const loadStats = async () => {
   //   try {
@@ -47,30 +57,30 @@ const UserTaskView = ({ onTaskUpdate }) => {
   //     console.error('Error al cargar estadísticas:', error);
   //   }
   // };
-  const handleComplete = async (taskId) => {
-    try {
-      console.log('UserTaskView: Starting task completion for taskId:', taskId);
-      const token = getToken();
-      await markTaskCompleted(taskId, token);
-      console.log('UserTaskView: Task marked as completed');
-      await loadTasks();
-      console.log('UserTaskView: Tasks reloaded');
-      
-      // Notify parent component about task update to refresh ObjectiveProgress
-      if (onTaskUpdate) {
-        console.log('UserTaskView: Calling onTaskUpdate callback');
-        await onTaskUpdate();
-        console.log('UserTaskView: onTaskUpdate callback completed');
-      } else {
-        console.warn('UserTaskView: onTaskUpdate callback is not provided');
-      }
-      
-      // await loadStats();
-    } catch (error) {
-      console.error('Error al completar tarea:', error);
-      alert('Error al completar la tarea');
-    }
-  };
+  // const handleComplete = async (taskId) => {
+  //   try {
+  //     console.log('UserTaskView: Starting task completion for taskId:', taskId);
+  //     const token = getToken();
+  //     await markTaskCompleted(taskId, token);
+  //     console.log('UserTaskView: Task marked as completed');
+  //     await loadTasks();
+  //     console.log('UserTaskView: Tasks reloaded');
+  //     
+  //     // Notify parent component about task update to refresh ObjectiveProgress
+  //     if (onTaskUpdate) {
+  //       console.log('UserTaskView: Calling onTaskUpdate callback');
+  //       await onTaskUpdate();
+  //       console.log('UserTaskView: onTaskUpdate callback completed');
+  //     } else {
+  //       console.warn('UserTaskView: onTaskUpdate callback is not provided');
+  //     }
+  //     
+  //     // await loadStats();
+  //   } catch (error) {
+  //     console.error('Error al completar tarea:', error);
+  //     alert('Error al completar la tarea');
+  //   }
+  // };
 
   const handleSubmitForReview = async (taskId) => {
     try {
@@ -243,6 +253,15 @@ const UserTaskView = ({ onTaskUpdate }) => {
                           <span>Asignado por: {task.created_by_name}</span>
                         </div>
                       )}
+                      
+                      {/* Due date display */}
+                      {task.due_date && (
+                        <div className="flex items-center space-x-1 text-blue-400">
+                          <Calendar size={14} />
+                          <span>Fecha límite: {formatDate(task.due_date)}</span>
+                        </div>
+                      )}
+                      
                       {task.completed_at && (
                         <div className="flex items-center space-x-1">
                           <Calendar size={14} />
