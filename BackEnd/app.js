@@ -39,15 +39,70 @@ const server = http.createServer(app)
 
 // CORS configuration
 const corsOptions = {
-  origin: '*',  // Permitir todas las origenes para depuración
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  origin: [
+    'http://localhost:5173',      // Desarrollo local (Vite)
+    'http://localhost:3000',      // Desarrollo local alternativo
+    'https://chat-for-company.vercel.app',  // Producción Vercel
+    'https://chat-for-company-git-main-damdev80.vercel.app', // Branch previews
+    'https://chat-for-company-damdev80.vercel.app' // Vercel subdomain
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200 // Para legacy browsers
 }
 
 // Middleware
 app.use(cors(corsOptions))
+
+// Middleware adicional para manejar preflight requests
+app.options('*', cors(corsOptions))
+
+// Middleware personalizado para headers adicionales de CORS
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log(`🌐 CORS request from origin: ${origin}`);
+  
+  if (corsOptions.origin.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    console.log(`✅ CORS allowed for origin: ${origin}`);
+  } else {
+    console.log(`❌ CORS blocked for origin: ${origin}`);
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,Origin');
+  
+  // Responder a preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log(`🔄 Preflight request for ${req.path}`);
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
+
 app.use(express.json())
+
+// Endpoint simple para probar CORS
+app.get('/api/health', (req, res) => {
+  console.log('🩺 Health check request from:', req.headers.origin);
+  res.json({ 
+    status: 'ok', 
+    message: 'Backend funcionando correctamente',
+    cors: 'enabled',
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin
+  });
+});
 app.use(requestLogger) // Agregar el middleware de logging
 
 // Servir archivos estáticos (uploads)
@@ -166,10 +221,18 @@ app.use(serverError)
 // Configurar Socket.io
 const io = new SocketServer(server, {
   cors: {
-    origin: '*',  // Permitir todas las origenes para depuración
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }
+    origin: [
+      'http://localhost:5173',      // Desarrollo local (Vite)
+      'http://localhost:3000',      // Desarrollo local alternativo
+      'https://chat-for-company.vercel.app',  // Producción Vercel
+      'https://chat-for-company-git-main-damdev80.vercel.app', // Branch previews
+      'https://chat-for-company-damdev80.vercel.app' // Vercel subdomain
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
+  },
+  transports: ['websocket', 'polling']
 })
 
 // Set Socket.IO instance in manager for access from controllers
