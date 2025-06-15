@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { initiateGroupCall, joinCall, leaveCall, getCallParticipants, endCall, forceCleanupAllCalls } from '../utils/api';
-import { connectSocket } from '../utils/socket';
+
 import CallAlert from '../components/CallAlert';
 import IncomingCallModal from '../components/IncomingCallModal';
 
@@ -63,13 +63,11 @@ export const CallProvider = ({ children }) => {
 
       const token = localStorage.getItem('token');
       const response = await initiateGroupCall(groupId, 'audio', [], token);
-        if (response.success) {
-        setCurrentCall(response.data);
+        if (response.success) {        setCurrentCall(response.data);
         setIsInCall(true);
         
-        // Obtener acceso a cámara y micrófono según el tipo de llamada
-        const callType = response.data.call_type || 'audio';
-        await getMediaAccess(callType === 'video', true);
+        // Obtener acceso a cámara y micrófono - SIEMPRE INICIAR CON CÁMARA DESACTIVADA
+        await getMediaAccess(false, true); // video: false, audio: true
         
         console.log('📞 Llamada grupal iniciada:', response.data);
         return true;
@@ -157,7 +155,6 @@ export const CallProvider = ({ children }) => {
     setPendingGroupId(null);
     setCallError('Operación cancelada');
   };
-
   // Unirse a una llamada existente
   const joinGroupCall = async (callId) => {
     try {
@@ -166,17 +163,16 @@ export const CallProvider = ({ children }) => {
 
       const token = localStorage.getItem('token');
       const response = await joinCall(callId, token);
-        if (response.success) {
-        setCurrentCall(response.data);
+        if (response.success) {        setCurrentCall(response.data);
         setIsInCall(true);
         
-        // Obtener acceso a cámara y micrófono según el tipo de llamada
-        const callType = response.data.call_type || 'audio';
-        await getMediaAccess(callType === 'video', true);
+        // Obtener acceso a cámara y micrófono - CÁMARA DESACTIVADA POR DEFECTO
+        // Solo habilitar video si es videollamada, pero iniciarlo desactivado
+        await getMediaAccess(false, true); // video: false, audio: true
         
         console.log('📞 Se unió a la llamada:', response.data);
         return true;
-      }} catch (error) {
+      }}catch (error) {
       console.error('❌ Error al unirse a la llamada:', error);
       
       // Si la llamada ya no es grupal o no existe, limpiar estado
@@ -213,16 +209,37 @@ export const CallProvider = ({ children }) => {
       console.error('❌ Error al salir de la llamada:', error);
       // Limpiar de todas formas
       cleanupCall();
-    }
-  };
+    }  };
 
   // Obtener acceso a media (cámara y micrófono)
-  const getMediaAccess = async (videoEnabled = true, audioEnabled = true) => {
+  const getMediaAccess = async (videoEnabled = false, audioEnabled = true) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      console.log(`📞 Solicitando acceso a media - Video: ${videoEnabled}, Audio: ${audioEnabled}`);
+      
+      const constraints = {
         video: videoEnabled,
         audio: audioEnabled
-      });
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // Si es videollamada pero iniciamos con video desactivado, 
+      // solicitar permisos de video pero desactivarlo inmediatamente
+      if (!videoEnabled && currentCall?.call_type === 'video') {
+        // Primero obtener permisos de video
+        try {
+          const videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          // Añadir las pistas de video al stream principal
+          videoStream.getVideoTracks().forEach(track => {
+            track.enabled = false; // Desactivar inmediatamente
+            stream.addTrack(track);
+          });
+          // Detener el stream temporal
+          videoStream.getVideoTracks().forEach(track => track.stop());
+        } catch (videoError) {
+          console.warn('⚠️ No se pudieron obtener permisos de video:', videoError);
+        }
+      }
       
       setLocalStream(stream);
       
@@ -230,6 +247,7 @@ export const CallProvider = ({ children }) => {
         localVideoRef.current.srcObject = stream;
       }
       
+      console.log('✅ Acceso a media obtenido exitosamente');
       return stream;
     } catch (error) {
       console.error('❌ Error al acceder a media:', error);
@@ -249,14 +267,37 @@ export const CallProvider = ({ children }) => {
     }
     return false;
   };
-
   // Alternar cámara
-  const toggleCamera = () => {
+  const toggleCamera = async () => {
     if (localStream) {
       const videoTrack = localStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
+        console.log(`📹 Cámara ${videoTrack.enabled ? 'activada' : 'desactivada'}`);
         return videoTrack.enabled;
+      } else {
+        // No hay pista de video, necesitamos agregar una
+        try {
+          console.log('📹 Solicitando acceso a cámara...');
+          const videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          const newVideoTrack = videoStream.getVideoTracks()[0];
+          
+          if (newVideoTrack) {
+            localStream.addTrack(newVideoTrack);
+            
+            // Actualizar la referencia del video
+            if (localVideoRef.current) {
+              localVideoRef.current.srcObject = localStream;
+            }
+            
+            console.log('📹 Cámara activada exitosamente');
+            return true;
+          }
+        } catch (error) {
+          console.error('❌ Error al activar cámara:', error);
+          setCallError('No se pudo activar la cámara');
+          return false;
+        }
       }
     }
     return false;

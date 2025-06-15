@@ -169,16 +169,15 @@ const io = new SocketServer(server, {
   transports: ['websocket', 'polling']
 })
 
-// Configuración básica de Socket.IO
+// Configuración avanzada de Socket.IO
 try {
-  // Configuración básica sin imports complejos por ahora
-  io.on('connection', (socket) => {
-    console.log('👤 Usuario conectado:', socket.id)
-    
-    socket.on('disconnect', () => {
-      console.log('👤 Usuario desconectado:', socket.id)
-    })
-  })
+  // Importar configuración de Socket.IO
+  const { configureSocket } = await import('./src/config/socket.io.js')
+  const { setSocketInstance } = await import('./src/utils/socketManager.js')
+  
+  // Configurar instancia global y eventos
+  setSocketInstance(io)
+  configureSocket(io)
   
   console.log('✅ Socket.IO configurado correctamente')
 } catch (error) {

@@ -127,7 +127,7 @@ const MessageInput = ({
     setIsRecordingAudio(false);
   };
 
-  const handleAudioReady = async (audioBlob, duration) => {
+  const handleAudioReady = async (audioBlob) => {
     try {
       setIsUploading(true);
       if (onNotification) {
