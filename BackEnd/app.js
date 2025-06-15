@@ -134,9 +134,10 @@ try {
 }
 
 // Log para diagnóstico - rutas registradas
-console.error('📋 Routes registered:', {
+console.log('📋 Routes registered:', {
   users: '/api/users',
-  roles: '/api/roles',  messages: '/api/messages',
+  roles: '/api/roles',
+  messages: '/api/messages',
   groups: '/api/groups',
   objectives: '/api/objectives',
   tasks: '/api/tasks',

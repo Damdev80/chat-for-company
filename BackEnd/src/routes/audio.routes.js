@@ -106,6 +106,14 @@ const handleMulterError = (error, req, res, next) => {
 
 // ============= RUTAS DE AUDIO =============
 
+// Ruta de test para verificar que el endpoint funciona (DEBE IR ANTES que las rutas genéricas)
+router.get('/test/ping', (req, res) => {
+  res.json({ 
+    message: 'Audio routes working!', 
+    timestamp: new Date().toISOString() 
+  });
+});
+
 /**
  * @route POST /api/audio/send
  * @desc Enviar mensaje de audio
@@ -119,21 +127,11 @@ router.post('/send',
 );
 
 /**
- * @route GET /api/audio/:filename
- * @desc Servir archivo de audio (con soporte para streaming)
- * @access Private
- */
-router.get('/:filename', 
-  verifyToken, 
-  AudioController.serveAudio
-);
-
-/**
- * @route GET /api/audio/:filename/metadata
+ * @route GET /api/audio/metadata/:filename
  * @desc Obtener metadatos de archivo de audio
  * @access Private
  */
-router.get('/:filename/metadata', 
+router.get('/metadata/:filename', 
   verifyToken, 
   AudioController.getAudioMetadata
 );
@@ -148,13 +146,16 @@ router.delete('/message/:messageId',
   AudioController.deleteAudioMessage
 );
 
-// Ruta de test para verificar que el endpoint funciona
-router.get('/test/ping', (req, res) => {
-  res.json({ 
-    message: 'Audio routes working!', 
-    timestamp: new Date().toISOString() 
-  });
-});
+/**
+ * @route GET /api/audio/:filename
+ * @desc Servir archivo de audio (con soporte para streaming)
+ * @access Private
+ * @note Esta ruta DEBE ir al final porque es la más genérica
+ */
+router.get('/:filename', 
+  verifyToken, 
+  AudioController.serveAudio
+);
 
 console.log('🎵 Rutas de audio configuradas correctamente');
 
