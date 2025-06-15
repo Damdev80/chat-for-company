@@ -460,4 +460,36 @@ export class ModelsCall {  /**
       throw error;
     }
   }
+
+  /**
+   * Obtener todas las llamadas activas
+   */
+  static async getAllActiveCalls() {
+    try {
+      const db = await getConnection();
+      
+      const result = await db.execute(`
+        SELECT c.*, 
+               u_caller.username as caller_name
+        FROM calls c 
+        LEFT JOIN users u_caller ON c.caller_id = u_caller.id
+        WHERE c.status IN ('initiated', 'active', 'ringing')
+        ORDER BY c.created_at DESC
+      `);
+      
+      if (result.rows) {
+        return result.rows.map(call => ({
+          ...call,
+          group_id: call.group_id ? bufferToUuid(call.group_id) : call.group_id,
+          caller_id: call.caller_id ? bufferToUuid(call.caller_id) : call.caller_id,
+          receiver_id: call.receiver_id ? bufferToUuid(call.receiver_id) : call.receiver_id
+        }));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error en ModelsCall.getAllActiveCalls:', error);
+      throw error;
+    }
+  }
 }

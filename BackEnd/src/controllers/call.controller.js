@@ -423,10 +423,12 @@ export class CallController {  /**
       let canEndCall = false;
       
       if (call.group_id) {
-        // Para llamadas grupales: verificar si es admin o participante
-        const isParticipant = await ModelsCall.isParticipant(callId, userId);
+        // Para llamadas grupales: verificar si es admin O participante
         const isAdmin = req.user.role === 'admin' || req.user.role_id === 'admin';
-        canEndCall = isParticipant || isAdmin;
+        const isParticipant = await ModelsCall.isParticipant(callId, userId);
+        canEndCall = isAdmin || isParticipant;
+        
+        console.log(`📞 Verificando permisos - Admin: ${isAdmin}, Participante: ${isParticipant}, Usuario: ${userId}, Role: ${req.user.role}`);
       } else {
         // Para llamadas individuales: verificar si es caller o receiver
         canEndCall = call.caller_id === userId || call.receiver_id === userId;
@@ -445,16 +447,22 @@ export class CallController {  /**
         });
       }      // Finalizar la llamada
       await ModelsCall.updateStatus(callId, 'ended', new Date().toISOString());
-      
-      // Si es una llamada grupal, limpiar participantes
+        // Si es una llamada grupal, remover al usuario que finaliza (si es participante) y limpiar otros participantes
       if (call.group_id) {
         try {
-          // Remover todos los participantes
-          const participants = await ModelsCall.getCallParticipants(callId);
-          for (const participant of participants) {
+          // Si el usuario que finaliza es participante, removerlo primero
+          const isUserParticipant = await ModelsCall.isParticipant(callId, userId);
+          if (isUserParticipant) {
+            await ModelsCall.removeParticipant(callId, userId);
+            console.log(`📞 Usuario ${userId} removido como participante al finalizar llamada`);
+          }
+          
+          // Remover todos los demás participantes
+          const remainingParticipants = await ModelsCall.getCallParticipants(callId);
+          for (const participant of remainingParticipants) {
             await ModelsCall.removeParticipant(callId, participant.user_id);
           }
-          console.log(`📞 Participantes removidos de llamada grupal ${callId}`);
+          console.log(`📞 Todos los participantes removidos de llamada grupal ${callId}`);
         } catch (error) {
           console.error('❌ Error al limpiar participantes:', error);
         }
@@ -628,6 +636,65 @@ export class CallController {  /**
 
     } catch (error) {
       console.error('❌ Error al obtener participantes:', error);
+      res.status(500).json({ 
+        message: 'Error interno del servidor',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Forzar limpieza de todas las llamadas activas (solo admin)
+   */
+  static async forceCleanupAllCalls(req, res) {
+    try {
+      console.log('🧹 CallController: Forzando limpieza de todas las llamadas...');
+      
+      // Verificar que es admin
+      const isAdmin = req.user.role === 'admin' || req.user.role_id === 'admin';
+      if (!isAdmin) {
+        return res.status(403).json({ 
+          message: 'Solo los administradores pueden forzar limpieza' 
+        });
+      }
+
+      // Obtener todas las llamadas activas
+      const activeCalls = await ModelsCall.getAllActiveCalls();
+      console.log(`📞 Encontradas ${activeCalls.length} llamadas activas para limpiar`);
+
+      let cleanedCalls = 0;
+      let cleanedParticipants = 0;
+
+      // Limpiar cada llamada
+      for (const call of activeCalls) {
+        try {
+          // Remover participantes
+          const participants = await ModelsCall.getCallParticipants(call.id);
+          for (const participant of participants) {
+            await ModelsCall.removeParticipant(call.id, participant.user_id);
+            cleanedParticipants++;
+          }
+
+          // Finalizar llamada
+          await ModelsCall.updateStatus(call.id, 'ended', new Date().toISOString());
+          cleanedCalls++;
+          
+          console.log(`✅ Llamada ${call.id} limpiada`);
+        } catch (error) {
+          console.error(`❌ Error limpiando llamada ${call.id}:`, error);
+        }
+      }
+
+      console.log(`🧹 Limpieza completada: ${cleanedCalls} llamadas, ${cleanedParticipants} participantes`);
+
+      res.json({ 
+        message: 'Limpieza forzada completada',
+        cleanedCalls,
+        cleanedParticipants
+      });
+
+    } catch (error) {
+      console.error('❌ Error en limpieza forzada:', error);
       res.status(500).json({ 
         message: 'Error interno del servidor',
         error: error.message

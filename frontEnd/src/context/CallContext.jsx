@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { initiateGroupCall, joinCall, leaveCall, getCallParticipants, endCall } from '../utils/api';
+import { initiateGroupCall, joinCall, leaveCall, getCallParticipants, endCall, forceCleanupAllCalls } from '../utils/api';
 import { connectSocket } from '../utils/socket';
 import CallAlert from '../components/CallAlert';
 import IncomingCallModal from '../components/IncomingCallModal';
@@ -63,17 +63,17 @@ export const CallProvider = ({ children }) => {
 
       const token = localStorage.getItem('token');
       const response = await initiateGroupCall(groupId, 'audio', [], token);
-      
-      if (response.success) {
+        if (response.success) {
         setCurrentCall(response.data);
         setIsInCall(true);
         
-        // Obtener acceso a cámara y micrófono
-        await getMediaAccess();
+        // Obtener acceso a cámara y micrófono según el tipo de llamada
+        const callType = response.data.call_type || 'audio';
+        await getMediaAccess(callType === 'video', true);
         
         console.log('📞 Llamada grupal iniciada:', response.data);
         return true;
-      } else if (response.hasActiveCall) {
+      }else if (response.hasActiveCall) {
         // Hay una llamada activa, mostrar alerta
         setActiveCallInfo(response.activeCall);
         setPendingGroupId(groupId);
@@ -166,17 +166,17 @@ export const CallProvider = ({ children }) => {
 
       const token = localStorage.getItem('token');
       const response = await joinCall(callId, token);
-      
-      if (response.success) {
+        if (response.success) {
         setCurrentCall(response.data);
         setIsInCall(true);
         
-        // Obtener acceso a cámara y micrófono
-        await getMediaAccess();
+        // Obtener acceso a cámara y micrófono según el tipo de llamada
+        const callType = response.data.call_type || 'audio';
+        await getMediaAccess(callType === 'video', true);
         
         console.log('📞 Se unió a la llamada:', response.data);
         return true;
-      }    } catch (error) {
+      }} catch (error) {
       console.error('❌ Error al unirse a la llamada:', error);
       
       // Si la llamada ya no es grupal o no existe, limpiar estado
@@ -287,19 +287,49 @@ export const CallProvider = ({ children }) => {
     setCallError(null);
     setIsConnecting(false);
   };
-
   // Función para limpiar estado cuando hay inconsistencias
-  const forceCleanupCall = () => {
-    console.log('🧹 Forzando limpieza de estado de llamada...');
-    setShowCallAlert(false);
-    setActiveCallInfo(null);
-    setCallError(null);
-    
-    // Intentar iniciar nueva llamada si había una pendiente
-    if (pendingGroupId) {
-      setTimeout(() => {
-        startGroupCall(pendingGroupId);
-      }, 500);
+  const forceCleanupCall = async () => {
+    try {
+      console.log('🧹 Forzando limpieza de estado de llamada...');
+      
+      const token = localStorage.getItem('token');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (userRole === 'admin') {
+        // Si es admin, usar la API para limpiar la base de datos
+        await forceCleanupAllCalls(token);
+        console.log('🧹 Limpieza de base de datos completada');
+      }
+      
+      // Limpiar estado local
+      setShowCallAlert(false);
+      setActiveCallInfo(null);
+      setCallError(null);
+      setShowIncomingCallModal(false);
+      setIncomingCallNotification(null);
+      
+      // Intentar iniciar nueva llamada si había una pendiente
+      if (pendingGroupId) {
+        setTimeout(() => {
+          startGroupCall(pendingGroupId);
+        }, 1000); // Esperar un poco más para que la limpieza tome efecto
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en limpieza forzada:', error);
+      
+      // Si falla la API, al menos limpiar estado local
+      setShowCallAlert(false);
+      setActiveCallInfo(null);
+      setCallError(null);
+      setShowIncomingCallModal(false);
+      setIncomingCallNotification(null);
+      
+      if (pendingGroupId) {
+        setTimeout(() => {
+          startGroupCall(pendingGroupId);
+        }, 1000);
+      }
     }
   };
 

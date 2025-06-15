@@ -126,6 +126,16 @@ router.get('/:callId/participants',
   CallController.getCallParticipants
 );
 
+/**
+ * @route POST /api/calls/admin/force-cleanup
+ * @desc Forzar limpieza de todas las llamadas activas (solo admin)
+ * @access Private - Admin only
+ */
+router.post('/admin/force-cleanup', 
+  verifyToken, 
+  CallController.forceCleanupAllCalls
+);
+
 console.log('📞 Rutas de llamadas configuradas correctamente');
 
 export default router;

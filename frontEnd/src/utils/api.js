@@ -645,3 +645,29 @@ export async function endCall(callId, token) {
   console.log('📞 [API] End call success:', result);
   return { success: true, message: result.message };
 }
+
+// --- ADMIN ---
+
+export async function forceCleanupAllCalls(token) {
+  console.log('🧹 [API] Forzando limpieza de todas las llamadas...');
+  
+  const res = await fetch(`${API_URL}/calls/admin/force-cleanup`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  console.log('🧹 [API] Force cleanup response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('🧹 [API] Force cleanup error:', errorData);
+    throw new Error(`Error al forzar limpieza: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('🧹 [API] Force cleanup success:', result);
+  return { success: true, data: result };
+}
