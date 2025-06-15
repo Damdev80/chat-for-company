@@ -6,16 +6,29 @@ import fs from 'fs';
 import { verifyToken } from '../middlewares/auth.middleware.js';
 import { AudioController } from '../controllers/audio.controller.js';
 
+console.log('🎵 Loading audio routes...');
+
 const router = express.Router();
 
 // Configurar __dirname para ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Crear directorio de audio si no existe
-const audioDir = path.join(__dirname, '../../uploads/audio');
-if (!fs.existsSync(audioDir)) {
-  fs.mkdirSync(audioDir, { recursive: true });
+// Crear directorio de audio si no existe - usar path absoluto desde la raíz del proyecto
+const projectRoot = path.resolve(__dirname, '../../..');
+const audioDir = path.join(projectRoot, 'BackEnd', 'uploads', 'audio');
+
+console.log('🎵 Audio directory path:', audioDir);
+
+try {
+  if (!fs.existsSync(audioDir)) {
+    fs.mkdirSync(audioDir, { recursive: true });
+    console.log('✅ Audio directory created:', audioDir);
+  } else {
+    console.log('✅ Audio directory already exists:', audioDir);
+  }
+} catch (error) {
+  console.error('❌ Error creating audio directory:', error);
 }
 
 // Configuración específica de multer para audio

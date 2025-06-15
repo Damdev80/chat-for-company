@@ -122,8 +122,16 @@ app.use('/api/tasks', taskRoutes)
 console.log('✅ Ruta tasks registrada');
 app.use('/api/upload', uploadRoutes)
 console.log('✅ Ruta upload registrada');
-app.use('/api/audio', audioRoutes)
-console.log('✅ Ruta audio registrada');
+
+// Registrar rutas de audio con manejo de errores específico
+try {
+  console.log('🎵 Intentando registrar rutas de audio...');
+  app.use('/api/audio', audioRoutes)
+  console.log('✅ Ruta audio registrada exitosamente');
+} catch (error) {
+  console.error('❌ ERROR al registrar rutas de audio:', error);
+  console.error('Stack trace:', error.stack);
+}
 
 // Log para diagnóstico - rutas registradas
 console.error('📋 Routes registered:', {
@@ -134,6 +142,27 @@ console.error('📋 Routes registered:', {
   objectives: '/api/objectives',  tasks: '/api/tasks',
   upload: '/api/upload',
   audio: '/api/audio'
+});
+
+// Middleware para loggear todas las rutas registradas
+app._router.stack.forEach(function(r){
+  if (r.route && r.route.path){
+    console.log('📍 Registered route:', r.route.path, Object.keys(r.route.methods));
+  } else if (r.name === 'router') {
+    console.log('📍 Router middleware:', r.regexp);  }
+});
+
+// Middleware para capturar rutas no encontradas y loggear
+app.use('*', (req, res, next) => {
+  if (req.originalUrl.includes('/api/audio')) {
+    console.error('🔍 Audio route not found:', {
+      method: req.method,
+      url: req.originalUrl,
+      path: req.path,
+      baseUrl: req.baseUrl
+    });
+  }
+  next();
 });
 
 app.use(serverError)

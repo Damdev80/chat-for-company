@@ -4,6 +4,8 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { getSocketInstance } from '../utils/socketManager.js';
 
+console.log('🎵 Loading audio controller...');
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -94,11 +96,11 @@ export class AudioController {
 
   /**
    * Obtener metadatos de audio
-   */
-  static async getAudioMetadata(req, res) {
+   */  static async getAudioMetadata(req, res) {
     try {
       const { filename } = req.params;
-      const audioPath = path.join(__dirname, '../../uploads/audio', filename);
+      const projectRoot = path.resolve(__dirname, '../../..');
+      const audioPath = path.join(projectRoot, 'BackEnd', 'uploads', 'audio', filename);
 
       if (!fs.existsSync(audioPath)) {
         return res.status(404).json({ 
@@ -124,11 +126,11 @@ export class AudioController {
   }
   /**
    * Servir archivo de audio
-   */
-  static async serveAudio(req, res) {
+   */  static async serveAudio(req, res) {
     try {
       const { filename } = req.params;
-      const audioPath = path.join(__dirname, '../../uploads/audio', filename);
+      const projectRoot = path.resolve(__dirname, '../../..');
+      const audioPath = path.join(projectRoot, 'BackEnd', 'uploads', 'audio', filename);
 
       if (!fs.existsSync(audioPath)) {
         return res.status(404).json({ 
