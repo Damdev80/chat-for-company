@@ -25,6 +25,8 @@ import taskRoutes from './src/routes/task.routes.js'
 console.log('✅ taskRoutes imported');
 import uploadRoutes from './src/routes/upload.routes.js'
 console.log('✅ uploadRoutes imported');
+import audioRoutes from './src/routes/audio.routes.js'
+console.log('✅ audioRoutes imported');
 
 // Configurar variables de entorno
 dotenv.config()
@@ -70,7 +72,8 @@ app.get('/api/test', (req, res) => {
       groups: '/api/groups',
       objectives: '/api/objectives',
       tasks: '/api/tasks',
-      upload: '/api/upload'
+      upload: '/api/upload',
+      audio: '/api/audio'
     }
   })
 })
@@ -105,6 +108,8 @@ app.use('/api/tasks', taskRoutes)
 console.log('✅ Ruta tasks registrada');
 app.use('/api/upload', uploadRoutes)
 console.log('✅ Ruta upload registrada');
+app.use('/api/audio', audioRoutes)
+console.log('✅ Ruta audio registrada');
 
 // Log para diagnóstico - rutas registradas
 console.error('📋 Routes registered:', {
@@ -112,9 +117,9 @@ console.error('📋 Routes registered:', {
   roles: '/api/roles',
   messages: '/api/messages',
   groups: '/api/groups',
-  objectives: '/api/objectives',
-  tasks: '/api/tasks',
-  upload: '/api/upload'
+  objectives: '/api/objectives',  tasks: '/api/tasks',
+  upload: '/api/upload',
+  audio: '/api/audio'
 });
 
 app.use(serverError)

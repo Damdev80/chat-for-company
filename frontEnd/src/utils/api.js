@@ -425,3 +425,59 @@ export async function uploadFiles(files, token) {
   
   return res.json();
 }
+
+// --- AUDIO MESSAGES ---
+
+export async function uploadAudioMessage(audioBlob, groupId, token, duration = 0, tempId = null) {
+  console.log('🎵 [API] Uploading audio message:', { groupId, blobSize: audioBlob.size, duration, tempId });
+  
+  const formData = new FormData();
+  formData.append('audio', audioBlob, `audio-${Date.now()}.webm`);
+  formData.append('group_id', groupId);
+  formData.append('duration', duration.toString());
+  if (tempId) {
+    formData.append('temp_id', tempId);
+  }
+  
+  const res = await fetch(`${API_URL}/audio/send`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+  
+  console.log('🎵 [API] Audio upload response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('🎵 [API] Audio upload error:', errorData);
+    throw new Error(`Error al subir audio: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('🎵 [API] Audio upload success:', result);
+  return { success: true, data: result.data, message: result.message };
+}
+
+export async function getAudioMessages(groupId, token) {
+  console.log('🎵 [API] Fetching audio messages for group:', groupId);
+  
+  const res = await fetch(`${API_URL}/audio/messages/${groupId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  console.log('🎵 [API] Audio messages response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('🎵 [API] Audio messages error:', errorData);
+    throw new Error(`Error al obtener mensajes de audio: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('🎵 [API] Audio messages success:', result);
+  return result;
+}

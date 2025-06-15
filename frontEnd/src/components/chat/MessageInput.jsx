@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Paperclip, Smile, X } from "lucide-react";
+import { Send, Paperclip, Smile, X, Mic } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 import AttachmentOptions from "./AttachmentOptions";
-import { uploadFiles } from "../../utils/api";
+import AudioRecorder from "../AudioRecorder";
+import { uploadFiles, uploadAudioMessage } from "../../utils/api";
 
 const MessageInput = ({ 
   newMessage, 
@@ -15,14 +16,35 @@ const MessageInput = ({
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Estados para audio
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  
   const inputRef = useRef(null);
+
+  // Cerrar otros modales cuando se abre uno
+  useEffect(() => {
+    if (showEmojis) {
+      setShowAttachOptions(false);
+      setShowAudioRecorder(false);
+    }
+    if (showAttachOptions) {
+      setShowEmojis(false);
+      setShowAudioRecorder(false);
+    }
+    if (showAudioRecorder) {
+      setShowEmojis(false);
+      setShowAttachOptions(false);
+    }
+  }, [showEmojis, showAttachOptions, showAudioRecorder]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isUploading) return; // No enviar mientras se suben archivos
+    if (isUploading) return;
     
-    // Pasar archivos adjuntos al enviar mensaje
     onSendMessage(e, selectedFiles.length > 0 ? selectedFiles : null);
-    setSelectedFiles([]); // Limpiar archivos después de enviar
+    setSelectedFiles([]);
     setShowEmojis(false);
     setShowAttachOptions(false);
   };
@@ -37,7 +59,6 @@ const MessageInput = ({
     onTyping();
   };
 
-  // Manejar pegado de archivos con Ctrl+V
   const handlePaste = async (e) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -59,13 +80,11 @@ const MessageInput = ({
     }
   };
 
-  // Manejar selección de archivos desde AttachmentOptions
   const handleFileSelect = (files) => {
     setSelectedFiles(prev => [...prev, ...files]);
     setShowAttachOptions(false);
   };
 
-  // Subir archivos
   const handleFileUpload = async (files) => {
     if (!files || files.length === 0) return;
 
@@ -94,124 +113,154 @@ const MessageInput = ({
     }
   };
 
-  // Remover archivo seleccionado
   const removeFile = (index) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
-  // Establecer referencia del input y añadir event listeners
-  useEffect(() => {
-    const inputElement = inputRef.current;
-    if (inputElement) {
-      inputElement.addEventListener('paste', handlePaste);
-    }
 
-    // Manejar tecla Escape para cerrar paneles
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setShowEmojis(false);
-        setShowAttachOptions(false);
+  // Funciones para manejar audio
+  const handleAudioButtonClick = () => {
+    setShowAudioRecorder(!showAudioRecorder);
+  };
+
+  const handleAudioCancel = () => {
+    setShowAudioRecorder(false);
+    setIsRecordingAudio(false);
+  };  const handleAudioReady = async (audioBlob, duration = 0) => {
+    try {
+      setIsUploading(true);
+      if (onNotification) {
+        onNotification("Info", "Enviando mensaje de audio...");
       }
-    };
 
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      if (inputElement) {
-        inputElement.removeEventListener('paste', handlePaste);
-      }
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);return (
-    <div className="border-t border-[#3C4043]/50 p-3 sm:p-4 bg-gradient-to-r from-[#2C2C34]/95 to-[#252529]/95 backdrop-blur-md relative message-input-container no-horizontal-overflow">
-      {/* Top gradient overlay */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#A8E6A3]/30 to-transparent"></div>
+      const token = localStorage.getItem('token');
+      const groupId = "global"; // O el ID del grupo actual
       
-      {/* Archivos seleccionados - Mejorado para móvil */}
+      // Crear un mensaje optimista para el audio
+      const tempId = Date.now().toString();
+      const optimisticMessage = {
+        id: tempId,
+        content: '',
+        isMine: true,
+        sender_name: localStorage.getItem('username') || 'Tu',
+        group_id: groupId,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isOptimistic: true,
+        attachments: [{
+          type: 'audio',
+          originalName: `audio-${Date.now()}.webm`,
+          size: audioBlob.size,
+          duration: duration,
+          url: URL.createObjectURL(audioBlob) // URL temporal para el optimistic
+        }]
+      };
+
+      console.log('🎵 Mensaje optimista de audio:', optimisticMessage);      console.log('🎵 Añadiendo mensaje optimista al chat');
+      
+      // Añadir el mensaje optimista inmediatamente al chat
+      if (typeof onSendMessage === 'function') {
+        // Simular evento para onSendMessage
+        const fakeEvent = { 
+          preventDefault: () => {},
+          target: { value: '' }
+        };
+        onSendMessage(fakeEvent, optimisticMessage.content, optimisticMessage);
+      }
+        // Pequeño delay antes de enviar al servidor para que el mensaje optimista se vea
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const result = await uploadAudioMessage(audioBlob, groupId, token, duration, tempId);
+      
+      if (result.success) {
+        console.log('🎵 Audio enviado exitosamente:', result);
+        if (onNotification) {
+          onNotification("Success", "Mensaje de audio enviado");
+        }
+        setShowAudioRecorder(false);
+        setIsRecordingAudio(false);
+      }
+    } catch (error) {
+      console.error('❌ Error al enviar audio:', error);
+      if (onNotification) {
+        onNotification("Error", error.message || "Error al enviar mensaje de audio");
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="relative p-3 sm:p-4 bg-gradient-to-r from-[#1A1A1F] via-[#252529] to-[#1A1A1F] border-t border-[#3C4043]">
+      {/* Preview de archivos seleccionados */}
       {selectedFiles.length > 0 && (
-        <div className="mb-2 sm:mb-3 p-2 bg-[#2C2C34]/60 rounded-lg border border-[#3C4043]/40">
-          <div className="text-xs text-[#A8E6A3] mb-2 font-medium">
-            Archivos adjuntos ({selectedFiles.length})
+        <div className="mb-3 p-3 bg-[#2D2D3A] rounded-lg border border-[#3C3C4E]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-white font-medium">
+              Archivos seleccionados ({selectedFiles.length})
+            </span>
           </div>
-          <div className="flex flex-wrap gap-1 sm:gap-2 max-h-16 sm:max-h-20 overflow-y-auto">
+          <div className="space-y-2 max-h-32 overflow-y-auto">
             {selectedFiles.map((file, index) => (
-              <div key={index} className="flex items-center gap-1 sm:gap-2 bg-[#3C4043]/60 rounded-lg px-1.5 sm:px-2 py-1 text-xs">
-                <span className="text-[#E8E8E8] truncate max-w-20 sm:max-w-24">{file.originalName}</span>
+              <div key={index} className="flex items-center justify-between p-2 bg-[#1E1E2E] rounded border border-[#3C3C4E]">
+                <span className="text-sm text-[#A0A0B0] truncate">{file.filename}</span>
                 <button
                   onClick={() => removeFile(index)}
-                  className="text-red-400 hover:text-red-300 transition-colors"
-                  title="Remover archivo"
+                  className="text-red-400 hover:text-red-300 p-1"
                 >
-                  <X size={10} className="sm:w-3 sm:h-3" />
+                  <X size={14} />
                 </button>
               </div>
             ))}
           </div>
         </div>
-      )}      {/* Emoji Picker - Completamente responsivo con posicionamiento inteligente */}
-      {showEmojis && (
-        <>
-          {/* Backdrop para cerrar al hacer clic fuera - solo en móvil */}
-          <div 
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none"
-            onClick={() => setShowEmojis(false)}
-          />
-          
-          {/* EmojiPicker con posicionamiento responsivo */}
-          <div className="absolute bottom-full right-0 sm:right-4 mb-3 z-50 emoji-picker-entrance">
-            <EmojiPicker 
-              onEmojiSelect={handleEmojiSelect}
-              onClose={() => setShowEmojis(false)}
-            />
-          </div>
-        </>
       )}
 
-      {/* Attachment Options - Posicionado mejor para móvil */}
-      {showAttachOptions && (
-        <div className="absolute bottom-16 sm:bottom-20 left-12 sm:left-16 z-50 animate-in slide-in-from-bottom-2">
-          <AttachmentOptions 
-            onClose={() => setShowAttachOptions(false)} 
-            onNotification={onNotification}
-            onFileSelect={handleFileSelect}
+      <form onSubmit={handleSubmit} className="flex items-end space-x-2 sm:space-x-3">
+        {/* Input de mensaje */}
+        <div className="flex-1 relative">
+          <textarea
+            ref={inputRef}
+            value={newMessage}
+            onChange={handleInputChange}
+            onPaste={handlePaste}
+            placeholder="Escribe un mensaje..."
+            className="w-full bg-[#2D2D3A] border border-[#3C4043] rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-white resize-none focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:border-transparent transition-all scrollbar-thin scrollbar-thumb-[#3C4043] scrollbar-track-[#252529] min-h-[44px] max-h-32"
+            rows="1"
+            style={{
+              height: 'auto',
+              minHeight: '44px'
+            }}
+            onInput={(e) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+            }}
           />
         </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 sm:gap-3">
-        {/* Botón de adjuntos - Adaptado para móvil */}        <button
+        {/* Botón de archivos adjuntos */}
+        <button
           type="button"
           onClick={() => {
             setShowAttachOptions(!showAttachOptions);
             setShowEmojis(false);
-          }}          className={`p-2 sm:p-3 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043]/60 backdrop-blur-sm transition-all duration-200 border border-transparent hover:border-[#A8E6A3]/30 hover:scale-105 flex-shrink-0 ${
-            showAttachOptions ? 'bg-[#3C4043]/60 text-[#A8E6A3] border-[#A8E6A3]/30' : ''
-          }`}
-          title="Adjuntar archivo"
+            setShowAudioRecorder(false);
+          }}
+          className={`relative p-2 sm:p-3 rounded-xl backdrop-blur-sm transition-all duration-300 border flex-shrink-0 group overflow-hidden ${
+            showAttachOptions 
+              ? 'bg-gradient-to-r from-[#A8E6A3]/25 to-[#7DD3C0]/25 text-[#A8E6A3] border-[#A8E6A3]/40 shadow-lg shadow-[#A8E6A3]/15 scale-105' 
+              : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]/60 border-transparent hover:border-[#A8E6A3]/30'
+          } hover:scale-105 active:scale-95`}
+          title="Adjuntar archivos"
         >
-          <Paperclip size={16} className="sm:w-5 sm:h-5" />
-        </button>        {/* Input de mensaje - Mejorado para móvil */}
-        <div className="flex-1 relative">          <input
-            ref={inputRef}
-            type="text"
-            value={newMessage}
-            onChange={handleInputChange}
-            placeholder={isUploading ? "Subiendo archivos..." : "Escribe un mensaje..."}
-            disabled={isUploading}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-[#1A1A1F]/80 to-[#1A1A1F]/60 backdrop-blur-md border border-[#2C2C34]/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3]/50 focus:border-[#A8E6A3]/30 text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200 hover:border-[#3C4043]/80 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-            maxLength={1000}
-          />
-          {/* Character counter */}
-          {newMessage.length > 800 && (
-            <div className="absolute -top-5 sm:-top-6 right-0 text-xs text-[#B8B8B8] bg-[#2C2C34]/80 backdrop-blur-sm px-2 py-1 rounded-lg border border-[#3C4043]/40">
-              {newMessage.length}/1000
-            </div>
-          )}
-        </div>        {/* Botón de emojis - Completamente rediseñado */}
+          <Paperclip size={16} className="sm:w-5 sm:h-5 transition-all duration-300 group-hover:scale-110" />
+        </button>
+
+        {/* Botón de emojis */}
         <button
           type="button"
           onClick={() => {
             setShowEmojis(!showEmojis);
             setShowAttachOptions(false);
+            setShowAudioRecorder(false);
           }}
           className={`relative p-2 sm:p-3 rounded-xl backdrop-blur-sm transition-all duration-300 border flex-shrink-0 group overflow-hidden ${
             showEmojis 
@@ -220,21 +269,36 @@ const MessageInput = ({
           } hover:scale-105 active:scale-95`}
           title="Seleccionar emoji"
         >
-          {/* Efecto de brillo cuando está activo */}
-          {showEmojis && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#A8E6A3]/10 to-transparent animate-pulse"></div>
+          <Smile size={16} className="sm:w-5 sm:h-5 transition-all duration-300 group-hover:scale-110" />
+        </button>
+
+        {/* Botón de audio - NUEVA FUNCIONALIDAD */}
+        <button
+          type="button"
+          onClick={handleAudioButtonClick}
+          className={`relative p-2 sm:p-3 rounded-xl backdrop-blur-sm transition-all duration-300 border flex-shrink-0 group overflow-hidden ${
+            showAudioRecorder || isRecordingAudio
+              ? 'bg-gradient-to-r from-red-500/25 to-red-600/25 text-red-400 border-red-400/40 shadow-lg shadow-red-500/15 scale-105' 
+              : 'text-[#B8B8B8] hover:text-[#4ADE80] hover:bg-[#3C4043]/60 border-transparent hover:border-[#4ADE80]/30'
+          } hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+          title={isRecordingAudio ? "Grabando audio..." : "Grabar mensaje de voz"}
+        >
+          {/* Efecto de brillo cuando está grabando */}
+          {(showAudioRecorder || isRecordingAudio) && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-400/10 to-transparent animate-pulse"></div>
           )}
           
-          <Smile size={16} className={`sm:w-5 sm:h-5 transition-all duration-300 ${showEmojis ? 'rotate-12 scale-110' : 'group-hover:rotate-6'}`} />
+          <Mic size={16} className={`sm:w-5 sm:h-5 transition-all duration-300 ${
+            showAudioRecorder || isRecordingAudio ? 'scale-110 text-red-400' : 'group-hover:scale-110'
+          }`} />
           
-          {/* Indicador activo mejorado */}
-          {showEmojis && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-[#A8E6A3] to-[#7DD3C0] rounded-full animate-soft-pulse shadow-lg shadow-[#A8E6A3]/40"></div>
+          {/* Indicador de grabación */}
+          {isRecordingAudio && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/40"></div>
           )}
-          
-          {/* Efecto de ondas cuando está hover */}
-          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-[#A8E6A3]/5 via-[#A8E6A3]/10 to-[#A8E6A3]/5"></div>
-        </button>{/* Botón de enviar - Adaptado para móvil */}
+        </button>
+
+        {/* Botón de enviar */}
         <button
           type="submit"
           disabled={(!newMessage.trim() && selectedFiles.length === 0) || isUploading}
@@ -244,6 +308,39 @@ const MessageInput = ({
           <Send size={16} className="sm:w-5 sm:h-5" />
         </button>
       </form>
+
+      {/* Picker de emojis */}
+      {showEmojis && (
+        <div className="absolute bottom-16 sm:bottom-20 right-4 z-50">
+          <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+        </div>
+      )}
+
+      {/* Opciones de archivos adjuntos */}
+      {showAttachOptions && (
+        <div className="absolute bottom-16 sm:bottom-20 right-4 z-50">
+          <AttachmentOptions onFileSelect={handleFileSelect} />
+        </div>
+      )}
+
+      {/* Audio Recorder - NUEVA FUNCIONALIDAD */}
+      {showAudioRecorder && (
+        <div className="absolute bottom-16 sm:bottom-20 left-1/2 transform -translate-x-1/2 z-50 w-80 max-w-[90vw]">
+          <AudioRecorder 
+            onCancel={handleAudioCancel}
+            onAudioReady={handleAudioReady}
+            isOpen={showAudioRecorder}
+          />
+        </div>
+      )}
+
+      {/* Mensaje de estado cuando está grabando */}
+      {isRecordingAudio && (
+        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-pulse">
+          <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+          <span className="text-sm font-medium">Grabando...</span>
+        </div>
+      )}
     </div>
   );
 };
