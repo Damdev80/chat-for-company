@@ -179,8 +179,6 @@ app.use('/api/tasks', taskRoutes)
 console.log('✅ Ruta tasks registrada');
 app.use('/api/upload', uploadRoutes)
 console.log('✅ Ruta upload registrada');
-app.use('/api/audio', audioRoutes)
-console.log('✅ Ruta audio registrada');
 
 // Registrar rutas de audio con manejo de errores específico
 try {
