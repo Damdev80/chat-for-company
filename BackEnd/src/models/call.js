@@ -460,15 +460,14 @@ export class ModelsCall {  /**
       throw error;
     }
   }
-
   /**
    * Obtener todas las llamadas activas
    */
   static async getAllActiveCalls() {
     try {
-      const db = await getConnection();
+      const connection = await getConnection();
       
-      const result = await db.execute(`
+      const [result] = await connection.execute(`
         SELECT c.*, 
                u_caller.username as caller_name
         FROM calls c 
@@ -477,8 +476,10 @@ export class ModelsCall {  /**
         ORDER BY c.created_at DESC
       `);
       
-      if (result.rows) {
-        return result.rows.map(call => ({
+      connection.end();
+      
+      if (result) {
+        return result.map(call => ({
           ...call,
           group_id: call.group_id ? bufferToUuid(call.group_id) : call.group_id,
           caller_id: call.caller_id ? bufferToUuid(call.caller_id) : call.caller_id,
@@ -489,6 +490,135 @@ export class ModelsCall {  /**
       return [];
     } catch (error) {
       console.error('Error en ModelsCall.getAllActiveCalls:', error);
+      throw error;
+    }
+  }
+  /**
+   * Verificar si un usuario es participante de una llamada
+   */
+  static async isParticipant(callId, userId) {
+    try {
+      const connection = await getConnection();
+      
+      const [result] = await connection.execute(
+        `SELECT COUNT(*) as count 
+         FROM call_participants 
+         WHERE call_id = ? AND user_id = ? AND left_at IS NULL`,
+        [callId, userId]
+      );
+      
+      connection.end();
+      return result && result[0] && result[0].count > 0;
+    } catch (error) {
+      console.error('Error en ModelsCall.isParticipant:', error);
+      throw error;
+    }
+  }
+  /**
+   * Remover un participante de una llamada
+   */
+  static async removeParticipant(callId, userId) {
+    try {
+      const connection = await getConnection();
+      
+      const [result] = await connection.execute(
+        `UPDATE call_participants 
+         SET left_at = ? 
+         WHERE call_id = ? AND user_id = ? AND left_at IS NULL`,
+        [new Date().toISOString(), callId, userId]
+      );
+      
+      connection.end();
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error en ModelsCall.removeParticipant:', error);
+      throw error;
+    }
+  }  /**
+   * Actualizar la hora de finalización de una llamada
+   */
+  static async updateEndTime(callId, endedBy = null) {
+    try {
+      const connection = await getConnection();
+      
+      let query = 'UPDATE calls SET ended_at = ?';
+      let params = [new Date().toISOString()];
+      
+      // Solo agregar ended_by si se proporciona un ID de usuario válido
+      if (endedBy) {
+        query += ', ended_by = ?';
+        params.push(endedBy);
+      }
+      
+      query += ' WHERE id = ?';
+      params.push(callId);
+      
+      const [result] = await connection.execute(query, params);
+      
+      connection.end();
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error en ModelsCall.updateEndTime:', error);
+      throw error;
+    }
+  }
+  /**
+   * Agregar un participante a una llamada
+   */
+  static async addParticipant(callId, userId, status = 'joined') {
+    try {
+      const connection = await getConnection();
+      
+      const [result] = await connection.execute(
+        `INSERT INTO call_participants (call_id, user_id, joined_at, status)
+         VALUES (?, ?, ?, ?)`,
+        [callId, userId, new Date().toISOString(), status]
+      );
+      
+      connection.end();
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('Error en ModelsCall.addParticipant:', error);
+      throw error;
+    }
+  }
+  /**
+   * Obtener una llamada con sus participantes
+   */
+  static async getCallWithParticipants(callId) {
+    try {
+      const connection = await getConnection();
+      
+      // Obtener la llamada
+      const call = await this.getById(callId);
+      if (!call) {
+        connection.end();
+        return null;
+      }
+      
+      // Obtener participantes
+      const [participantsResult] = await connection.execute(
+        `SELECT cp.*, u.username 
+         FROM call_participants cp
+         LEFT JOIN users u ON cp.user_id = u.id
+         WHERE cp.call_id = ? AND cp.left_at IS NULL
+         ORDER BY cp.joined_at ASC`,
+        [callId]
+      );
+      
+      connection.end();
+      
+      const participants = participantsResult ? participantsResult.map(p => ({
+        ...p,
+        user_id: p.user_id ? bufferToUuid(p.user_id) : p.user_id
+      })) : [];
+      
+      return {
+        ...call,
+        participants
+      };
+    } catch (error) {
+      console.error('Error en ModelsCall.getCallWithParticipants:', error);
       throw error;
     }
   }

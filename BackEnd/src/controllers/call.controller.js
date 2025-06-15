@@ -446,7 +446,8 @@ export class CallController {  /**
           message: 'La llamada ya ha finalizado' 
         });
       }      // Finalizar la llamada
-      await ModelsCall.updateStatus(callId, 'ended', new Date().toISOString());
+      await ModelsCall.updateStatus(callId, 'ended');
+      await ModelsCall.updateEndTime(callId, userId);
         // Si es una llamada grupal, remover al usuario que finaliza (si es participante) y limpiar otros participantes
       if (call.group_id) {
         try {
@@ -673,10 +674,9 @@ export class CallController {  /**
           for (const participant of participants) {
             await ModelsCall.removeParticipant(call.id, participant.user_id);
             cleanedParticipants++;
-          }
-
-          // Finalizar llamada
-          await ModelsCall.updateStatus(call.id, 'ended', new Date().toISOString());
+          }          // Finalizar llamada
+          await ModelsCall.updateStatus(call.id, 'ended');
+          await ModelsCall.updateEndTime(call.id, req.user.id);
           cleanedCalls++;
           
           console.log(`✅ Llamada ${call.id} limpiada`);

@@ -365,6 +365,19 @@ export const CallProvider = ({ children }) => {
   };
 
   // Manejar llamada entrante - Rechazar
+  // Función para manejar notificaciones de llamadas entrantes
+  const handleIncomingCall = (callData) => {
+    console.log("📞 Manejando llamada entrante:", callData);
+    setIncomingCallNotification(callData);
+    setShowIncomingCallModal(true);
+  };
+
+  // Función para limpiar notificaciones de llamadas
+  const clearIncomingCall = () => {
+    setIncomingCallNotification(null);
+    setShowIncomingCallModal(false);
+  };
+
   const handleDeclineIncomingCall = () => {
     console.log('📞 Llamada rechazada');
     setShowIncomingCallModal(false);
@@ -394,12 +407,13 @@ export const CallProvider = ({ children }) => {
     toggleCamera,
     refreshParticipants,
     cleanupCall,
-    endActiveCall,
-    forceCleanupCall,
+    endActiveCall,    forceCleanupCall,
     handleJoinExistingCall,
     handleCancelAlert,
     handleAcceptIncomingCall,
-    handleDeclineIncomingCall
+    handleDeclineIncomingCall,
+    handleIncomingCall,
+    clearIncomingCall
   };
   
   return (

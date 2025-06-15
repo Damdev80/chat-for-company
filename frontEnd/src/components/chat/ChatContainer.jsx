@@ -10,6 +10,7 @@ import {  fetchMessages,
 } from "../../utils/api";
 import { connectSocket, disconnectSocket } from "../../utils/socket";
 import { canReviewTasks, isAdmin } from "../../utils/auth";
+import { useCall } from "../../context/CallContext";
 import ObjectiveManager from "../ObjectiveManager";
 import UserTaskView from "../UserTaskView";
 import TaskReviewPanel from "../TaskReviewPanel";
@@ -27,7 +28,11 @@ import DeleteChatModal from "./DeleteChatModal";
 import CallModal from "../CallModal";
 
 
-const ChatContainer = () => {  // Estados principales
+const ChatContainer = () => {
+  // Contexto de llamadas
+  const { handleIncomingCall } = useCall();
+  
+  // Estados principales
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
@@ -363,13 +368,37 @@ const ChatContainer = () => {  // Estados principales
       console.error("Error de conexión Socket.IO:", error);
       // Mantener el estado de usuarios vacío si hay problemas de conexión
       setOnlineUsers([]);
-    });
-
-    socket.on("disconnect", (reason) => {
+    });    socket.on("disconnect", (reason) => {
       console.warn("Socket.IO desconectado:", reason);
       // Limpiar lista de usuarios online cuando se pierde la conexión
       setOnlineUsers([]);
-    });    // Solicitar lista inicial de usuarios online de forma segura
+    });    // Event listeners para llamadas grupales
+    socket.on("incoming_group_call", (callData) => {
+      console.log("📞 Llamada grupal entrante:", callData);
+      
+      // Solo mostrar la notificación si es para este grupo
+      if (callData.groupId === activeGroup && callData.callerId !== user) {
+        handleIncomingCall(callData);
+      }
+    });
+
+    socket.on("user_joined_group_call", (data) => {
+      console.log("📞 Usuario se unió a llamada grupal:", data);
+      // Aquí podrías actualizar la UI para mostrar que alguien se unió
+    });
+
+    socket.on("user_left_group_call", (data) => {
+      console.log("📞 Usuario abandonó llamada grupal:", data);
+      // Aquí podrías actualizar la UI para mostrar que alguien se fue
+      if (data.callEnded) {
+        console.log("📞 Llamada grupal finalizada automáticamente");
+      }
+    });
+
+    socket.on("call_ended", (data) => {
+      console.log("📞 Llamada finalizada:", data);
+      // Aquí podrías mostrar una notificación de que la llamada terminó
+    });// Solicitar lista inicial de usuarios online de forma segura
     try {
       socket.emit("get_online_users");
     } catch (error) {
@@ -378,12 +407,10 @@ const ChatContainer = () => {  // Estados principales
 
     // Unirse al grupo activo
     socket.emit("join_group", activeGroup);
-    console.log("Uniéndose al grupo:", activeGroup);
-
-    return () => {
+    console.log("Uniéndose al grupo:", activeGroup);    return () => {
       disconnectSocket();
     };
-  }, [token, user, activeGroup]);
+  }, [token, user, activeGroup, handleIncomingCall]);
 
   // Unirse a nuevo grupo cuando cambie activeGroup
   useEffect(() => {
