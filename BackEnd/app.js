@@ -25,8 +25,8 @@ import taskRoutes from './src/routes/task.routes.js'
 console.log('✅ taskRoutes imported');
 import uploadRoutes from './src/routes/upload.routes.js'
 console.log('✅ uploadRoutes imported');
-import audioRoutes from './src/routes/audio.routes.js'
-console.log('✅ audioRoutes imported');
+import audioRoutes from './src/routes/audio.routes.simple.js'
+console.log('✅ audioRoutes (simple) imported');
 
 // Configurar variables de entorno
 dotenv.config()
