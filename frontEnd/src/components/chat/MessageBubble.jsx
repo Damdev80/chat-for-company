@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
 import MediaViewer from "./MediaViewer";
+import AudioPlayer from "../AudioPlayer";
 
 const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
   const { content, isMine, sender_name, time, isOptimistic, error, attachments } = message;
@@ -222,29 +223,29 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
                     </div>
                   </div>
                 );
-              }
-
-              if (isAudio) {
+              }              if (isAudio) {
+                const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+                const baseURL = API_URL.replace('/api', '');
+                const audioUrl = `${baseURL}${file.url}`;
+                
+                console.log('🎵 Construyendo URL de audio:', {
+                  file,
+                  API_URL,
+                  baseURL,
+                  audioUrl
+                });
+                
                 return (
                   <div key={index} className="space-y-1 sm:space-y-2 min-w-0">
-                    <div 
-                      className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-lg cursor-pointer hover:from-purple-900/60 hover:to-blue-900/60 transition-all duration-300 min-w-0"
-                      onClick={() => handleMediaView(file)}
-                    >
-                      <div className="p-1 sm:p-2 bg-purple-500/30 rounded-lg flex-shrink-0">
-                        <Music size={16} className="text-purple-300 sm:w-5 sm:h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs sm:text-sm text-[#E8E8E8] font-medium truncate">
-                          {file.originalName}
-                        </div>
-                        <div className="text-xs text-purple-300">
-                          Audio • {formatFileSize(file.size)}
-                        </div>
-                      </div>
-                      <div className="p-1 sm:p-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/40 transition-colors flex-shrink-0">
-                        <Play size={12} className="text-purple-300 sm:w-4 sm:h-4" />
-                      </div>
+                    <AudioPlayer 
+                      audioUrl={audioUrl}
+                      fileName={file.originalName}
+                      className="max-w-full"
+                    />
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs text-[#B8B8B8] min-w-0">
+                      <Music size={10} className="text-green-400 flex-shrink-0 sm:w-3 sm:h-3" />
+                      <span className="truncate flex-1 min-w-0">{file.originalName}</span>
+                      <span className="flex-shrink-0">{formatFileSize(file.size)}</span>
                     </div>
                   </div>
                 );
