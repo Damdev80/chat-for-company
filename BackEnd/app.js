@@ -145,19 +145,7 @@ console.log('📋 Routes registered:', {
   audio: '/api/audio'
 });
 
-// Middleware para capturar rutas no encontradas y loggear
-app.use('*', (req, res, next) => {
-  if (req.originalUrl.includes('/api/audio')) {
-    console.error('🔍 Audio route not found:', {
-      method: req.method,
-      url: req.originalUrl,
-      path: req.path,
-      baseUrl: req.baseUrl
-    });
-  }
-  next();
-});
-
+// Error handling middleware
 app.use(serverError)
 
 // Configurar Socket.io
