@@ -49,19 +49,27 @@ export class CallController {  /**
             await ModelsCall.joinGroupCall(newCall.id, participantId);
           }
         }
-      }
-
-      // Emitir la llamada grupal por Socket.IO
+      }      // Emitir la llamada grupal por Socket.IO
       const io = getSocketInstance();
       if (io) {
         console.log('📡 Emitiendo llamada grupal por Socket.IO');
         
-        // Notificar a todos los miembros del grupo
-        io.emit('incoming_group_call', {
-          ...newCall,
-          caller_name: req.user.username || req.user.name || 'Usuario',
-          participants: participants
-        });
+        // Notificar a todos los usuarios conectados (específicamente al grupo)
+        const callNotification = {
+          type: 'incoming_group_call',
+          callId: newCall.id,
+          groupId: group_id,
+          callType: call_type,
+          callerName: req.user.username || req.user.name || 'Usuario',
+          callerId: caller_id,
+          participants: participants,
+          message: `${req.user.username || 'Un usuario'} ha iniciado una llamada grupal`
+        };
+
+        // Emitir a todos los usuarios (el frontend filtrará por grupo)
+        io.emit('incoming_group_call', callNotification);
+        
+        console.log('📡 Notificación de llamada enviada:', callNotification);
       }
 
       res.status(201).json({ 
@@ -94,9 +102,7 @@ export class CallController {  /**
         return res.status(404).json({ 
           message: 'Llamada no encontrada' 
         });
-      }
-
-      if (!call.is_group_call) {
+      }      if (!call.group_id) {
         return res.status(400).json({ 
           message: 'Esta no es una llamada grupal' 
         });
@@ -413,24 +419,46 @@ export class CallController {  /**
         return res.status(404).json({ 
           message: 'Llamada no encontrada' 
         });
+      }      // Verificar permisos
+      let canEndCall = false;
+      
+      if (call.group_id) {
+        // Para llamadas grupales: verificar si es admin o participante
+        const isParticipant = await ModelsCall.isParticipant(callId, userId);
+        const isAdmin = req.user.role === 'admin' || req.user.role_id === 'admin';
+        canEndCall = isParticipant || isAdmin;
+      } else {
+        // Para llamadas individuales: verificar si es caller o receiver
+        canEndCall = call.caller_id === userId || call.receiver_id === userId;
       }
-
-      // Verificar que el usuario es parte de la llamada
-      if (call.caller_id !== userId && call.receiver_id !== userId) {
+      
+      if (!canEndCall) {
         return res.status(403).json({ 
           message: 'No tienes permisos para finalizar esta llamada' 
         });
       }
 
       // Verificar que la llamada está activa
-      if (!['initiated', 'ringing', 'accepted'].includes(call.status)) {
+      if (['ended', 'cancelled'].includes(call.status)) {
         return res.status(400).json({ 
           message: 'La llamada ya ha finalizado' 
         });
-      }
-
-      // Finalizar la llamada
+      }      // Finalizar la llamada
       await ModelsCall.updateStatus(callId, 'ended', new Date().toISOString());
+      
+      // Si es una llamada grupal, limpiar participantes
+      if (call.group_id) {
+        try {
+          // Remover todos los participantes
+          const participants = await ModelsCall.getCallParticipants(callId);
+          for (const participant of participants) {
+            await ModelsCall.removeParticipant(callId, participant.user_id);
+          }
+          console.log(`📞 Participantes removidos de llamada grupal ${callId}`);
+        } catch (error) {
+          console.error('❌ Error al limpiar participantes:', error);
+        }
+      }
 
       // Obtener la llamada actualizada
       const updatedCall = await ModelsCall.getById(callId);

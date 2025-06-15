@@ -608,7 +608,25 @@ const ChatContainer = () => {  // Estados principales
     );
   };
 
-  const filteredMessages = getFilteredMessages(search);  return (
+  const filteredMessages = getFilteredMessages(search);  // Efecto para guardar el grupo activo
+  useEffect(() => {
+    localStorage.setItem('activeGroup', activeGroup);
+  }, [activeGroup]);
+
+  // Efecto para guardar el userId del usuario actual
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        localStorage.setItem('userId', payload.id);
+      } catch (error) {
+        console.error('Error al decodificar token:', error);
+      }
+    }
+  }, []);
+
+  return (
     <div className="h-screen bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] text-[#E8E8E8] flex overflow-hidden relative chat-container viewport-constrained no-horizontal-overflow">
       {/* Sidebar - Mejorado para móvil */}
       <ChatSidebar
@@ -807,7 +825,7 @@ const ChatContainer = () => {  // Estados principales
                   </div>
                   {/* Estadísticas de mensajes */}
                   <div className="p-3 sm:p-4 bg-[#252529] rounded-xl border border-[#3C4043]">
-                    <h4 className="text-sm sm:text-md font-medium mb-2 text-[#E8E8E8]">Actividad</h4>
+                    <h4 className="text-sm sm:text-md font-medium mb-2 text-[#E8E6E8]">Actividad</h4>
                     <div className="space-y-2 text-xs sm:text-sm text-[#B8B8B8]">
                       <p><span className="text-[#A8E6A3]">Mensajes hoy:</span> {filteredMessages.length}</p>
                       <p><span className="text-[#A8E6A3]">Última actividad:</span> {filteredMessages.length > 0 ? 'Hace unos minutos' : 'Sin actividad'}</p>
@@ -850,7 +868,7 @@ const ChatContainer = () => {  // Estados principales
                 <div className="text-center py-8 sm:py-12">
                   <div className="p-3 sm:p-4 bg-[#A8E6A3]/10 rounded-full w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 flex items-center justify-center">
                     <Bell size={24} className="text-[#A8E6A3] sm:w-8 sm:h-8" />                </div>
-                  <h4 className="text-base sm:text-lg font-semibold text-[#E8E8E8] mb-2">Todo al día</h4>
+                  <h4 className="text-base sm:text-lg font-semibold text-[#E8E6A8] mb-2">Todo al día</h4>
                   <p className="text-sm sm:text-base text-[#B8B8B8]">No tienes notificaciones pendientes</p>
                 </div>
               ) : (

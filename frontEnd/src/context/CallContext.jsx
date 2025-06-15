@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { initiateGroupCall, joinCall, leaveCall, getCallParticipants, endCall } from '../utils/api';
+import { connectSocket } from '../utils/socket';
 import CallAlert from '../components/CallAlert';
+import IncomingCallModal from '../components/IncomingCallModal';
 
 const CallContext = createContext();
 
@@ -28,6 +30,11 @@ export const CallProvider = ({ children }) => {
     // Referencias para WebRTC
   const peerConnections = useRef(new Map());
   const localVideoRef = useRef(null);
+  const socketRef = useRef(null);
+
+  // Estados para notificaciones de llamadas entrantes
+  const [incomingCallNotification, setIncomingCallNotification] = useState(null);
+  const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
 
   // Configuración de WebRTC (será usada más adelante para WebRTC)
   // eslint-disable-next-line no-unused-vars
@@ -100,13 +107,15 @@ export const CallProvider = ({ children }) => {
         }
         
         console.log('📞 Llamada finalizada por admin');
-      }
-    } catch (error) {
+      }    } catch (error) {
       console.error('❌ Error al finalizar llamada:', error);
       
-      // Si la llamada ya ha finalizado, consideramos esto como éxito
-      if (error.message.includes('ya ha finalizado') || error.message.includes('already ended')) {
-        console.log('📞 La llamada ya estaba finalizada, continuando...');
+      // Si la llamada ya ha finalizado o no existe, consideramos éxito
+      if (error.message.includes('ya ha finalizado') || 
+          error.message.includes('already ended') ||
+          error.message.includes('no encontrada') ||
+          error.message.includes('not found')) {
+        console.log('📞 La llamada ya estaba finalizada o no existe, continuando...');
         
         // Cerrar alerta y limpiar estado como si fuera exitoso
         setShowCallAlert(false);
@@ -167,10 +176,21 @@ export const CallProvider = ({ children }) => {
         
         console.log('📞 Se unió a la llamada:', response.data);
         return true;
-      }
-    } catch (error) {
+      }    } catch (error) {
       console.error('❌ Error al unirse a la llamada:', error);
-      setCallError(error.message);
+      
+      // Si la llamada ya no es grupal o no existe, limpiar estado
+      if (error.message.includes('no es una llamada grupal') || 
+          error.message.includes('not found') ||
+          error.message.includes('no encontrada')) {
+        console.log('📞 Limpiando estado - llamada ya no válida');
+        setShowCallAlert(false);
+        setActiveCallInfo(null);
+        setShowIncomingCallModal(false);
+        setIncomingCallNotification(null);
+      } else {
+        setCallError(error.message);
+      }
       return false;
     } finally {
       setIsConnecting(false);
@@ -298,6 +318,28 @@ export const CallProvider = ({ children }) => {
       }
     }
   };
+  // Manejar llamada entrante - Aceptar
+  const handleAcceptIncomingCall = async () => {
+    try {
+      if (incomingCallNotification) {
+        setShowIncomingCallModal(false);
+        const success = await joinGroupCall(incomingCallNotification.callId);
+        if (success) {
+          setIncomingCallNotification(null);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error al aceptar llamada:', error);
+      setCallError('Error al unirse a la llamada');
+    }
+  };
+
+  // Manejar llamada entrante - Rechazar
+  const handleDeclineIncomingCall = () => {
+    console.log('📞 Llamada rechazada');
+    setShowIncomingCallModal(false);
+    setIncomingCallNotification(null);
+  };
   const value = {
     // Estado
     currentCall,
@@ -309,11 +351,15 @@ export const CallProvider = ({ children }) => {
     isConnecting,
     localVideoRef,
     showCallAlert,
-    activeCallInfo,    // Funciones
+    activeCallInfo,
+    // Estados de llamadas entrantes
+    incomingCallNotification,
+    showIncomingCallModal,
+
+    // Funciones
     startGroupCall,
     joinGroupCall,
-    leaveGroupCall,
-    getMediaAccess,
+    leaveGroupCall,    getMediaAccess,
     toggleMicrophone,
     toggleCamera,
     refreshParticipants,
@@ -321,11 +367,17 @@ export const CallProvider = ({ children }) => {
     endActiveCall,
     forceCleanupCall,
     handleJoinExistingCall,
-    handleCancelAlert
+    handleCancelAlert,
+    handleAcceptIncomingCall,
+    handleDeclineIncomingCall
   };
+  
   return (
     <CallContext.Provider value={value}>
-      {children}      {showCallAlert && activeCallInfo && (
+      {children}
+      
+      {/* Modal de llamada activa */}
+      {showCallAlert && activeCallInfo && (
         <CallAlert
           isOpen={showCallAlert}
           activeCall={activeCallInfo}
@@ -334,6 +386,16 @@ export const CallProvider = ({ children }) => {
           onEndCall={endActiveCall}
           onCancel={handleCancelAlert}
           onForceCleanup={forceCleanupCall}
+        />
+      )}
+      
+      {/* Modal de llamada entrante */}
+      {showIncomingCallModal && incomingCallNotification && (
+        <IncomingCallModal
+          isOpen={showIncomingCallModal}
+          callData={incomingCallNotification}
+          onAccept={handleAcceptIncomingCall}
+          onDecline={handleDeclineIncomingCall}
         />
       )}
     </CallContext.Provider>
