@@ -69,14 +69,21 @@ const AudioRecorder = ({ onAudioReady, onCancel, isOpen }) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
-      };
-
-      mediaRecorder.onstop = () => {
+      };      mediaRecorder.onstop = () => {
         console.log('🎵 [RECORDER] Recording stopped');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(audioBlob);
         setAudioBlob(audioBlob);
         setAudioUrl(url);
+        
+        // Calculate actual duration from blob
+        const tempAudio = new Audio(url);
+        tempAudio.addEventListener('loadedmetadata', () => {
+          const actualDuration = tempAudio.duration;
+          console.log('🎵 [RECORDER] Actual audio duration:', actualDuration);
+          setRecordingTime(actualDuration || recordingTime); // Use actual duration if available
+        });
+        tempAudio.load();
         
         // Stop all tracks to free the microphone
         stream.getTracks().forEach(track => track.stop());

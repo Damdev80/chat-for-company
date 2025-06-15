@@ -234,11 +234,11 @@ const MessageBubble = ({ message, onRetry, onDelete, userRole }) => {
                   baseURL,
                   audioUrl
                 });
-                
-                return (
+                  return (
                   <div key={index} className="space-y-1 sm:space-y-2 min-w-0">
                     <AudioPlayer 
                       audioUrl={audioUrl}
+                      duration={file.duration}
                       fileName={file.originalName}
                       className="max-w-full"
                     />

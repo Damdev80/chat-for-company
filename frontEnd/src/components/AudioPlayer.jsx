@@ -28,39 +28,57 @@ const AudioPlayer = ({ audioUrl, duration, fileName, className = '' }) => {
     const handleEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
+    };    const handleCanPlay = () => {
+      console.log('🎵 Audio can play, duration:', audio.duration);
+      if (audio.duration && isFinite(audio.duration) && audioDuration === 0) {
+        setAudioDuration(audio.duration);
+      }
+      setIsLoading(false);
     };
 
-    const handleCanPlay = () => {
-      console.log('🎵 Audio can play');
-      setIsLoading(false);
+    const handleDurationChange = () => {
+      console.log('🎵 Duration changed:', audio.duration);
+      if (audio.duration && isFinite(audio.duration)) {
+        setAudioDuration(audio.duration);
+      }
     };
 
     const handleError = (e) => {
       console.error('🎵 Audio error:', e);
       console.error('🎵 Audio src:', audio.src);
+      console.error('🎵 Audio error code:', audio.error?.code);
+      console.error('🎵 Audio error message:', audio.error?.message);
       setIsLoading(false);
     };
 
     const handleLoadStart = () => {
       console.log('🎵 Audio load started for:', audio.src);
+      setIsLoading(true);
     };
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('error', handleError);
     audio.addEventListener('loadstart', handleLoadStart);
+
+    // Force load if not already loading
+    if (audio.readyState === 0) {
+      audio.load();
+    }
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('loadstart', handleLoadStart);
     };
-  }, [audioUrl]);
+  }, [audioUrl, audioDuration]);
 
   const togglePlayPause = () => {
     const audio = audioRef.current;
@@ -106,11 +124,22 @@ const AudioPlayer = ({ audioUrl, duration, fileName, className = '' }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  return (
+  };  return (
     <div className={`bg-[#1E1E2E] border border-[#3C3C4E] rounded-lg p-3 max-w-sm ${className}`}>
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+      <audio 
+        ref={audioRef} 
+        src={audioUrl} 
+        preload="metadata"
+        crossOrigin="anonymous"
+        controls={false}
+      />
+      
+      {/* Debug info - temporal */}
+      {import.meta.env.DEV && (
+        <div className="text-xs text-gray-500 mb-2">
+          Duration: {audioDuration}s | Loading: {isLoading ? 'Yes' : 'No'}
+        </div>
+      )}
       
       <div className="flex items-center space-x-3">
         {/* Play/Pause Button */}
