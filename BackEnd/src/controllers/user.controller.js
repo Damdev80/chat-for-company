@@ -6,7 +6,8 @@ import { v4 as uuid } from 'uuid'
 import jwt from 'jsonwebtoken'
 import { ModelsRole } from '../models/role.js' // Asegúrate de importar el modelo de rol
 
-export class UserController {  static async register(req, res) {
+export class UserController {
+  static async register(req, res) {
     try {
       console.log('Recibida solicitud de registro:', req.body);
       

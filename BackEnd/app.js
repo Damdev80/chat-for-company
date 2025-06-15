@@ -1,38 +1,17 @@
-// app.js
+// app.js - REPARADO con imports dinámicos
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import http from 'http'
 import { Server as SocketServer } from 'socket.io'
-import { configureSocket } from './src/config/socket.io.js'
-import { setSocketInstance } from './src/utils/socketManager.js'
 import { serverError } from './src/middlewares/error.middlewar.js' 
 import { requestLogger } from './src/middlewares/logger.middleware.js'
 
-// Importar rutas
-console.log('📦 Importando rutas...');
-import userRoutes from './src/routes/user.routes.js'
-console.log('✅ userRoutes imported');
-import roleRoutes from './src/routes/role.routes.js'
-console.log('✅ roleRoutes imported');
-import messageRoutes from './src/routes/message.routes.js'
-console.log('✅ messageRoutes imported');
-import groupRoutes from './src/routes/group.routes.js'
-console.log('✅ groupRoutes imported');
-import objectiveRoutes from './src/routes/objective.routes.js'
-console.log('✅ objectiveRoutes imported');
-import taskRoutes from './src/routes/task.routes.js'
-console.log('✅ taskRoutes imported');
-import uploadRoutes from './src/routes/upload.routes.js'
-console.log('✅ uploadRoutes imported');
-import audioRoutes from './src/routes/audio.routes.js'
-console.log('✅ audioRoutes imported');
-import callRoutes from './src/routes/call.routes.js'
-console.log('✅ callRoutes imported');
-
 // Configurar variables de entorno
 dotenv.config()
-//hOLAS
+
+console.log('🚀 Iniciando aplicación backend...');
+
 // Inicializar Express
 const app = express()
 const server = http.createServer(app)
@@ -44,55 +23,37 @@ const corsOptions = {
     'http://localhost:3000',      // Desarrollo local alternativo
     'https://chat-for-company.vercel.app',  // Producción Vercel
     'https://chat-for-company-git-main-damdev80.vercel.app', // Branch previews
-    'https://chat-for-company-damdev80.vercel.app' // Vercel subdomain
+    'https://*.vercel.app'        // Cualquier subdominio de Vercel
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'X-Requested-With',
-    'Accept',
-    'Origin'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200 // Para legacy browsers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }
 
-// Middleware
 app.use(cors(corsOptions))
 
-// Middleware adicional para manejar preflight requests
-app.options('*', cors(corsOptions))
-
-// Middleware personalizado para headers adicionales de CORS
+// CORS headers adicionales para casos edge
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  console.log(`🌐 CORS request from origin: ${origin}`);
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*')
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+  res.header('Access-Control-Allow-Credentials', 'true')
   
-  if (corsOptions.origin.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    console.log(`✅ CORS allowed for origin: ${origin}`);
-  } else {
-    console.log(`❌ CORS blocked for origin: ${origin}`);
-  }
-  
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,Origin');
-  
-  // Responder a preflight requests
   if (req.method === 'OPTIONS') {
-    console.log(`🔄 Preflight request for ${req.path}`);
-    res.status(200).end();
-    return;
+    return res.sendStatus(200)
   }
-  
-  next();
-});
+  next()
+})
 
 app.use(express.json())
 
-// Endpoint simple para probar CORS
+// Middlewares de logging (opcional, comentado para debugging)
+// app.use(requestLogger)
+
+// Servir archivos estáticos
+app.use('/uploads', express.static('uploads'))
+
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   console.log('🩺 Health check request from:', req.headers.origin);
   res.json({ 
@@ -103,21 +64,8 @@ app.get('/api/health', (req, res) => {
     origin: req.headers.origin
   });
 });
-app.use(requestLogger) // Agregar el middleware de logging
 
-// Servir archivos estáticos (uploads)
-app.use('/uploads', express.static('uploads'))
-
-// Health check route
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    message: 'Server is running',
-    timestamp: new Date().toISOString()
-  })
-})
-
-// Test API route
+// API test endpoint
 app.get('/api/test', (req, res) => {
   res.status(200).json({ 
     message: 'API is working',
@@ -130,127 +78,136 @@ app.get('/api/test', (req, res) => {
       objectives: '/api/objectives',
       tasks: '/api/tasks',
       upload: '/api/upload',
-      audio: '/api/audio'
+      audio: '/api/audio',
+      calls: '/api/calls'
     }
   })
 })
 
-// Test Upload route specifically
-app.get('/api/upload-check', (req, res) => {
-  res.status(200).json({ 
-    message: 'Upload routes check',
-    timestamp: new Date().toISOString(),
-    uploadRoutes: {
-      files: '/api/upload/files',
-      test: '/api/upload/test',
-      testUpload: '/api/upload/test-upload'
-    },
-    status: 'Upload module loaded successfully'
-  })
-})
-
-// Test Audio route specifically
-app.get('/api/audio-check', (req, res) => {
-  res.status(200).json({ 
-    message: 'Audio routes check',
-    timestamp: new Date().toISOString(),
-    audioRoutes: {
-      send: '/api/audio/send',
-      test: '/api/audio/test/ping',
-      file: '/api/audio/:filename'
-    },
-    status: 'Audio module loaded successfully'
-  })
-})
-
-// Rutas
-console.log('🔄 Registrando rutas...');
-app.use('/api/users', userRoutes)
-console.log('✅ Ruta users registrada');
-app.use('/api/roles', roleRoutes)
-console.log('✅ Ruta roles registrada');
-app.use('/api/messages', messageRoutes)
-console.log('✅ Ruta messages registrada');
-app.use('/api/groups', groupRoutes)
-console.log('✅ Ruta groups registrada');
-app.use('/api/objectives', objectiveRoutes)
-console.log('✅ Ruta objectives registrada');
-app.use('/api/tasks', taskRoutes)
-console.log('✅ Ruta tasks registrada');
-app.use('/api/upload', uploadRoutes)
-console.log('✅ Ruta upload registrada');
-
-// Registrar rutas de audio con manejo de errores específico
-try {
-  console.log('🎵 Intentando registrar rutas de audio...');
-  // Temporalmente comentado para debuggear
-  // app.use('/api/audio', audioRoutes)
-  console.log('⚠️ Rutas de audio COMENTADAS temporalmente para debug');
-} catch (error) {
-  console.error('❌ ERROR al registrar rutas de audio:', error);
-  console.error('Stack trace:', error.stack);
+// Función async para configurar rutas con imports dinámicos
+async function configureRoutes() {
+  console.log('📦 Configurando rutas con imports dinámicos...');
+  
+  try {
+    // Import dinámico de userRoutes
+    console.log('📦 Importando userRoutes...');
+    const userRoutes = await import('./src/routes/user.routes.js')
+    app.use('/api/users', userRoutes.default)
+    console.log('✅ Ruta users registrada');
+    
+    // Import dinámico de roleRoutes
+    console.log('📦 Importando roleRoutes...');
+    const roleRoutes = await import('./src/routes/role.routes.js')
+    app.use('/api/roles', roleRoutes.default)
+    console.log('✅ Ruta roles registrada');
+    
+    // Import dinámico de messageRoutes
+    console.log('📦 Importando messageRoutes...');
+    const messageRoutes = await import('./src/routes/message.routes.js')
+    app.use('/api/messages', messageRoutes.default)
+    console.log('✅ Ruta messages registrada');
+    
+    // Import dinámico de groupRoutes
+    console.log('📦 Importando groupRoutes...');
+    const groupRoutes = await import('./src/routes/group.routes.js')
+    app.use('/api/groups', groupRoutes.default)
+    console.log('✅ Ruta groups registrada');
+    
+    // Import dinámico de objectiveRoutes
+    console.log('📦 Importando objectiveRoutes...');
+    const objectiveRoutes = await import('./src/routes/objective.routes.js')
+    app.use('/api/objectives', objectiveRoutes.default)
+    console.log('✅ Ruta objectives registrada');
+    
+    // Import dinámico de taskRoutes
+    console.log('📦 Importando taskRoutes...');
+    const taskRoutes = await import('./src/routes/task.routes.js')
+    app.use('/api/tasks', taskRoutes.default)
+    console.log('✅ Ruta tasks registrada');
+    
+    // Import dinámico de uploadRoutes
+    console.log('📦 Importando uploadRoutes...');
+    const uploadRoutes = await import('./src/routes/upload.routes.js')
+    app.use('/api/upload', uploadRoutes.default)
+    console.log('✅ Ruta upload registrada');
+    
+    // Import dinámico de audioRoutes (con manejo de errores)
+    try {
+      console.log('📦 Importando audioRoutes...');
+      const audioRoutes = await import('./src/routes/audio.routes.js')
+      app.use('/api/audio', audioRoutes.default)
+      console.log('✅ Ruta audio registrada');
+    } catch (error) {
+      console.log('⚠️ Audio routes no disponibles:', error.message);
+    }
+    
+    // Import dinámico de callRoutes (con manejo de errores)
+    try {
+      console.log('📦 Importando callRoutes...');
+      const callRoutes = await import('./src/routes/call.routes.js')
+      app.use('/api/calls', callRoutes.default)
+      console.log('✅ Ruta calls registrada');
+    } catch (error) {
+      console.log('⚠️ Call routes no disponibles:', error.message);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error configurando rutas:', error)
+    throw error
+  }
 }
 
-// Registrar rutas de llamadas con manejo de errores específico
-try {
-  console.log('📞 Intentando registrar rutas de llamadas...');
-  // Temporalmente comentado para debuggear
-  // app.use('/api/calls', callRoutes)
-  console.log('⚠️ Rutas de llamadas COMENTADAS temporalmente para debug');
-} catch (error) {
-  console.error('❌ ERROR al registrar rutas de llamadas:', error);
-  console.error('Stack trace:', error.stack);
-}
-
-// Log para diagnóstico - rutas registradas
-console.log('📋 Routes registered:', {
-  users: '/api/users',
-  roles: '/api/roles',
-  messages: '/api/messages',
-  groups: '/api/groups',
-  objectives: '/api/objectives',
-  tasks: '/api/tasks',
-  upload: '/api/upload',
-  audio: '/api/audio',
-  calls: '/api/calls'
-});
-
-// Error handling middleware
-app.use(serverError)
+// Ejecutar configuración de rutas
+await configureRoutes()
+console.log('✅ Configuración de rutas completada');
 
 // Configurar Socket.io
+console.log('🔧 Configurando Socket.IO...');
 const io = new SocketServer(server, {
-  cors: {
-    origin: [
-      'http://localhost:5173',      // Desarrollo local (Vite)
-      'http://localhost:3000',      // Desarrollo local alternativo
-      'https://chat-for-company.vercel.app',  // Producción Vercel
-      'https://chat-for-company-git-main-damdev80.vercel.app', // Branch previews
-      'https://chat-for-company-damdev80.vercel.app' // Vercel subdomain
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
-  },
+  cors: corsOptions,
+  methods: ['GET', 'POST'],
   transports: ['websocket', 'polling']
 })
 
-// Set Socket.IO instance in manager for access from controllers
+// Configuración básica de Socket.IO
 try {
-  setSocketInstance(io)
-  configureSocket(io)
-  console.log('✅ Socket.IO configured successfully')
+  // Configuración básica sin imports complejos por ahora
+  io.on('connection', (socket) => {
+    console.log('👤 Usuario conectado:', socket.id)
+    
+    socket.on('disconnect', () => {
+      console.log('👤 Usuario desconectado:', socket.id)
+    })
+  })
+  
+  console.log('✅ Socket.IO configurado correctamente')
 } catch (error) {
-  console.error('❌ Socket.IO configuration error:', error)
+  console.error('❌ Error configurando Socket.IO:', error)
 }
 
+// Manejo de errores 404 (ARREGLADO - sin patrón '*' problemático)
+app.use((req, res) => {
+  res.status(404).json({ 
+    message: 'Endpoint no encontrado',
+    path: req.originalUrl,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  })
+})
 
+// Middleware de manejo de errores
+app.use(serverError)
+
+// Exportar para uso en server.js
+export default app
+export { server }
+
+console.log('✅ Aplicación configurada correctamente');
 
 // Iniciar servidor
 const PORT = process.env.PORT || 3000
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
-  console.log(`🌐 Server started at ${new Date().toISOString()}`)
-  console.log(`✅ All routes loaded successfully`)
-  console.log(`🔧 Build version: ${new Date().toISOString()}`) // Force rebuild
+server.listen(PORT, () => {
+  console.log(`✅ Servidor corriendo en puerto ${PORT}`)
+  console.log(`🌐 http://localhost:${PORT}`)
+  console.log(`🩺 Health check: http://localhost:${PORT}/api/health`)
 })
