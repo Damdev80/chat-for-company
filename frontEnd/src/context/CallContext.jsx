@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { initiateGroupCall, joinCall, leaveCall, getCallParticipants, endCall } from '../utils/api';
+import CallAlert from '../components/CallAlert';
 
 const CallContext = createContext();
 
@@ -19,6 +20,11 @@ export const CallProvider = ({ children }) => {
   const [remoteStreams, setRemoteStreams] = useState(new Map());
   const [callError, setCallError] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  
+  // Estados para la alerta de llamada activa
+  const [showCallAlert, setShowCallAlert] = useState(false);
+  const [activeCallInfo, setActiveCallInfo] = useState(null);
+  const [pendingGroupId, setPendingGroupId] = useState(null);
     // Referencias para WebRTC
   const peerConnections = useRef(new Map());
   const localVideoRef = useRef(null);
@@ -61,19 +67,11 @@ export const CallProvider = ({ children }) => {
         console.log('📞 Llamada grupal iniciada:', response.data);
         return true;
       } else if (response.hasActiveCall) {
-        // Hay una llamada activa, preguntar al usuario qué hacer
-        const userChoice = window.confirm(
-          `Ya hay una llamada activa en este grupo. ¿Deseas unirte a la llamada existente?`
-        );
-        
-        if (userChoice) {
-          // Unirse a la llamada existente
-          return await joinGroupCall(response.activeCall.id);
-        } else {
-          // El usuario no quiere unirse
-          setCallError('Llamada cancelada por el usuario');
-          return false;
-        }
+        // Hay una llamada activa, mostrar alerta
+        setActiveCallInfo(response.activeCall);
+        setPendingGroupId(groupId);
+        setShowCallAlert(true);
+        return false;
       }
     } catch (error) {
       console.error('❌ Error al iniciar llamada:', error);
@@ -82,6 +80,73 @@ export const CallProvider = ({ children }) => {
     } finally {
       setIsConnecting(false);
     }
+  };
+  // Finalizar una llamada (solo admin)
+  const endActiveCall = async () => {
+    try {
+      if (activeCallInfo) {
+        const token = localStorage.getItem('token');
+        await endCall(activeCallInfo.id, token);
+        
+        // Cerrar alerta y limpiar estado
+        setShowCallAlert(false);
+        setActiveCallInfo(null);
+        
+        // Intentar iniciar nueva llamada
+        if (pendingGroupId) {
+          setTimeout(() => {
+            startGroupCall(pendingGroupId);
+          }, 500);
+        }
+        
+        console.log('📞 Llamada finalizada por admin');
+      }
+    } catch (error) {
+      console.error('❌ Error al finalizar llamada:', error);
+      
+      // Si la llamada ya ha finalizado, consideramos esto como éxito
+      if (error.message.includes('ya ha finalizado') || error.message.includes('already ended')) {
+        console.log('📞 La llamada ya estaba finalizada, continuando...');
+        
+        // Cerrar alerta y limpiar estado como si fuera exitoso
+        setShowCallAlert(false);
+        setActiveCallInfo(null);
+        
+        // Intentar iniciar nueva llamada
+        if (pendingGroupId) {
+          setTimeout(() => {
+            startGroupCall(pendingGroupId);
+          }, 500);
+        }
+      } else {
+        setCallError('Error al finalizar la llamada');
+      }
+    }
+  };
+
+  // Unirse a la llamada existente
+  const handleJoinExistingCall = async () => {
+    try {
+      if (activeCallInfo) {
+        setShowCallAlert(false);
+        const success = await joinGroupCall(activeCallInfo.id);
+        if (success) {
+          setActiveCallInfo(null);
+          setPendingGroupId(null);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error al unirse a llamada existente:', error);
+      setCallError('Error al unirse a la llamada');
+    }
+  };
+
+  // Cancelar la alerta
+  const handleCancelAlert = () => {
+    setShowCallAlert(false);
+    setActiveCallInfo(null);
+    setPendingGroupId(null);
+    setCallError('Operación cancelada');
   };
 
   // Unirse a una llamada existente
@@ -203,6 +268,21 @@ export const CallProvider = ({ children }) => {
     setIsConnecting(false);
   };
 
+  // Función para limpiar estado cuando hay inconsistencias
+  const forceCleanupCall = () => {
+    console.log('🧹 Forzando limpieza de estado de llamada...');
+    setShowCallAlert(false);
+    setActiveCallInfo(null);
+    setCallError(null);
+    
+    // Intentar iniciar nueva llamada si había una pendiente
+    if (pendingGroupId) {
+      setTimeout(() => {
+        startGroupCall(pendingGroupId);
+      }, 500);
+    }
+  };
+
   // Obtener participantes de la llamada
   const refreshParticipants = async () => {
     if (currentCall) {
@@ -218,7 +298,6 @@ export const CallProvider = ({ children }) => {
       }
     }
   };
-
   const value = {
     // Estado
     currentCall,
@@ -229,8 +308,8 @@ export const CallProvider = ({ children }) => {
     callError,
     isConnecting,
     localVideoRef,
-
-    // Funciones
+    showCallAlert,
+    activeCallInfo,    // Funciones
     startGroupCall,
     joinGroupCall,
     leaveGroupCall,
@@ -238,13 +317,27 @@ export const CallProvider = ({ children }) => {
     toggleMicrophone,
     toggleCamera,
     refreshParticipants,
-    cleanupCall
+    cleanupCall,
+    endActiveCall,
+    forceCleanupCall,
+    handleJoinExistingCall,
+    handleCancelAlert
   };
-
   return (
     <CallContext.Provider value={value}>
-      {children}
-    </CallContext.Provider>  );
+      {children}      {showCallAlert && activeCallInfo && (
+        <CallAlert
+          isOpen={showCallAlert}
+          activeCall={activeCallInfo}
+          userRole={localStorage.getItem('userRole') || ''}
+          onJoinCall={handleJoinExistingCall}
+          onEndCall={endActiveCall}
+          onCancel={handleCancelAlert}
+          onForceCleanup={forceCleanupCall}
+        />
+      )}
+    </CallContext.Provider>
+  );
 };
 
 // Hook personalizado para usar el contexto
