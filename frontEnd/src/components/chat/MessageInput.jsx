@@ -10,13 +10,13 @@ const MessageInput = ({
   setNewMessage, 
   onSendMessage, 
   onTyping,
-  onNotification
+  onNotification,
+  activeGroup
 }) => {
   const [showEmojis, setShowEmojis] = useState(false);
   const [showAttachOptions, setShowAttachOptions] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  
   // Estados para audio
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
@@ -130,10 +130,8 @@ const MessageInput = ({
       setIsUploading(true);
       if (onNotification) {
         onNotification("Info", "Enviando mensaje de audio...");
-      }
-
-      const token = localStorage.getItem('token');
-      const groupId = "global"; // O el ID del grupo actual
+      }      const token = localStorage.getItem('token');
+      const groupId = activeGroup || "global"; // Usar el grupo actual
       
       // Crear un mensaje optimista para el audio
       const tempId = Date.now().toString();
@@ -178,13 +176,11 @@ const MessageInput = ({
         setShowAudioRecorder(false);
         setIsRecordingAudio(false);
       }
-    } catch (error) {
-      console.error('❌ Error al enviar audio:', error);
+    } catch (error) {      console.error('❌ Error al enviar audio:', error);
       if (onNotification) {
         onNotification("Error", error.message || "Error al enviar mensaje de audio");
       }
-    } finally {
-      setIsUploading(false);
+    } finally {      setIsUploading(false);
     }
   };
 
@@ -270,9 +266,7 @@ const MessageInput = ({
           title="Seleccionar emoji"
         >
           <Smile size={16} className="sm:w-5 sm:h-5 transition-all duration-300 group-hover:scale-110" />
-        </button>
-
-        {/* Botón de audio - NUEVA FUNCIONALIDAD */}
+        </button>        {/* Botón de audio - NUEVA FUNCIONALIDAD */}
         <button
           type="button"
           onClick={handleAudioButtonClick}
@@ -290,8 +284,7 @@ const MessageInput = ({
           
           <Mic size={16} className={`sm:w-5 sm:h-5 transition-all duration-300 ${
             showAudioRecorder || isRecordingAudio ? 'scale-110 text-red-400' : 'group-hover:scale-110'
-          }`} />
-          
+          }`} />          
           {/* Indicador de grabación */}
           {isRecordingAudio && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/40"></div>

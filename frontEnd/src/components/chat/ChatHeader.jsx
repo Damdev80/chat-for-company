@@ -1,21 +1,28 @@
 import React from "react";
-import { Phone, Trash2, Info, Menu, ArrowLeft, Bell } from "lucide-react";
+import { Phone, Trash2, Info, Menu, ArrowLeft, Bell, PhoneCall, Video } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
+import { useCall } from "../../context/CallContext";
 
-const ChatHeader = ({ 
+const ChatHeader = ({
   activeGroup, 
   groups, 
   onToggleSidebar, 
   onToggleGroupInfo,
-  onCall,
   onDeleteChat,
   notifications = [],
   onShowNotifications,
   userRole
 }) => {
+  const { startGroupCall, isConnecting } = useCall();
   const currentGroup = groups.find(g => g.id === activeGroup);
   const groupName = currentGroup?.name || "Chat";
   const unreadNotifications = notifications.filter(n => !n.read).length;
+
+  const handleGroupCall = async () => {
+    if (activeGroup && activeGroup !== "global") {
+      await startGroupCall(activeGroup);
+    }
+  };
     return (
     <div className="border-b border-[#3C4043] p-3 sm:p-4 bg-gradient-to-r from-[#2C2C34] to-[#252529]">
       <div className="flex items-center justify-between">        {/* Lado izquierdo - Mejorado para móvil */}
@@ -47,7 +54,8 @@ const ChatHeader = ({
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {/* Notificaciones */}
           <button
-            onClick={onShowNotifications}            className="relative p-1.5 sm:p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200"
+            onClick={onShowNotifications}
+            className="relative p-1.5 sm:p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200"
             title="Notificaciones"
           >
             <Bell size={16} className="sm:w-5 sm:h-5" />
@@ -58,14 +66,19 @@ const ChatHeader = ({
             )}
           </button>
 
-          {/* Llamada de voz - Oculto en móviles muy pequeños */}
-          <button
-            onClick={onCall}
-            className="hidden sm:flex p-1.5 sm:p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200"
-            title="Llamada de voz"
-          >
-            <Phone size={16} className="sm:w-5 sm:h-5" />
-          </button>          {/* Eliminar chat/limpiar contenido - Solo para admin */}
+          {/* Llamada grupal - Solo visible para grupos privados */}
+          {activeGroup && activeGroup !== "global" && (
+            <button
+              onClick={handleGroupCall}
+              disabled={isConnecting}
+              className="p-1.5 sm:p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Iniciar llamada grupal"
+            >
+              <PhoneCall size={16} className="sm:w-5 sm:h-5" />
+            </button>
+          )}
+
+          {/* Eliminar chat/limpiar contenido - Solo para admin */}
           {userRole === "admin" && (
             <button
               onClick={() => onDeleteChat(activeGroup)}

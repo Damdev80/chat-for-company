@@ -1,11 +1,14 @@
 import "../styles/index.css"
 import { BrowserRouter } from "react-router-dom"
 import RoutesIndex from "./routes"
+import { CallProvider } from "./context/CallContext"
 
 function App() {
   return (
     <BrowserRouter>
-      <RoutesIndex />
+      <CallProvider>
+        <RoutesIndex />
+      </CallProvider>
     </BrowserRouter>
   )
 }
