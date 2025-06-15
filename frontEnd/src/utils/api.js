@@ -501,10 +501,20 @@ export async function initiateGroupCall(groupId, callType = 'audio', participant
   });
   
   console.log('📞 [API] Group call initiate response status:', res.status);
-  
-  if (!res.ok) {
+    if (!res.ok) {
     const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
     console.log('📞 [API] Group call initiate error:', errorData);
+    
+    // Si hay una llamada activa, devolver la información para manejarla
+    if (res.status === 409 && errorData.activeCall) {
+      return { 
+        success: false, 
+        hasActiveCall: true, 
+        activeCall: errorData.activeCall,
+        message: errorData.message 
+      };
+    }
+    
     throw new Error(`Error al iniciar llamada grupal: ${errorData.message || 'Error desconocido'}`);
   }
   
@@ -610,4 +620,28 @@ export async function getCallParticipants(callId, token) {
   const result = await res.json();
   console.log('📞 [API] Call participants success:', result);
   return { success: true, data: result.participants || [] };
+}
+
+export async function endCall(callId, token) {
+  console.log('📞 [API] Ending call:', callId);
+  
+  const res = await fetch(`${API_URL}/calls/${callId}/end`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  console.log('📞 [API] End call response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('📞 [API] End call error:', errorData);
+    throw new Error(`Error al finalizar llamada: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('📞 [API] End call success:', result);
+  return { success: true, message: result.message };
 }

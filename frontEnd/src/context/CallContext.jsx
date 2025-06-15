@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { initiateGroupCall, joinCall, leaveCall, getCallParticipants } from '../utils/api';
+import { initiateGroupCall, joinCall, leaveCall, getCallParticipants, endCall } from '../utils/api';
 
 const CallContext = createContext();
 
@@ -42,8 +42,7 @@ export const CallProvider = ({ children }) => {
       }
       currentPeerConnections.forEach(pc => pc.close());
     };
-  }, [localStream]);
-  // Iniciar una nueva llamada grupal
+  }, [localStream]);  // Iniciar una nueva llamada grupal
   const startGroupCall = async (groupId) => {
     try {
       setIsConnecting(true);
@@ -61,6 +60,20 @@ export const CallProvider = ({ children }) => {
         
         console.log('📞 Llamada grupal iniciada:', response.data);
         return true;
+      } else if (response.hasActiveCall) {
+        // Hay una llamada activa, preguntar al usuario qué hacer
+        const userChoice = window.confirm(
+          `Ya hay una llamada activa en este grupo. ¿Deseas unirte a la llamada existente?`
+        );
+        
+        if (userChoice) {
+          // Unirse a la llamada existente
+          return await joinGroupCall(response.activeCall.id);
+        } else {
+          // El usuario no quiere unirse
+          setCallError('Llamada cancelada por el usuario');
+          return false;
+        }
       }
     } catch (error) {
       console.error('❌ Error al iniciar llamada:', error);

@@ -132,11 +132,9 @@ export class ModelsObjective {  static async create({ title, description, group_
     const connection = await getConnection();
     
     let total = 0;
-    let completed = 0;
-
-    try {
+    let completed = 0;    try {
       const totalResult = await connection.execute(
-        'SELECT COUNT(id) as total FROM tasks WHERE objective_id = ?',
+        'SELECT COUNT(*) as total FROM tasks WHERE objective_id = ?',
         [id]
       );
       if (totalResult.rows && totalResult.rows.length > 0) {
@@ -144,7 +142,7 @@ export class ModelsObjective {  static async create({ title, description, group_
       }
 
       const completedResult = await connection.execute(
-        'SELECT COUNT(id) as completed FROM tasks WHERE objective_id = ? AND status = "completed"',
+        'SELECT COUNT(*) as completed FROM tasks WHERE objective_id = ? AND status = "completed"',
         [id]
       );
       if (completedResult.rows && completedResult.rows.length > 0) {
