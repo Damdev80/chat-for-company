@@ -136,20 +136,12 @@ try {
 // Log para diagnóstico - rutas registradas
 console.error('📋 Routes registered:', {
   users: '/api/users',
-  roles: '/api/roles',
-  messages: '/api/messages',
+  roles: '/api/roles',  messages: '/api/messages',
   groups: '/api/groups',
-  objectives: '/api/objectives',  tasks: '/api/tasks',
+  objectives: '/api/objectives',
+  tasks: '/api/tasks',
   upload: '/api/upload',
   audio: '/api/audio'
-});
-
-// Middleware para loggear todas las rutas registradas
-app._router.stack.forEach(function(r){
-  if (r.route && r.route.path){
-    console.log('📍 Registered route:', r.route.path, Object.keys(r.route.methods));
-  } else if (r.name === 'router') {
-    console.log('📍 Router middleware:', r.regexp);  }
 });
 
 // Middleware para capturar rutas no encontradas y loggear
