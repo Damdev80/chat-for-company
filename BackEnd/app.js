@@ -183,8 +183,9 @@ console.log('✅ Ruta upload registrada');
 // Registrar rutas de audio con manejo de errores específico
 try {
   console.log('🎵 Intentando registrar rutas de audio...');
-  app.use('/api/audio', audioRoutes)
-  console.log('✅ Ruta audio registrada exitosamente');
+  // Temporalmente comentado para debuggear
+  // app.use('/api/audio', audioRoutes)
+  console.log('⚠️ Rutas de audio COMENTADAS temporalmente para debug');
 } catch (error) {
   console.error('❌ ERROR al registrar rutas de audio:', error);
   console.error('Stack trace:', error.stack);
@@ -193,8 +194,9 @@ try {
 // Registrar rutas de llamadas con manejo de errores específico
 try {
   console.log('📞 Intentando registrar rutas de llamadas...');
-  app.use('/api/calls', callRoutes)
-  console.log('✅ Ruta calls registrada exitosamente');
+  // Temporalmente comentado para debuggear
+  // app.use('/api/calls', callRoutes)
+  console.log('⚠️ Rutas de llamadas COMENTADAS temporalmente para debug');
 } catch (error) {
   console.error('❌ ERROR al registrar rutas de llamadas:', error);
   console.error('Stack trace:', error.stack);
