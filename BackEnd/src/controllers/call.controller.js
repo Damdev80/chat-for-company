@@ -1,5 +1,5 @@
 import { ModelsCall } from '../models/call.js';
-import { getSocketInstance } from '../utils/socketManager.js';
+import { getSocketInstance, getSocketIdByUserId } from '../utils/socketManager.js';
 
 export class CallController {  /**
    * Iniciar una nueva llamada grupal
@@ -35,8 +35,8 @@ export class CallController {  /**
         caller_id,
         group_id,
         call_type,
-        status: 'initiated'
-      };      console.log('📞 Creando llamada grupal:', callData);
+        status: 'ringing' // Cambiar a 'ringing' para que otros puedan unirse
+      };console.log('📞 Creando llamada grupal:', callData);
       const newCall = await ModelsCall.create(callData);
 
       // Agregar al caller como participante automáticamente
@@ -54,7 +54,7 @@ export class CallController {  /**
       if (io) {
         console.log('📡 Emitiendo llamada grupal por Socket.IO');
         
-        // Notificar a todos los usuarios conectados (específicamente al grupo)
+        // Notificar a todos los usuarios conectados EXCEPTO al caller
         const callNotification = {
           type: 'incoming_group_call',
           callId: newCall.id,
@@ -66,10 +66,17 @@ export class CallController {  /**
           message: `${req.user.username || 'Un usuario'} ha iniciado una llamada grupal`
         };
 
-        // Emitir a todos los usuarios (el frontend filtrará por grupo)
-        io.emit('incoming_group_call', callNotification);
+        // Emitir a todos los usuarios EXCEPTO al caller (usando broadcast)
+        const callerSocketId = await getSocketIdByUserId(caller_id);
+        if (callerSocketId) {
+          // Si encontramos el socket del caller, usar broadcast para excluirlo
+          io.to(callerSocketId).broadcast.emit('incoming_group_call', callNotification);
+        } else {
+          // Si no encontramos el socket del caller, emitir a todos (fallback)
+          io.emit('incoming_group_call', callNotification);
+        }
         
-        console.log('📡 Notificación de llamada enviada:', callNotification);
+        console.log('📡 Notificación de llamada enviada (excluyendo caller):', callNotification);
       }
 
       res.status(201).json({ 
@@ -106,11 +113,9 @@ export class CallController {  /**
         return res.status(400).json({ 
           message: 'Esta no es una llamada grupal' 
         });
-      }
-
-      if (!['ringing', 'active'].includes(call.status)) {
+      }      if (!['initiated', 'ringing', 'active'].includes(call.status)) {
         return res.status(409).json({ 
-          message: 'La llamada no está disponible para unirse' 
+          message: `La llamada no está disponible para unirse (status: ${call.status})` 
         });
       }
 
@@ -120,14 +125,14 @@ export class CallController {  /**
         return res.status(409).json({ 
           message: 'Ya eres participante de esta llamada' 
         });
-      }
-
-      // Agregar como participante
+      }      // Agregar como participante
       await ModelsCall.addParticipant(callId, user_id, 'joined');
 
-      // Si es el primer participante que se une, cambiar status a 'active'
-      if (call.status === 'ringing') {
+      // Si es el primer participante que se une (además del caller), cambiar status a 'active'
+      const participantCount = await ModelsCall.getParticipantCount(callId);
+      if (call.status === 'ringing' && participantCount >= 2) {
         await ModelsCall.updateStatus(callId, 'active');
+        console.log(`📞 Llamada ${callId} cambiada a status 'active' - ${participantCount} participantes`);
       }
 
       // Obtener la llamada actualizada con participantes

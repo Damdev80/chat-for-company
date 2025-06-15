@@ -213,3 +213,19 @@ export const isUserOnline = (userId) => {
 export const getOnlineUsersCount = () => {
   return onlineUsers.size;
 };
+
+// Obtener socket ID por user ID
+export const getSocketIdByUserId = (userId) => {
+  const user = onlineUsers.get(userId);
+  return user ? user.socketId : null;
+};
+
+// Obtener usuario por socket ID
+export const getUserBySocketId = (socketId) => {
+  for (const [userId, userData] of onlineUsers.entries()) {
+    if (userData.socketId === socketId) {
+      return { userId, ...userData };
+    }
+  }
+  return null;
+};

@@ -622,4 +622,24 @@ export class ModelsCall {  /**
       throw error;
     }
   }
+
+  /**
+   * Obtener el número de participantes en una llamada
+   */
+  static async getParticipantCount(callId) {
+    try {
+      const connection = await getConnection();
+      
+      const [result] = await connection.execute(
+        `SELECT COUNT(*) as count FROM call_participants WHERE call_id = ?`,
+        [callId]
+      );
+      
+      connection.end();
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error en ModelsCall.getParticipantCount:', error);
+      throw error;
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { initiateGroupCall, joinCall, leaveCall, getCallParticipants, endCall, forceCleanupAllCalls } from '../utils/api';
+import { connectSocket } from '../utils/socket';
 
 import CallAlert from '../components/CallAlert';
 import IncomingCallModal from '../components/IncomingCallModal';
@@ -30,6 +31,8 @@ export const CallProvider = ({ children }) => {
     // Referencias para WebRTC
   const peerConnections = useRef(new Map());
   const localVideoRef = useRef(null);
+ 
+  // Referencia para Socket.IO
   const socketRef = useRef(null);
 
   // Estados para notificaciones de llamadas entrantes
@@ -424,6 +427,34 @@ export const CallProvider = ({ children }) => {
     setShowIncomingCallModal(false);
     setIncomingCallNotification(null);
   };
+
+  // Aceptar llamada entrante
+  const acceptIncomingCall = async () => {
+    if (incomingCallNotification) {
+      try {
+        setShowIncomingCallModal(false);
+        const success = await joinGroupCall(incomingCallNotification.callId);
+        if (success) {
+          setIncomingCallNotification(null);
+        } else {
+          // Si falla, mostrar error pero limpiar notificación
+          setIncomingCallNotification(null);
+          setCallError('No se pudo unir a la llamada');
+        }
+      } catch (error) {
+        console.error('❌ Error aceptando llamada:', error);
+        setIncomingCallNotification(null);
+        setCallError('No se pudo unir a la llamada');
+      }
+    }
+  };
+
+  // Rechazar llamada entrante
+  const rejectIncomingCall = () => {
+    setShowIncomingCallModal(false);
+    setIncomingCallNotification(null);
+  };
+
   const value = {
     // Estado
     currentCall,
@@ -454,7 +485,9 @@ export const CallProvider = ({ children }) => {
     handleAcceptIncomingCall,
     handleDeclineIncomingCall,
     handleIncomingCall,
-    clearIncomingCall
+    clearIncomingCall,
+    acceptIncomingCall,
+    rejectIncomingCall
   };
   
   return (
@@ -473,14 +506,13 @@ export const CallProvider = ({ children }) => {
           onForceCleanup={forceCleanupCall}
         />
       )}
-      
-      {/* Modal de llamada entrante */}
+        {/* Modal de llamada entrante */}
       {showIncomingCallModal && incomingCallNotification && (
         <IncomingCallModal
           isOpen={showIncomingCallModal}
           callData={incomingCallNotification}
-          onAccept={handleAcceptIncomingCall}
-          onDecline={handleDeclineIncomingCall}
+          onAccept={acceptIncomingCall}
+          onDecline={rejectIncomingCall}
         />
       )}
     </CallContext.Provider>
