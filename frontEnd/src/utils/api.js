@@ -481,3 +481,133 @@ export async function getAudioMessages(groupId, token) {
   console.log('🎵 [API] Audio messages success:', result);
   return result;
 }
+
+// --- LLAMADAS GRUPALES ---
+
+export async function initiateGroupCall(groupId, callType = 'audio', participants = [], token) {
+  console.log('📞 [API] Initiating group call:', { groupId, callType, participants });
+  
+  const res = await fetch(`${API_URL}/calls/group/initiate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      group_id: groupId,
+      call_type: callType,
+      participants: participants
+    }),
+  });
+  
+  console.log('📞 [API] Group call initiate response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('📞 [API] Group call initiate error:', errorData);
+    throw new Error(`Error al iniciar llamada grupal: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('📞 [API] Group call initiate success:', result);
+  return { success: true, data: result.call, message: result.message };
+}
+
+export async function joinGroupCall(callId, token) {
+  console.log('📞 [API] Joining group call:', callId);
+  
+  const res = await fetch(`${API_URL}/calls/${callId}/join`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  console.log('📞 [API] Join group call response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('📞 [API] Join group call error:', errorData);
+    throw new Error(`Error al unirse a llamada: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('📞 [API] Join group call success:', result);
+  return { success: true, data: result.call, message: result.message };
+}
+
+export async function leaveGroupCall(callId, token) {
+  console.log('📞 [API] Leaving group call:', callId);
+  
+  const res = await fetch(`${API_URL}/calls/${callId}/leave`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  console.log('📞 [API] Leave group call response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('📞 [API] Leave group call error:', errorData);
+    throw new Error(`Error al abandonar llamada: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('📞 [API] Leave group call success:', result);
+  return { success: true, callEnded: result.callEnded, message: result.message };
+}
+
+export async function getActiveGroupCalls(groupId, token) {
+  console.log('📞 [API] Getting active group calls for:', groupId);
+  
+  const res = await fetch(`${API_URL}/calls/group/${groupId}/active`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  console.log('📞 [API] Active group calls response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('📞 [API] Active group calls error:', errorData);
+    throw new Error(`Error al obtener llamadas activas: ${errorData.message || 'Error desconocido'}`);
+  }
+    const result = await res.json();
+  console.log('📞 [API] Active group calls success:', result);
+  return result.activeCalls || [];
+}
+
+// Alias para mantener compatibilidad con el contexto
+export async function joinCall(callId, token) {
+  return await joinGroupCall(callId, token);
+}
+
+export async function leaveCall(callId, token) {
+  return await leaveGroupCall(callId, token);
+}
+
+export async function getCallParticipants(callId, token) {
+  console.log('📞 [API] Getting call participants for callId:', callId);
+  
+  const res = await fetch(`${API_URL}/calls/${callId}/participants`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  console.log('📞 [API] Call participants response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+    console.log('📞 [API] Call participants error:', errorData);
+    throw new Error(`Error al obtener participantes: ${errorData.message || 'Error desconocido'}`);
+  }
+  
+  const result = await res.json();
+  console.log('📞 [API] Call participants success:', result);
+  return { success: true, data: result.participants || [] };
+}

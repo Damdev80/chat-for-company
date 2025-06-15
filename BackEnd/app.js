@@ -27,6 +27,8 @@ import uploadRoutes from './src/routes/upload.routes.js'
 console.log('✅ uploadRoutes imported');
 import audioRoutes from './src/routes/audio.routes.js'
 console.log('✅ audioRoutes imported');
+import callRoutes from './src/routes/call.routes.js'
+console.log('✅ callRoutes imported');
 
 // Configurar variables de entorno
 dotenv.config()
@@ -122,6 +124,8 @@ app.use('/api/tasks', taskRoutes)
 console.log('✅ Ruta tasks registrada');
 app.use('/api/upload', uploadRoutes)
 console.log('✅ Ruta upload registrada');
+app.use('/api/audio', audioRoutes)
+console.log('✅ Ruta audio registrada');
 
 // Registrar rutas de audio con manejo de errores específico
 try {
@@ -130,6 +134,16 @@ try {
   console.log('✅ Ruta audio registrada exitosamente');
 } catch (error) {
   console.error('❌ ERROR al registrar rutas de audio:', error);
+  console.error('Stack trace:', error.stack);
+}
+
+// Registrar rutas de llamadas con manejo de errores específico
+try {
+  console.log('📞 Intentando registrar rutas de llamadas...');
+  app.use('/api/calls', callRoutes)
+  console.log('✅ Ruta calls registrada exitosamente');
+} catch (error) {
+  console.error('❌ ERROR al registrar rutas de llamadas:', error);
   console.error('Stack trace:', error.stack);
 }
 
@@ -142,7 +156,8 @@ console.log('📋 Routes registered:', {
   objectives: '/api/objectives',
   tasks: '/api/tasks',
   upload: '/api/upload',
-  audio: '/api/audio'
+  audio: '/api/audio',
+  calls: '/api/calls'
 });
 
 // Error handling middleware
