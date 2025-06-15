@@ -7,6 +7,13 @@ import { getSocketInstance } from '../utils/socketManager.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Asegurar que el directorio de audio existe
+const audioDir = path.join(__dirname, '../../uploads/audio');
+if (!fs.existsSync(audioDir)) {
+  fs.mkdirSync(audioDir, { recursive: true });
+  console.log('📁 Directorio de audio creado:', audioDir);
+}
+
 export class AudioController {
   /**
    * Enviar mensaje de audio

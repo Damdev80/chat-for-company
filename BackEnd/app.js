@@ -92,6 +92,20 @@ app.get('/api/upload-check', (req, res) => {
   })
 })
 
+// Test Audio route specifically
+app.get('/api/audio-check', (req, res) => {
+  res.status(200).json({ 
+    message: 'Audio routes check',
+    timestamp: new Date().toISOString(),
+    audioRoutes: {
+      send: '/api/audio/send',
+      test: '/api/audio/test/ping',
+      file: '/api/audio/:filename'
+    },
+    status: 'Audio module loaded successfully'
+  })
+})
+
 // Rutas
 console.log('🔄 Registrando rutas...');
 app.use('/api/users', userRoutes)
