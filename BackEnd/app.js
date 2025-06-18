@@ -66,14 +66,23 @@ app.get('/api/test', (req, res) => {
     message: 'API is working',
     timestamp: new Date().toISOString(),
     routes: {
-      users: '/api/users',
-      roles: '/api/roles', 
+      users: '/api/users',      roles: '/api/roles', 
       messages: '/api/messages',
       groups: '/api/groups',
       objectives: '/api/objectives',
       tasks: '/api/tasks',
       upload: '/api/upload',
-      audio: '/api/audio'
+      audio: '/api/audio',
+      ideas: '/api/ideas', // NUEVA FUNCIONALIDAD
+      events: '/api/events' // NUEVA FUNCIONALIDAD
+    },
+    features: {
+      chat: 'enabled',
+      file_upload: 'enabled',
+      audio_messages: 'enabled',
+      idea_wall: 'enabled', // NUEVA FUNCIONALIDAD
+      event_calendar: 'enabled', // NUEVA FUNCIONALIDAD
+      video_calls: 'disabled' // Deshabilitado por limitaciones de recursos
     }
   })
 })
@@ -123,6 +132,18 @@ console.log('✅ Ruta tasks registrada');
 app.use('/api/upload', uploadRoutes)
 console.log('✅ Ruta upload registrada');
 
+// Import dinámico de ideaRoutes - NUEVA FUNCIONALIDAD
+console.log('📦 Importando ideaRoutes...');
+const ideaRoutes = await import('./src/routes/idea.routes.js')
+app.use('/api/ideas', ideaRoutes.default)
+console.log('✅ Ruta ideas registrada');
+
+// Import dinámico de eventRoutes - NUEVA FUNCIONALIDAD  
+console.log('📦 Importando eventRoutes...');
+const eventRoutes = await import('./src/routes/event.routes.js')
+app.use('/api/events', eventRoutes.default)
+console.log('✅ Ruta events registrada');
+
 // Registrar rutas de audio con manejo de errores específico
 try {
   console.log('🎵 Intentando registrar rutas de audio...');
@@ -142,7 +163,9 @@ console.log('📋 Routes registered:', {
   objectives: '/api/objectives',
   tasks: '/api/tasks',
   upload: '/api/upload',
-  audio: '/api/audio'
+  audio: '/api/audio',
+  ideas: '/api/ideas', // NUEVA RUTA
+  events: '/api/events' // NUEVA RUTA
 });
 
 // Error handling middleware

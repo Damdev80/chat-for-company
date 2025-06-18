@@ -18,6 +18,8 @@ import {
   Shield,
   Moon,
   Sun,
+  Lightbulb,
+  Calendar,
   Volume2,
   VolumeX,
   Palette,
@@ -337,6 +339,32 @@ const ChatSidebar = ({
             <span className="hidden sm:inline">{isAdmin(userRole) ? 'Objetivos' : 'Tareas'}</span>
             <span className="sm:hidden text-xs">{isAdmin(userRole) ? 'Obj' : 'Tar'}</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('ideas')}
+            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              activeTab === 'ideas'
+                ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+            }`}
+          >
+            <Lightbulb size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Ideas</span>
+            <span className="sm:hidden text-xs">Idea</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              activeTab === 'calendar'
+                ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+            }`}
+          >
+            <Calendar size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Eventos</span>
+            <span className="sm:hidden text-xs">Cal</span>
+          </button>
         </div>
 
         {/* Contenido de tabs - Mejorado para móvil */}
@@ -476,9 +504,7 @@ const ChatSidebar = ({
                 </div>
               </div>
             </div>
-          )}
-
-          {activeTab === "objectives" && (
+          )}          {activeTab === "objectives" && (
             <div className="p-4">
               <div className="bg-[#252529] rounded-xl p-6 border border-[#3C4043] text-center">
                 <Target size={48} className="mx-auto mb-4 text-[#A8E6A3]" />
@@ -488,6 +514,36 @@ const ChatSidebar = ({
                 </p>
                 <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3">
                   💡 Selecciona un grupo y accede a los objetivos desde el panel principal
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "ideas" && (
+            <div className="p-4">
+              <div className="bg-[#252529] rounded-xl p-6 border border-[#3C4043] text-center">
+                <Lightbulb size={48} className="mx-auto mb-4 text-[#A8E6A3]" />
+                <h3 className="text-lg font-semibold text-[#E8E6E8] mb-2">Muro de Ideas</h3>
+                <p className="text-[#B8B8B8] text-sm mb-4">
+                  Comparte y colabora en ideas creativas con tu equipo.
+                </p>
+                <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3">
+                  💡 Selecciona un grupo para ver y crear ideas colaborativas
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "calendar" && (
+            <div className="p-4">
+              <div className="bg-[#252529] rounded-xl p-6 border border-[#3C4043] text-center">
+                <Calendar size={48} className="mx-auto mb-4 text-[#A8E6A3]" />
+                <h3 className="text-lg font-semibold text-[#E8E6E8] mb-2">Calendario de Eventos</h3>
+                <p className="text-[#B8B8B8] text-sm mb-4">
+                  Organiza fechas especiales y hitos importantes del grupo.
+                </p>
+                <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3">
+                  📅 Selecciona un grupo para ver y gestionar eventos
                 </div>
               </div>
             </div>
