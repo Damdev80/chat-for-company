@@ -290,81 +290,94 @@ const ChatSidebar = ({
               />
             </div>
           </div>
-        </div>        {/* Tabs de navegación - Mejoradas para móvil */}
-        <div className="flex border-b border-[#3C4043] bg-[#252529]">
-          <button
-            onClick={() => setActiveTab('chats')}
-            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
-              activeTab === 'chats'
-                ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
-                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'            }`}
-          >
-            <MessageCircle size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Chats</span>
-            <span className="sm:hidden text-xs">Chat</span>
-          </button>          <button
-            onClick={() => setActiveTab('users')}
-            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
-              activeTab === 'users'
-                ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
-                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-            }`}
-          >
-            <Users size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Online</span>
-            <span className="sm:hidden text-xs">User</span>
-          </button>            {/* Tab de revisión de tareas - Solo para admins/supervisores */}
-          {canReviewTasks() && (
+        </div>        {/* Tabs de navegación - Rediseñado y responsive */}
+        <div className="border-b border-[#3C4043] bg-[#252529]">
+          {/* Primera fila - Funcionalidades principales */}
+          <div className="flex">
             <button
-              onClick={() => setActiveTab('review')}
-              className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
-                activeTab === 'review'
+              onClick={() => setActiveTab('chats')}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                activeTab === 'chats'
                   ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                   : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
               }`}
             >
-              <ClipboardCheck size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Revisión</span>
-              <span className="sm:hidden text-xs">Rev</span>
+              <MessageCircle size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Chat</span>
+              <span className="sm:hidden">Chat</span>
             </button>
-          )}          <button
-            onClick={() => setActiveTab('objectives')}
-            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
-              activeTab === 'objectives'
-                ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
-                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-            }`}
-          >
-            <Target size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">{isAdmin(userRole) ? 'Objetivos' : 'Tareas'}</span>
-            <span className="sm:hidden text-xs">{isAdmin(userRole) ? 'Obj' : 'Tar'}</span>
-          </button>
 
-          <button
-            onClick={() => setActiveTab('ideas')}
-            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
-              activeTab === 'ideas'
-                ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
-                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-            }`}
-          >
-            <Lightbulb size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Ideas</span>
-            <span className="sm:hidden text-xs">Idea</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                activeTab === 'users'
+                  ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+            >
+              <Users size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Online</span>
+              <span className="sm:hidden">On</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('calendar')}
-            className={`flex-1 flex items-center justify-center gap-1 px-1 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
-              activeTab === 'calendar'
-                ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
-                : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-            }`}
-          >
-            <Calendar size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Eventos</span>
-            <span className="sm:hidden text-xs">Cal</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('objectives')}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                activeTab === 'objectives'
+                  ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+            >
+              <Target size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">{isAdmin(userRole) ? 'Objetivos' : 'Tareas'}</span>
+              <span className="sm:hidden">{isAdmin(userRole) ? 'Obj' : 'Tar'}</span>
+            </button>
+
+            {/* Tab de revisión - Solo para admins/supervisores */}
+            {canReviewTasks() && (
+              <button
+                onClick={() => setActiveTab('review')}
+                className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                  activeTab === 'review'
+                    ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+              >
+                <ClipboardCheck size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Revisión</span>
+                <span className="sm:hidden">Rev</span>
+              </button>
+            )}
+          </div>
+
+          {/* Segunda fila - Funcionalidades colaborativas */}
+          <div className="flex border-t border-[#3C4043]/50">
+            <button
+              onClick={() => setActiveTab('ideas')}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                activeTab === 'ideas'
+                  ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+            >
+              <Lightbulb size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Ideas</span>
+              <span className="sm:hidden">Ideas</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('calendar')}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                activeTab === 'calendar'
+                  ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+            >
+              <Calendar size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Eventos</span>
+              <span className="sm:hidden">Cal</span>
+            </button>
+          </div>
         </div>
 
         {/* Contenido de tabs - Mejorado para móvil */}
@@ -517,18 +530,19 @@ const ChatSidebar = ({
                 </div>
               </div>
             </div>
-          )}
-
-          {activeTab === "ideas" && (
+          )}          {activeTab === "ideas" && (
             <div className="p-4">
               <div className="bg-[#252529] rounded-xl p-6 border border-[#3C4043] text-center">
                 <Lightbulb size={48} className="mx-auto mb-4 text-[#A8E6A3]" />
                 <h3 className="text-lg font-semibold text-[#E8E6E8] mb-2">Muro de Ideas</h3>
                 <p className="text-[#B8B8B8] text-sm mb-4">
-                  Comparte y colabora en ideas creativas con tu equipo.
+                  Comparte ideas creativas, colabora con tu equipo y vota por las mejores propuestas.
                 </p>
-                <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3">
-                  💡 Selecciona un grupo para ver y crear ideas colaborativas
+                <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3 mb-3">
+                  💡 Cada idea puede ser votada y comentada por los miembros del grupo
+                </div>
+                <div className="text-xs text-[#B8B8B8]">
+                  Selecciona un grupo para comenzar a colaborar
                 </div>
               </div>
             </div>
@@ -540,10 +554,13 @@ const ChatSidebar = ({
                 <Calendar size={48} className="mx-auto mb-4 text-[#A8E6A3]" />
                 <h3 className="text-lg font-semibold text-[#E8E6E8] mb-2">Calendario de Eventos</h3>
                 <p className="text-[#B8B8B8] text-sm mb-4">
-                  Organiza fechas especiales y hitos importantes del grupo.
+                  Organiza fechas especiales, hitos importantes y eventos relacionados con los objetivos del grupo.
                 </p>
-                <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3">
-                  📅 Selecciona un grupo para ver y gestionar eventos
+                <div className="text-xs text-[#A8E6A3] bg-[#A8E6A3]/10 rounded-lg p-3 mb-3">
+                  📅 Los eventos pueden marcarse como hitos importantes del proyecto
+                </div>
+                <div className="text-xs text-[#B8B8B8]">
+                  Selecciona un grupo para gestionar eventos
                 </div>
               </div>
             </div>

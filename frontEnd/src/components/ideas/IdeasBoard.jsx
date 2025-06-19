@@ -1,41 +1,41 @@
 // src/components/ideas/IdeasBoard.jsx - Componente principal del muro de ideas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Lightbulb, 
   Plus, 
-  Filter, 
   TrendingUp, 
   MessageSquare, 
-  Calendar,
-  Users,
   Star,
-  ThumbsUp,
+  AlertTriangle,
+  Clock,
+  Heart,
   ThumbsDown,
-  Edit,
-  Trash2
+  X
 } from 'lucide-react';
 
-const IdeasBoard = ({ groupId, currentUser }) => {
+const IdeasBoard = ({ groupId }) => {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('votes');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [newIdea, setNewIdea] = useState({
+    title: '',
+    description: '',
+    category: 'general',
+    priority: 'medium'
+  });
+  // Verificar si el usuario es admin
+  const userRole = localStorage.getItem('userRole');
+  const isAdmin = userRole === 'admin' || userRole === 'supervisor';
 
-  // Cargar ideas al montar el componente
-  useEffect(() => {
-    if (groupId) {
-      loadIdeas();
-    }
-  }, [groupId, filter, selectedCategory]);
-
-  const loadIdeas = async () => {
+  const loadIdeas = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       
-      let url = `/api/ideas/${groupId}`;
+      let url = `http://localhost:3000/api/ideas/group/${groupId}`;
       const params = new URLSearchParams();
       
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
@@ -61,13 +61,17 @@ const IdeasBoard = ({ groupId, currentUser }) => {
       console.error('Error cargando ideas:', error);
     } finally {
       setLoading(false);
-    }
-  };
+    }  }, [groupId, filter, selectedCategory]);
 
-  const handleVote = async (ideaId, voteType) => {
+  // Cargar ideas al montar el componente
+  useEffect(() => {
+    if (groupId) {
+      loadIdeas();
+    }
+  }, [groupId, loadIdeas]);  const handleVote = async (ideaId, voteType) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/ideas/${ideaId}/vote`, {
+      const response = await fetch(`http://localhost:3000/api/ideas/${ideaId}/vote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,29 +83,67 @@ const IdeasBoard = ({ groupId, currentUser }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          // Actualizar la idea en el estado
+          // Actualizar solo la idea específica en el estado
           setIdeas(prevIdeas => 
             prevIdeas.map(idea => 
-              idea.id === ideaId ? data.data : idea
+              idea.id === ideaId ? { ...idea, votes: data.data.votes } : idea
             )
           );
+        } else {
+          console.error('Error en la respuesta del servidor:', data.message);
         }
+      } else {
+        console.error('Error en la petición de voto:', response.statusText);
       }
     } catch (error) {
       console.error('Error votando idea:', error);
     }
   };
 
+  const handleCreateIdea = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/ideas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...newIdea,
+          group_id: groupId
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setIdeas(prevIdeas => [data.data, ...prevIdeas]);
+          setShowCreateModal(false);
+          setNewIdea({
+            title: '',
+            description: '',
+            category: 'general',
+            priority: 'medium'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error creando idea:', error);
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
-      draft: 'bg-gray-100 text-gray-700',
-      proposed: 'bg-blue-100 text-blue-700',
-      in_review: 'bg-yellow-100 text-yellow-700',
-      approved: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-700',
-      implemented: 'bg-purple-100 text-purple-700'
+      draft: 'bg-[#3C4043] text-[#B8B8B8]',
+      proposed: 'bg-[#A8E6A3]/20 text-[#A8E6A3]',
+      in_review: 'bg-yellow-500/20 text-yellow-400',
+      approved: 'bg-green-500/20 text-green-400',
+      rejected: 'bg-red-500/20 text-red-400',
+      implemented: 'bg-purple-500/20 text-purple-400'
     };
-    return colors[status] || 'bg-gray-100 text-gray-700';
+    return colors[status] || 'bg-[#3C4043] text-[#B8B8B8]';
   };
 
   const getCategoryIcon = (category) => {
@@ -117,12 +159,34 @@ const IdeasBoard = ({ groupId, currentUser }) => {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      low: 'text-green-500',
-      medium: 'text-yellow-500',
-      high: 'text-orange-500',
-      urgent: 'text-red-500'
+      low: 'text-green-400',
+      medium: 'text-yellow-400',
+      high: 'text-orange-400',
+      urgent: 'text-red-400'
     };
-    return colors[priority] || 'text-gray-500';
+    return colors[priority] || 'text-[#B8B8B8]';
+  };
+
+  const getStatusText = (status) => {
+    const statusTexts = {
+      draft: 'Borrador',
+      proposed: 'Propuesta',
+      in_review: 'En revisión',
+      approved: 'Aprobada',
+      rejected: 'Rechazada',
+      implemented: 'Implementada'
+    };
+    return statusTexts[status] || status;
+  };
+
+  const getPriorityText = (priority) => {
+    const priorityTexts = {
+      low: 'Baja',
+      medium: 'Media',
+      high: 'Alta',
+      urgent: 'Urgente'
+    };
+    return priorityTexts[priority] || priority;
   };
 
   // Ordenar ideas
@@ -142,40 +206,42 @@ const IdeasBoard = ({ groupId, currentUser }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <span className="ml-2 text-gray-600">Cargando ideas...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#A8E6A3]"></div>
+        <span className="ml-2 text-[#B8B8B8]">Cargando ideas...</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
+    <div className="h-full flex flex-col bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12]">
       {/* Header */}
-      <div className="p-6 border-b bg-gradient-to-r from-purple-50 to-blue-50">
+      <div className="border-b border-[#3C4043] bg-[#252529] p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Lightbulb className="h-6 w-6 text-purple-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Muro de Ideas</h2>
-            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded-full">
+            <Lightbulb className="h-6 w-6 text-[#A8E6A3]" />
+            <h2 className="text-xl font-bold text-[#A8E6A3]">Muro de Ideas</h2>
+            <span className="px-2 py-1 bg-[#A8E6A3]/20 text-[#A8E6A3] text-sm rounded-full">
               {ideas.length} ideas
             </span>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <Plus size={16} />
-            Nueva Idea
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#A8E6A3] text-[#1A1A1F] rounded-lg hover:bg-[#90D68C] transition-all font-medium"
+            >
+              <Plus size={16} />
+              <span className="hidden sm:inline">Nueva Idea</span>
+            </button>
+          )}
         </div>
 
         {/* Filtros */}
-        <div className="mt-4 flex flex-wrap gap-4">
+        <div className="mt-4 flex flex-wrap gap-3">
           {/* Filtro por estado */}
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-2 border rounded-lg bg-white"
+            className="px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg text-[#E8E8E8] focus:border-[#A8E6A3] focus:outline-none"
           >
             <option value="all">Todos los estados</option>
             <option value="proposed">Propuestas</option>
@@ -188,7 +254,7 @@ const IdeasBoard = ({ groupId, currentUser }) => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border rounded-lg bg-white"
+            className="px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg text-[#E8E8E8] focus:border-[#A8E6A3] focus:outline-none"
           >
             <option value="all">Todas las categorías</option>
             <option value="general">General</option>
@@ -202,7 +268,7 @@ const IdeasBoard = ({ groupId, currentUser }) => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border rounded-lg bg-white"
+            className="px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg text-[#E8E8E8] focus:border-[#A8E6A3] focus:outline-none"
           >
             <option value="votes">Más votadas</option>
             <option value="recent">Más recientes</option>
@@ -212,85 +278,102 @@ const IdeasBoard = ({ groupId, currentUser }) => {
       </div>
 
       {/* Lista de Ideas */}
-      <div className="p-6">
+      <div className="flex-1 overflow-y-auto p-4">
         {sortedIdeas.length === 0 ? (
           <div className="text-center py-12">
-            <Lightbulb className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay ideas aún</h3>
-            <p className="text-gray-500 mb-4">¡Sé el primero en compartir una idea brillante!</p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              Crear primera idea
-            </button>
+            <Lightbulb className="h-16 w-16 text-[#3C4043] mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-[#B8B8B8] mb-2">No hay ideas aún</h3>
+            <p className="text-[#666] mb-4">
+              {isAdmin ? '¡Sé el primero en compartir una idea brillante!' : 'Los administradores pueden crear ideas para que votes por ellas'}
+            </p>
+            {isAdmin && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-6 py-2 bg-[#A8E6A3] text-[#1A1A1F] rounded-lg hover:bg-[#90D68C] transition-all font-medium"
+              >
+                Crear primera idea
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sortedIdeas.map((idea) => {
               const CategoryIcon = getCategoryIcon(idea.category);
               return (
-                <div key={idea.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      {/* Header de la idea */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <CategoryIcon size={16} className="text-purple-600" />
-                        <h3 className="font-semibold text-gray-900">{idea.title}</h3>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(idea.status)}`}>
-                          {idea.status}
-                        </span>
-                        <span className={`text-xs font-medium ${getPriorityColor(idea.priority)}`}>
-                          {idea.priority}
-                        </span>
+                <div 
+                  key={idea.id} 
+                  className="group bg-gradient-to-br from-[#252529] to-[#1A1A1F] border border-[#3C4043] rounded-2xl p-6 hover:border-[#A8E6A3]/50 hover:shadow-2xl hover:shadow-[#A8E6A3]/10 transition-all duration-300 transform hover:-translate-y-2 cursor-pointer relative overflow-hidden"
+                >
+                  {/* Header de la card */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${
+                        idea.category === 'feature' ? 'from-blue-500 to-blue-600' :
+                        idea.category === 'improvement' ? 'from-green-500 to-green-600' :
+                        idea.category === 'bug' ? 'from-red-500 to-red-600' :
+                        'from-[#A8E6A3] to-[#90D68C]'
+                      } group-hover:scale-110 transition-transform duration-300`}>
+                        <CategoryIcon size={20} className="text-white" />
                       </div>
-
-                      {/* Descripción */}
-                      <p className="text-gray-600 mb-3">{idea.description}</p>
-
-                      {/* Metadata */}
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>Por {idea.created_by_username}</span>
-                        <span>{new Date(idea.created_at).toLocaleDateString()}</span>
-                        <span className="flex items-center gap-1">
-                          <Users size={12} />
-                          {idea.category}
+                      <div>
+                        <span className={`px-3 py-1 text-xs rounded-full font-medium ${getStatusColor(idea.status)}`}>
+                          {getStatusText(idea.status)}
                         </span>
+                        <div className={`mt-1 text-xs font-semibold ${getPriorityColor(idea.priority)}`}>
+                          {getPriorityText(idea.priority)}
+                        </div>
                       </div>
                     </div>
-
-                    {/* Acciones */}
-                    <div className="flex items-center gap-2 ml-4">
-                      {/* Votación */}
-                      <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
-                        <button
-                          onClick={() => handleVote(idea.id, 'up')}
-                          className="p-1 hover:bg-green-100 rounded transition-colors"
-                        >
-                          <ThumbsUp size={14} className="text-green-600" />
-                        </button>
-                        <span className="px-2 text-sm font-medium">{idea.votes}</span>
-                        <button
-                          onClick={() => handleVote(idea.id, 'down')}
-                          className="p-1 hover:bg-red-100 rounded transition-colors"
-                        >
-                          <ThumbsDown size={14} className="text-red-600" />
-                        </button>
-                      </div>
-
-                      {/* Acciones del creador */}
-                      {idea.user_id === currentUser?.id && (
-                        <div className="flex gap-1">
-                          <button className="p-1 hover:bg-blue-100 rounded transition-colors">
-                            <Edit size={14} className="text-blue-600" />
-                          </button>
-                          <button className="p-1 hover:bg-red-100 rounded transition-colors">
-                            <Trash2 size={14} className="text-red-600" />
-                          </button>
-                        </div>
-                      )}
+                      {/* Votación simple */}
+                    <div className="flex items-center gap-2 bg-[#1A1A1F] rounded-xl p-2 group-hover:bg-[#2C2C34] transition-colors">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleVote(idea.id, 'up');
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#A8E6A3]/10 transition-all"
+                      >
+                        <Heart size={16} />
+                        <span className="text-sm font-medium">{idea.votes || 0}</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleVote(idea.id, 'down');
+                        }}
+                        className="p-1 rounded-lg text-[#B8B8B8] hover:text-red-400 hover:bg-red-400/10 transition-all"
+                      >
+                        <ThumbsDown size={16} />
+                      </button>
                     </div>
                   </div>
+
+                  {/* Título */}
+                  <h3 className="font-bold text-white text-lg mb-3 group-hover:text-[#A8E6A3] transition-colors line-clamp-2">
+                    {idea.title}
+                  </h3>
+
+                  {/* Descripción */}
+                  <p className="text-[#B8B8B8] text-sm mb-4 line-clamp-3 leading-relaxed">
+                    {idea.description}
+                  </p>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between text-xs text-[#666] pt-4 border-t border-[#3C4043] group-hover:border-[#A8E6A3]/30 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-[#A8E6A3] rounded-full flex items-center justify-center text-[#1A1A1F] font-semibold text-xs">
+                        {idea.created_by_username?.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="font-medium">{idea.created_by_username}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock size={12} />
+                      <span>{new Date(idea.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Indicador de hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#A8E6A3]/0 to-[#A8E6A3]/0 group-hover:from-[#A8E6A3]/5 group-hover:to-[#90D68C]/5 rounded-2xl transition-all duration-300 pointer-events-none"></div>
                 </div>
               );
             })}
@@ -300,140 +383,100 @@ const IdeasBoard = ({ groupId, currentUser }) => {
 
       {/* Modal de crear idea */}
       {showCreateModal && (
-        <CreateIdeaModal
-          groupId={groupId}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            loadIdeas();
-          }}
-        />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#252529] rounded-2xl p-6 w-full max-w-md border border-[#3C4043]">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-[#A8E6A3]">Nueva Idea</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-[#B8B8B8] hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateIdea} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#E8E8E8] mb-2">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  value={newIdea.title}
+                  onChange={(e) => setNewIdea({...newIdea, title: e.target.value})}
+                  className="w-full px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg text-[#E8E8E8] focus:border-[#A8E6A3] focus:outline-none"
+                  placeholder="Título de la idea..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#E8E8E8] mb-2">
+                  Descripción
+                </label>
+                <textarea
+                  value={newIdea.description}
+                  onChange={(e) => setNewIdea({...newIdea, description: e.target.value})}
+                  className="w-full px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg text-[#E8E8E8] focus:border-[#A8E6A3] focus:outline-none h-24 resize-none"
+                  placeholder="Describe tu idea..."
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#E8E8E8] mb-2">
+                    Categoría
+                  </label>
+                  <select
+                    value={newIdea.category}
+                    onChange={(e) => setNewIdea({...newIdea, category: e.target.value})}
+                    className="w-full px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg text-[#E8E8E8] focus:border-[#A8E6A3] focus:outline-none"
+                  >
+                    <option value="general">General</option>
+                    <option value="feature">Características</option>
+                    <option value="improvement">Mejoras</option>
+                    <option value="bug">Errores</option>
+                    <option value="other">Otros</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#E8E8E8] mb-2">
+                    Prioridad
+                  </label>
+                  <select
+                    value={newIdea.priority}
+                    onChange={(e) => setNewIdea({...newIdea, priority: e.target.value})}
+                    className="w-full px-3 py-2 bg-[#1A1A1F] border border-[#3C4043] rounded-lg text-[#E8E8E8] focus:border-[#A8E6A3] focus:outline-none"
+                  >
+                    <option value="low">Baja</option>
+                    <option value="medium">Media</option>
+                    <option value="high">Alta</option>
+                    <option value="urgent">Urgente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 bg-[#3C4043] text-[#B8B8B8] rounded-lg hover:bg-[#4A4A50] transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-[#A8E6A3] text-[#1A1A1F] rounded-lg hover:bg-[#90D68C] transition-colors font-medium"
+                >
+                  Crear Idea
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
-    </div>
-  );
-};
-
-// Componente modal para crear ideas (simplificado por ahora)
-const CreateIdeaModal = ({ groupId, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'general',
-    priority: 'medium'
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.title.trim()) return;
-
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/ideas', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...formData,
-          group_id: groupId
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          onSuccess();
-        }
-      }
-    } catch (error) {
-      console.error('Error creando idea:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-        <h3 className="text-lg font-semibold mb-4">Nueva Idea</h3>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Título *</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Título de tu idea..."
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Descripción</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              rows="3"
-              placeholder="Describe tu idea..."
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Categoría</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="general">General</option>
-                <option value="feature">Característica</option>
-                <option value="improvement">Mejora</option>
-                <option value="bug">Error</option>
-                <option value="other">Otro</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Prioridad</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="low">Baja</option>
-                <option value="medium">Media</option>
-                <option value="high">Alta</option>
-                <option value="urgent">Urgente</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              disabled={loading}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-              disabled={loading || !formData.title.trim()}
-            >
-              {loading ? 'Creando...' : 'Crear Idea'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 };

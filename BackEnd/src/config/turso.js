@@ -42,22 +42,24 @@ export async function executeQuery(query, params = []) {
     
     const result = await tursoClient.execute({ sql: query, args: params });
     
-    // Convertir el resultado a formato compatible
-    if (result.rows && Array.isArray(result.rows)) {
-      // Para consultas SELECT
+    // Determinar el tipo de consulta por la palabra clave inicial
+    const trimmedQuery = query.trim().toLowerCase();
+    const isSelectQuery = trimmedQuery.startsWith('select') || trimmedQuery.startsWith('pragma');
+    
+    if (isSelectQuery) {
+      // Para consultas SELECT - devolver filas formateadas
       return result.rows.map(row => {
         const formattedRow = {};
-        // Convertir el objeto row a formato clave-valor
         Object.keys(row).forEach(key => {
           formattedRow[key] = row[key];
         });
         return formattedRow;
-      });
-    } else {
-      // Para consultas INSERT/UPDATE/DELETE
+      });    } else {
+      // Para consultas INSERT/UPDATE/DELETE - devolver metadatos
       return {
-        lastID: result.lastInsertRowid,
-        changes: result.rowsAffected
+        lastID: result.lastInsertRowid ? Number(result.lastInsertRowid) : null,
+        changes: result.rowsAffected,
+        rowsAffected: result.rowsAffected
       };
     }
   } catch (error) {
