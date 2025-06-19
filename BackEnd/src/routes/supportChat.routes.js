@@ -36,12 +36,11 @@ const createChatValidation = [
 
 // Rutas del chat de apoyo
 router.get('/active', SupportChatController.getOrCreateChat)
-router.get('/all', SupportChatController.getUserChats)
-router.post('/new', createChatValidation, SupportChatController.createNewChat)
+router.get('/all', SupportChatController.getChatHistory)
+router.post('/new', createChatValidation, SupportChatController.getOrCreateChat)
 router.get('/:chatId/messages', chatIdValidation, SupportChatController.getChatMessages)
 router.post('/:chatId/message', sendMessageValidation, SupportChatController.sendMessage)
 router.patch('/:chatId/close', chatIdValidation, SupportChatController.closeChat)
-router.patch('/:chatId/resolve', chatIdValidation, SupportChatController.resolveChat)
-router.delete('/:chatId', chatIdValidation, SupportChatController.deleteChat)
+router.get('/stats', SupportChatController.getStats)
 
 export default router
