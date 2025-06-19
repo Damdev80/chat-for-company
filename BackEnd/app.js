@@ -144,6 +144,12 @@ const eventRoutes = await import('./src/routes/event.routes.js')
 app.use('/api/events', eventRoutes.default)
 console.log('✅ Ruta events registrada');
 
+// Import dinámico de supportChatRoutes - NUEVA FUNCIONALIDAD
+console.log('📦 Importando supportChatRoutes...');
+const supportChatRoutes = await import('./src/routes/supportChat.routes.js')
+app.use('/api/support', supportChatRoutes.default)
+console.log('✅ Ruta support chat registrada');
+
 // Registrar rutas de audio con manejo de errores específico
 try {
   console.log('🎵 Intentando registrar rutas de audio...');
