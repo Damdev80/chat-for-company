@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
     "@libsql/client": "^0.15.7",
     "bcrypt": "5.1.1",
     "cors": "2.8.5",

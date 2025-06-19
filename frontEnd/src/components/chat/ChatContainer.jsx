@@ -26,6 +26,7 @@ import NotificationBanner from "./NotificationBanner";
 import DeleteChatModal from "./DeleteChatModal";
 import IdeasBoard from "../ideas/IdeasBoard";
 import CalendarBoard from "../calendar/CalendarBoard";
+import SupportChat from "../support/SupportChat";
 
 
 const ChatContainer = () => {  // Estados principales
@@ -44,10 +45,10 @@ const ChatContainer = () => {  // Estados principales
   const [showDeleteChatModal, setShowDeleteChatModal] = useState(false);
   const [chatToDelete, setChatToDelete] = useState(null);
   const [isDeletingChat, setIsDeletingChat] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);  const [notification, setNotification] = useState(null);
   const [objectiveRefreshKey, setObjectiveRefreshKey] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [supportChatOpen, setSupportChatOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -934,13 +935,36 @@ const ChatContainer = () => {  // Estados principales
       <NotificationBanner
         notification={notification}
         onClose={() => setNotification(null)}
-      />      {/* Modal de confirmación para eliminar chat */}
+      />
+
+      {/* Modal de confirmación para eliminar chat */}
       <DeleteChatModal
         isOpen={showDeleteChatModal}
         onClose={() => setShowDeleteChatModal(false)}
         onConfirm={handleConfirmDeleteChat}        chatName={chatToDelete?.name || ""}
         isDeleting={isDeletingChat}
         isGlobalChat={chatToDelete?.id === "global"}
+      />      {/* Botón flotante de chat de apoyo */}
+      <button
+        onClick={() => setSupportChatOpen(true)}
+        className="fixed bottom-30 right-6 bg-gradient-to-r from-[#A8E6A3] to-[#88D982] hover:from-[#88D982] hover:to-[#70C266] text-[#1A1A1F] p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-50"
+        title="Chat de Apoyo con IA"
+      >        <svg 
+          width="28" 
+          height="28" 
+          viewBox="0 0 24 24" 
+          fill="currentColor"
+          className="text-[#1A1A1F]"
+        >
+          <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M10,9A5,5 0 0,0 5,14V17A5,5 0 0,0 10,22H14A5,5 0 0,0 19,17V14A5,5 0 0,0 14,9H10M10,10H14A4,4 0 0,1 18,14V17A4,4 0 0,1 14,21H10A4,4 0 0,1 6,17V14A4,4 0 0,1 10,10M9,12V16H11V12H9M13,12V16H15V12H13Z"/>
+        </svg>
+      </button>
+
+      {/* Componente de chat de apoyo */}
+      <SupportChat
+        isOpen={supportChatOpen}
+        onClose={() => setSupportChatOpen(false)}
+        currentUser={user}
       />
     </div>
   );
