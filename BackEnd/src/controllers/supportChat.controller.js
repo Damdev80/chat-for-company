@@ -1,21 +1,15 @@
 // src/controllers/supportChat.controller.js - Controlador para chat de apoyo con IA
 import { SupportChat, SupportMessage } from '../models/supportChat.js'
-import { aiService } from '../services/aiService.js'
+import aiService from '../services/aiService.js'
 import { validationResult } from 'express-validator'
 
-export class SupportChatController {
-  // Obtener o crear chat de apoyo para el usuario
+export class SupportChatController {  // Obtener o crear chat de apoyo para el usuario
   static async getOrCreateChat(req, res) {
     try {
       const userId = req.user.id
       
-      // Buscar chat activo existente para el usuario
-      let chat = await SupportChat.findActiveByUserId(userId)
-      
-      // Si no existe, crear uno nuevo
-      if (!chat) {
-        chat = await SupportChat.create(userId)
-      }
+      // Obtener o crear chat activo para el usuario
+      const chat = await SupportChat.getOrCreateActiveChat(userId)
       
       // Obtener mensajes del chat
       const messages = await SupportMessage.findByChatId(chat.id)
@@ -87,7 +81,6 @@ export class SupportChatController {
       })
     }
   }
-
   // Enviar mensaje al chat de apoyo
   static async sendMessage(req, res) {
     try {
@@ -96,12 +89,13 @@ export class SupportChatController {
       if (!errors.isEmpty()) {
         return res.status(400).json({
           success: false,
-          message: 'Datos de entrada inválidos',
+          message: 'Errores de validación',
           errors: errors.array()
         })
       }
 
-      const { chatId, message } = req.body
+      const { chatId } = req.params  // chatId viene de la URL
+      const { message } = req.body   // message viene del body
       const userId = req.user.id
       
       // Verificar que el chat pertenece al usuario
@@ -111,14 +105,12 @@ export class SupportChatController {
           success: false,
           message: 'No tienes permisos para acceder a este chat'
         })
-      }
-
-      // Guardar mensaje del usuario
-      const userMessage = await SupportMessage.create({
-        chat_id: chatId,
-        role: 'user',
-        content: message.trim()
-      })
+      }      // Guardar mensaje del usuario
+      const userMessage = await SupportMessage.create(
+        chatId,
+        'user',
+        message.trim()
+      )
 
       // Generar respuesta de IA
       try {
@@ -130,19 +122,17 @@ export class SupportChatController {
           userId: userId,
           chatId: chatId,
           chatHistory: chatHistory
-        })
-
-        // Guardar respuesta de la IA
-        const assistantMessage = await SupportMessage.create({
-          chat_id: chatId,
-          role: 'assistant',
-          content: aiResponse,
-          metadata: JSON.stringify({
+        })        // Guardar respuesta de la IA
+        const assistantMessage = await SupportMessage.create(
+          chatId,
+          'assistant',
+          aiResponse,
+          {
             timestamp: new Date().toISOString(),
-            model: aiService.isInDemoMode() ? 'demo' : 'claude-3-sonnet',
+            model: aiService.isInDemoMode() ? 'demo' : 'deepseek-chat',
             mode: aiService.isInDemoMode() ? 'demo' : 'production'
-          })
-        })
+          }
+        )
 
         // Actualizar timestamp del último mensaje en el chat
         await SupportChat.updateLastMessage(chatId)
@@ -157,18 +147,17 @@ export class SupportChatController {
 
       } catch (aiError) {
         console.error('Error en procesamiento de IA:', aiError)
-        
-        // Crear respuesta de error amigable
-        const errorMessage = await SupportMessage.create({
-          chat_id: chatId,
-          role: 'assistant',
-          content: 'Lo siento, tuve un problema técnico al procesar tu mensaje. Por favor intenta de nuevo en unos momentos. 🔧',
-          metadata: JSON.stringify({
+          // Crear respuesta de error amigable
+        const errorMessage = await SupportMessage.create(
+          chatId,
+          'assistant',
+          'Lo siento, tuve un problema técnico al procesar tu mensaje. Por favor intenta de nuevo en unos momentos. 🔧',
+          {
             error: aiError.message,
             timestamp: new Date().toISOString(),
             type: 'ai_error'
-          })
-        })
+          }
+        )
 
         res.json({
           success: true,

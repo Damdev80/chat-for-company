@@ -43,22 +43,26 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
-
   const loadActiveChat = async () => {
     try {
+      console.log('🔄 Cargando chat activo...')
       setChatLoading(true)
       const token = localStorage.getItem('token')
-      
-      const response = await fetch('http://localhost:3000/api/support/active', {
+        const response = await fetch('http://localhost:3000/api/support/active', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
+      
+      const data = await response.json()
+      console.log('📥 Respuesta loadActiveChat:', data)
 
       if (response.ok) {
-        const data = await response.json()
-        setChatId(data.data.id)
-        await loadChatMessages(data.data.id)
+        console.log('✅ Chat cargado:', data.data)
+        setChatId(data.data.chat.id)
+        setMessages(data.data.messages || [])
+      } else {
+        console.error('❌ Error cargando chat:', data)
       }
     } catch (error) {
       console.error('Error cargando chat:', error)
@@ -66,32 +70,26 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
       setChatLoading(false)
     }
   }
-
-  const loadChatMessages = async (chatId) => {
-    try {
-      const token = localStorage.getItem('token')
-      
-      const response = await fetch(`http://localhost:3000/api/support/${chatId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setMessages(data.data.messages || [])
-      }
-    } catch (error) {
-      console.error('Error cargando mensajes:', error)
-    }
-  }
-
   const sendMessage = async (e) => {
     e.preventDefault()
     
-    if (!newMessage.trim() || loading || !chatId) return
+    if (!newMessage.trim() || loading) return
+
+    // Si no hay chatId, intentar cargar el chat primero
+    if (!chatId) {
+      console.log('🔄 No hay chatId, intentando cargar chat...')
+      await loadActiveChat()
+      
+      // Si aún no hay chatId después de cargar, mostrar error
+      if (!chatId) {
+        console.error('❌ Error: No se pudo establecer conexión con el chat')
+        alert('Error: No se pudo establecer conexión con el chat. Por favor, cierra y abre el chat de nuevo.')
+        return
+      }
+    }
 
     const messageText = newMessage.trim()
+    console.log('📤 Enviando mensaje:', messageText, 'ChatId:', chatId)
     setNewMessage('')
     setLoading(true)
 
@@ -107,18 +105,24 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
         body: JSON.stringify({ message: messageText })
       })
 
+      const data = await response.json()
+      console.log('📥 Respuesta del servidor:', data)
+
       if (response.ok) {
-        const data = await response.json()
-        
         // Agregar tanto el mensaje del usuario como la respuesta de la IA
         setMessages(prev => [
           ...prev,
           data.data.userMessage,
           data.data.assistantMessage
         ])
+      } else {
+        console.error('❌ Error en respuesta:', data)
+        alert(`Error: ${data.message || 'Error desconocido'}`)
+        setNewMessage(messageText) // Restaurar mensaje
       }
     } catch (error) {
       console.error('Error enviando mensaje:', error)
+      alert('Error de conexión. Por favor, intenta de nuevo.')
       // Reestablecer el mensaje en caso de error
       setNewMessage(messageText)
     } finally {
@@ -133,24 +137,29 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
 
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
       
-      const response = await fetch('http://localhost:3000/api/support/new', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title: 'Nuevo Chat de Apoyo' })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setChatId(data.data.id)
-        setMessages([])
+      // Primero cerrar el chat actual
+      if (chatId) {
+        const token = localStorage.getItem('token')
+        await fetch(`http://localhost:3000/api/support/${chatId}/close`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        })
       }
+      
+      // Limpiar estado local
+      setChatId(null)
+      setMessages([])
+      
+      // Cargar un nuevo chat (esto llamará automáticamente a loadActiveChat)
+      await loadActiveChat()
+      
     } catch (error) {
-      console.error('Error creando nuevo chat:', error)
+      console.error('Error reiniciando chat:', error)
+      alert('Error al reiniciar el chat. Por favor, intenta cerrar y abrir el chat de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -280,21 +289,28 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
 
         {/* Input Area */}
         <div className="p-4 border-t border-[#3C4043] bg-[#1A1A1F] rounded-b-2xl">
-          <form onSubmit={sendMessage} className="flex gap-3">
-            <input
+          <form onSubmit={sendMessage} className="flex gap-3">            <input
               ref={inputRef}
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Escribe tu pregunta..."
+              placeholder={
+                chatLoading ? "Conectando..." : 
+                !chatId ? "Configurando chat..." : 
+                "Escribe tu pregunta..."
+              }
               className="flex-1 bg-[#2C2C34] border border-[#3C4043] rounded-xl px-4 py-3 text-white placeholder-[#666] focus:border-[#A8E6A3] focus:outline-none"
               disabled={loading || chatLoading}
               maxLength={2000}
-            />
-            <button
+            />            <button
               type="submit"
               disabled={!newMessage.trim() || loading || chatLoading}
               className="bg-[#A8E6A3] text-[#1A1A1F] p-3 rounded-xl hover:bg-[#90D68C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={
+                chatLoading ? "Conectando..." : 
+                !newMessage.trim() ? "Escribe un mensaje" : 
+                "Enviar mensaje"
+              }
             >
               {loading ? (
                 <Loader2 size={20} className="animate-spin" />
