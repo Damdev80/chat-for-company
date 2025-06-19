@@ -7,7 +7,7 @@ const ChatHeader = ({
   groups, 
   onToggleSidebar, 
   onToggleGroupInfo,
-  onCall,
+  // onCall, // COMENTADO: Funcionalidad de llamadas deshabilitada
   onDeleteChat,
   notifications = [],
   onShowNotifications,
@@ -51,21 +51,20 @@ const ChatHeader = ({
             title="Notificaciones"
           >
             <Bell size={16} className="sm:w-5 sm:h-5" />
-            {unreadNotifications > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center animate-pulse text-[10px] sm:text-xs">
+            {unreadNotifications > 0 && (              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center animate-pulse text-[10px] sm:text-xs">
                 {unreadNotifications > 9 ? '9+' : unreadNotifications}
               </span>
             )}
           </button>
 
-          {/* Llamada de voz - Oculto en móviles muy pequeños */}
-          <button
+          {/* COMENTADO: Llamada de voz - Funcionalidad deshabilitada */}
+          {/* <button
             onClick={onCall}
             className="hidden sm:flex p-1.5 sm:p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl hover:bg-[#3C4043] transition-all duration-200"
             title="Llamada de voz"
           >
             <Phone size={16} className="sm:w-5 sm:h-5" />
-          </button>          {/* Eliminar chat/limpiar contenido - Solo para admin */}
+          </button> */}{/* Eliminar chat/limpiar contenido - Solo para admin */}
           {userRole === "admin" && (
             <button
               onClick={() => onDeleteChat(activeGroup)}

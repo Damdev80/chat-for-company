@@ -36,8 +36,32 @@ export { tursoClient };
 // Funciones auxiliares para ejecutar consultas
 export async function executeQuery(query, params = []) {
   try {
+    if (!tursoClient) {
+      throw new Error('Turso client not initialized. Check your TURSO_URL and TURSO_AUTH_TOKEN environment variables.');
+    }
+    
     const result = await tursoClient.execute({ sql: query, args: params });
-    return result;
+    
+    // Determinar el tipo de consulta por la palabra clave inicial
+    const trimmedQuery = query.trim().toLowerCase();
+    const isSelectQuery = trimmedQuery.startsWith('select') || trimmedQuery.startsWith('pragma');
+    
+    if (isSelectQuery) {
+      // Para consultas SELECT - devolver filas formateadas
+      return result.rows.map(row => {
+        const formattedRow = {};
+        Object.keys(row).forEach(key => {
+          formattedRow[key] = row[key];
+        });
+        return formattedRow;
+      });    } else {
+      // Para consultas INSERT/UPDATE/DELETE - devolver metadatos
+      return {
+        lastID: result.lastInsertRowid ? Number(result.lastInsertRowid) : null,
+        changes: result.rowsAffected,
+        rowsAffected: result.rowsAffected
+      };
+    }
   } catch (error) {
     console.error('Error ejecutando consulta en Turso:', error);
     throw error;
@@ -46,7 +70,15 @@ export async function executeQuery(query, params = []) {
 
 // Función para convertir resultados al formato esperado por la aplicación
 export function formatResults(result) {
-  if (!result || !result.rows) return [];
+  // Si result ya es un array, devolverlo directamente
+  if (Array.isArray(result)) {
+    return result;
+  }
+  
+  if (!result || !result.rows) {
+    return [];
+  }
+  
   return result.rows.map(row => {
     const formattedRow = {};
     for (const [key, value] of Object.entries(row)) {

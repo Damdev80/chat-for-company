@@ -24,6 +24,8 @@ import MessageArea from "./MessageArea";
 import MessageInput from "./MessageInput";
 import NotificationBanner from "./NotificationBanner";
 import DeleteChatModal from "./DeleteChatModal";
+import IdeasBoard from "../ideas/IdeasBoard";
+import CalendarBoard from "../calendar/CalendarBoard";
 
 
 const ChatContainer = () => {  // Estados principales
@@ -576,17 +578,18 @@ const ChatContainer = () => {  // Estados principales
       }
       
       setShowDeleteChatModal(false);
-      setChatToDelete(null);
-    } catch (error) {
+      setChatToDelete(null);    } catch (error) {
       console.error("Error eliminando chat:", error);
       showNotification("ERROR", "No se pudo eliminar el chat/contenido");
     } finally {
       setIsDeletingChat(false);
     }
   };
-  const handleCall = () => {
-    showNotification("Info", "Funcionalidad de llamada próximamente");
-  };
+
+  // COMENTADO: Funcionalidad de llamadas deshabilitada
+  // const handleCall = () => {
+  //   showNotification("Info", "Funcionalidad de llamada próximamente");
+  // };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -642,12 +645,12 @@ const ChatContainer = () => {  // Estados principales
           onClick={() => setSidebarOpen(false)}
         />
       )}      {/* Área principal - Mejorada para móvil */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10 viewport-constrained no-horizontal-overflow">{/* Header */}<ChatHeader
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 viewport-constrained no-horizontal-overflow">{/* Header */}        <ChatHeader
           activeGroup={activeGroup}
           groups={groups}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onToggleGroupInfo={() => setShowGroupInfo(!showGroupInfo)}
-          onCall={handleCall}
+          // onCall={handleCall} // COMENTADO: Funcionalidad de llamadas deshabilitada
           onDeleteChat={handleDeleteChat}
           userMenuOpen={userMenuOpen}
           setUserMenuOpen={setUserMenuOpen}
@@ -655,7 +658,7 @@ const ChatContainer = () => {  // Estados principales
           userRole={userRole}
           notifications={notifications}
           onShowNotifications={handleShowNotifications}
-        />        <div className="flex-1 flex min-h-0 no-horizontal-overflow">
+        /><div className="flex-1 flex min-h-0 no-horizontal-overflow">
           {/* Contenido principal - Mensajes o Objetivos */}          <div className="flex-1 flex flex-col no-horizontal-overflow">            {activeTab === 'objectives' ? (
               // Área de gestión de objetivos/tareas - Diferente para admin vs usuario
               <div className="flex-1 flex flex-col bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] overflow-hidden">
@@ -733,8 +736,7 @@ const ChatContainer = () => {  // Estados principales
                       />
                     </div>
                   )}
-                </div>
-              </div>
+                </div>              </div>
             ) : activeTab === 'review' && canReviewTasks() ? (
               // Área de revisión de tareas - Solo para admins/supervisores
               <div className="flex-1 flex flex-col bg-gradient-to-br from-[#2C2C34] via-[#1A1A1F] to-[#0F0F12] overflow-hidden">
@@ -757,6 +759,16 @@ const ChatContainer = () => {  // Estados principales
                     onTaskUpdate={() => setObjectiveRefreshKey(prev => prev + 1)}
                   />
                 </div>
+              </div>
+            ) : activeTab === 'ideas' ? (
+              // Área del Muro de Ideas
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <IdeasBoard groupId={activeGroup} />
+              </div>
+            ) : activeTab === 'calendar' ? (
+              // Área del Calendario de Eventos
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <CalendarBoard groupId={activeGroup} />
               </div>
             ) : (
               // Área de mensajes normal

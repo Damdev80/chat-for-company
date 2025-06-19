@@ -83,9 +83,7 @@ export class UserController {  static async register(req, res) {
       console.error('Stack trace:', error.stack);
       res.status(500).json({ message: 'Error interno del servidor', details: error.message });
     }
-  }
-
-  static async login(req, res) {
+  }  static async login(req, res) {
     try {
       const { username, password } = req.body
 
@@ -97,6 +95,7 @@ export class UserController {  static async register(req, res) {
 
       // Verificar contraseña
       const isPasswordValid = await bcrypt.compare(password, user.password)
+      
       if (!isPasswordValid) {
         return res.status(401).json({ message: 'Credenciales incorrectas' })
       }
