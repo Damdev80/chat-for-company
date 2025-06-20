@@ -116,13 +116,18 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
       try {
         // Obtener contexto del chat (últimos mensajes)
         const chatHistory = await SupportMessage.findByChatId(chatId, 10)
-        
-        // Procesar mensaje con IA
-        const aiResponse = await aiService.processMessage(message, {
-          userId: userId,
-          chatId: chatId,
-          chatHistory: chatHistory
-        })        // Guardar respuesta de la IA
+          // Procesar mensaje con IA
+        const aiResponse = await aiService.processMessage(
+          message, 
+          chatHistory,
+          {
+            userId: userId,
+            chatId: chatId,
+            username: req.user?.username || 'Usuario',
+            role: req.user?.role || 'empleado',
+            company: 'Tu Empresa'
+          }
+        )// Guardar respuesta de la IA
         const assistantMessage = await SupportMessage.create(
           chatId,
           'assistant',

@@ -2,24 +2,30 @@ import axios from 'axios'
 
 class AIService {
   constructor() {
-    this.apiKey = process.env.DEEPSEEK_API_KEY || null
+    // No inicializar la API key aquí para evitar problemas de timing
     this.baseURL = 'https://api.deepseek.com/v1'
     this.model = 'deepseek-chat'
-    this.isDemo = !this.apiKey || this.apiKey === 'demo_mode'
     
-    if (this.isDemo) {
-      console.log('⚠️ AIService running in DEMO mode (no DeepSeek API key)')
-    } else {
-      console.log('✅ AIService initialized with DeepSeek API')
-    }
+    console.log('🔧 AIService inicializado (lazy loading de API key)')
+  }
+
+  // Método para obtener la API key de forma segura
+  getApiKey() {
+    const apiKey = process.env.DEEPSEEK_API_KEY || null
+    console.log('🔑 Verificando API Key:', apiKey ? 'PRESENTE' : 'AUSENTE')
+    return apiKey
   }
 
   isInDemoMode() {
-    return this.isDemo
+    const apiKey = this.getApiKey()
+    const isDemoMode = !apiKey || apiKey.trim() === '' || apiKey === 'demo_mode'
+    console.log('🎭 Modo demo:', isDemoMode)
+    return isDemoMode
   }
 
   async processMessage(userMessage, conversationHistory = [], userContext = {}) {
-    if (this.isDemo) {
+    if (this.isInDemoMode()) {
+      console.log('🔄 Usando respuestas demo')
       return await this.getDemoResponse(userMessage)
     }
 
@@ -37,11 +43,14 @@ class AIService {
         { role: 'system', content: systemPrompt },
         ...conversationHistory.map(msg => ({
           role: msg.role,
-          content: msg.content
-        })),
+          content: msg.content        })),
         { role: 'user', content: userMessage }
       ]
 
+      console.log('🚀 Llamando a DeepSeek API...')
+      console.log('📝 Mensajes a enviar:', JSON.stringify(messages, null, 2))
+      
+      const apiKey = this.getApiKey()
       const response = await axios.post(`${this.baseURL}/chat/completions`, {
         model: this.model,
         messages: messages,
@@ -50,15 +59,22 @@ class AIService {
         stream: false
       }, {
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         }
       })
 
+      console.log('✅ Respuesta exitosa de DeepSeek:', response.data.choices[0].message.content)
       return response.data.choices[0].message.content
 
     } catch (error) {
-      console.error('Error en DeepSeek API:', error.response?.data || error.message)
+      console.error('❌ Error completo en DeepSeek API:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers
+      })
       return this.getErrorResponse()
     }
   }
@@ -147,35 +163,153 @@ Comienza cada conversación presentándote brevemente y pregunta cómo puedes ay
 
 ¿Estás listo para maximizar el potencial de tu equipo y empresa? ¡Comencemos! 🚀`
   }
-
   async getDemoResponse(userMessage) {
-    // Respuestas simuladas más inteligentes de ALEXANDRA
-    const responses = [
-      "¡Hola! Soy ALEXANDRA 🤖, tu asistente especializada en rendimiento empresarial. Estoy aquí para ayudarte a maximizar la productividad de tu equipo y optimizar tus procesos de gestión. ¿En qué desafío empresarial puedo asistirte hoy?",
-      
-      "Como experta en gestión empresarial, puedo ayudarte con:\n\n🎯 **Gestión de Objetivos**: Creación de OKRs y seguimiento de KPIs\n👥 **Liderazgo de Equipos**: Estrategias de motivación y colaboración\n📊 **Productividad**: Técnicas avanzadas de time management\n💡 **Innovación**: Gestión de ideas y procesos creativos\n📈 **Análisis**: Métricas de rendimiento y mejora continua\n\n¿Cuál de estas áreas te interesa explorar?",
-      
-      "Para maximizar la productividad de tu equipo, te recomiendo implementar estos **frameworks probados**:\n\n1. **OKRs Trimestrales**: Objetivos claros y medibles\n2. **Daily Standups**: Sincronización diaria de 15 minutos\n3. **Time Boxing**: Bloques de tiempo dedicados para tareas específicas\n4. **Retrospectivas Semanales**: Mejora continua basada en feedback\n5. **Matriz de Eisenhower**: Priorización efectiva de tareas\n\n¿Te gustaría profundizar en alguna de estas metodologías?",
-      
-      "La **gestión colaborativa efectiva** se basa en estos pilares fundamentales:\n\n🏗️ **Estructura Clara**: Roles, responsabilidades y procesos definidos\n💬 **Comunicación Transparente**: Canales abiertos y feedback constante\n🎯 **Alineación Estratégica**: Todos entienden el 'por qué' de sus tareas\n📊 **Métricas Compartidas**: KPIs visibles para todo el equipo\n🔄 **Mejora Continua**: Iteración basada en datos y resultados\n\n¿En cuál de estos aspectos necesitas fortalecer tu organización?",
-      
-      "Para una **gestión de proyectos exitosa**, implementa esta metodología híbrida:\n\n📋 **Planificación SMART**: Objetivos específicos, medibles, alcanzables\n⚡ **Ejecución Ágil**: Sprints cortos con entregas incrementales\n📈 **Seguimiento Continuo**: Dashboards en tiempo real\n🤝 **Comunicación Efectiva**: Updates regulares y transparentes\n🎯 **Foco en Resultados**: ROI medible y valor agregado\n\n¿Qué aspecto de la gestión de proyectos te genera más desafíos?"
-    ]
-    
-    // Seleccionar respuesta basada en el contenido del mensaje
     const lowerMessage = userMessage.toLowerCase()
     
-    if (lowerMessage.includes('hola') || lowerMessage.includes('hello') || lowerMessage.includes('buenos') || lowerMessage.includes('alexandra')) {
-      return responses[0]
-    } else if (lowerMessage.includes('help') || lowerMessage.includes('ayuda') || lowerMessage.includes('qué puedes')) {
-      return responses[1]
-    } else if (lowerMessage.includes('productividad') || lowerMessage.includes('equipo') || lowerMessage.includes('rendimiento')) {
-      return responses[2]
-    } else if (lowerMessage.includes('gestión') || lowerMessage.includes('proyecto') || lowerMessage.includes('management')) {
-      return responses[4]
-    } else {
-      return responses[3]
+    // Respuestas más sofisticadas con Markdown
+    if (lowerMessage.includes('hola') || lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('buenos') || lowerMessage.includes('alexandra')) {
+      return `# ¡Hola! Soy ALEXANDRA 🤖
+
+Soy tu **asistente de apoyo empresarial** especializada en gestión colaborativa. 
+
+## ¿En qué puedo ayudarte?
+
+✨ **Gestión de proyectos y objetivos**  
+📋 **Organización de tareas y equipos**  
+💡 **Estrategias de innovación**  
+📊 **Análisis de productividad**  
+🎯 **Planificación estratégica**
+
+*Simplemente escribe tu consulta y te daré consejos especializados.*`
     }
+    
+    if (lowerMessage.includes('help') || lowerMessage.includes('ayuda') || lowerMessage.includes('qué puedes')) {
+      return `# 🆘 Guía de Ayuda - ALEXANDRA
+
+## Mis especialidades:
+
+### 📈 **Gestión Empresarial**
+- Optimización de procesos
+- Gestión de equipos
+- Planificación estratégica
+
+### 💡 **Innovación y Creatividad**
+- Técnicas de brainstorming
+- Gestión de ideas
+- Implementación de innovaciones
+
+### 🎯 **Productividad**
+- Metodologías ágiles
+- Time management
+- Priorización de tareas
+
+### � **Análisis y Métricas**
+- KPIs empresariales
+- Análisis de rendimiento
+- Reporting efectivo
+
+> **Tip:** Sé específica en tus preguntas para obtener consejos más precisos.`
+    }
+    
+    if (lowerMessage.includes('productividad') || lowerMessage.includes('equipo') || lowerMessage.includes('rendimiento')) {
+      return `# 🚀 Estrategias de Productividad Empresarial
+
+## Framework SMART para Objetivos
+
+### **Específicos** (Specific)
+- Define claramente qué quieres lograr
+- Usa verbos de acción concretos
+
+### **Medibles** (Measurable) 
+- Establece métricas cuantificables
+- Define KPIs relevantes
+
+### **Alcanzables** (Achievable)
+- Asegúrate de que sean realistas
+- Considera recursos disponibles
+
+### **Relevantes** (Relevant)
+- Alineados con la estrategia empresarial
+- Impacto significativo en resultados
+
+### **Temporales** (Time-bound)
+- Fechas límite claras
+- Hitos intermedios
+
+## 💼 Mejores Prácticas para Equipos
+
+1. **Comunicación diaria** - Stand-ups de 15 min
+2. **Retrospectivas semanales** - Identificar mejoras
+3. **Objetivos compartidos** - Transparencia total
+4. **Reconocimiento público** - Celebrar logros
+
+¿Te gustaría profundizar en alguna estrategia específica?`
+    }
+    
+    if (lowerMessage.includes('gestión') || lowerMessage.includes('proyecto') || lowerMessage.includes('management')) {
+      return `# 📋 Gestión de Proyectos Avanzada
+
+## Metodología Híbrida Recomendada
+
+### **Fase 1: Planificación** 🎯
+\`\`\`
+• Definición de alcance
+• Identificación de stakeholders  
+• Matriz de riesgos
+• Cronograma maestro
+\`\`\`
+
+### **Fase 2: Ejecución** ⚡
+- **Sprints de 2 semanas**
+- **Daily standups**
+- **Revisiones de calidad**
+- **Comunicación proactiva**
+
+### **Fase 3: Monitoreo** 📊
+| Métrica | Frecuencia | Responsable |
+|---------|------------|-------------|
+| Progreso | Diario | PM |
+| Calidad | Semanal | QA Lead |
+| Presupuesto | Quincenal | Finance |
+| Riesgos | Semanal | Risk Manager |
+
+### **Fase 4: Cierre** ✅
+> **Importante:** Documenta lecciones aprendidas y celebra los éxitos del equipo.
+
+¿Qué aspecto de gestión te interesa más?`
+    }
+    
+    // Respuesta por defecto más avanzada
+    return `# 🎯 ALEXANDRA - Asistente Empresarial
+
+Como especialista en **gestión colaborativa**, puedo ayudarte con:
+
+## 🔧 Servicios Disponibles
+
+### **Consultoría Estratégica**
+- Análisis de procesos empresariales
+- Optimización de flujos de trabajo
+- Estrategias de crecimiento
+
+### **Gestión de Equipos**
+- Técnicas de liderazgo efectivo
+- Resolución de conflictos
+- Motivación y engagement
+
+### **Innovación Empresarial**
+- Metodologías de innovación
+- Gestión del cambio
+- Transformación digital
+
+---
+
+### 💬 **¿Cómo prefieres que te ayude?**
+
+**Opción A:** *"Dame consejos sobre [tema específico]"*  
+**Opción B:** *"Analiza mi situación: [describe tu caso]"*  
+**Opción C:** *"Necesito estrategias para [objetivo específico]"*
+
+> 🚀 **Pro Tip:** Cuanto más específica sea tu consulta, más precisos y útiles serán mis consejos.`
   }
 
   getErrorResponse() {

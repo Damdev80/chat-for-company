@@ -11,6 +11,10 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
+import 'highlight.js/styles/github-dark.css'
 
 const SupportChat = ({ isOpen, onClose, currentUser }) => {
   const [messages, setMessages] = useState([])
@@ -174,9 +178,8 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#252529] rounded-2xl w-full max-w-2xl h-[80vh] flex flex-col border border-[#3C4043] shadow-2xl">
+  return (    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#252529] rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col border border-[#3C4043] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#1A1A1F] rounded-t-2xl">
           <div className="flex items-center gap-3">
@@ -251,15 +254,43 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
                 {/* Message */}
                 <div className={`flex flex-col max-w-[85%] ${
                   message.role === 'user' ? 'items-end' : 'items-start'
-                }`}>
-                  <div className={`rounded-2xl px-4 py-3 ${
+                }`}>                  <div className={`rounded-2xl px-4 py-3 ${
                     message.role === 'user'
                       ? 'bg-[#A8E6A3] text-[#1A1A1F]'
                       : 'bg-[#3C4043] text-white border border-[#4C4C53]'
                   }`}>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
-                    </p>
+                    {message.role === 'user' ? (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>                    ) : (
+                      <div className="text-sm leading-relaxed markdown-content">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            // Personalizar componentes para el tema oscuro
+                            h1: ({children}) => <h1 className="text-lg font-bold mb-2 text-[#A8E6A3]">{children}</h1>,
+                            h2: ({children}) => <h2 className="text-base font-semibold mb-2 text-[#A8E6A3]">{children}</h2>,
+                            h3: ({children}) => <h3 className="text-sm font-semibold mb-1 text-[#A8E6A3]">{children}</h3>,
+                            p: ({children}) => <p className="mb-2 last:mb-0 text-white">{children}</p>,
+                            ul: ({children}) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                            ol: ({children}) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                            li: ({children}) => <li className="text-sm text-white">{children}</li>,
+                            strong: ({children}) => <strong className="font-semibold text-[#A8E6A3]">{children}</strong>,
+                            em: ({children}) => <em className="italic text-[#B8B8B8]">{children}</em>,
+                            code: ({children}) => <code className="bg-[#2C2C34] text-[#A8E6A3] px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                            pre: ({children}) => <pre className="bg-[#2C2C34] p-3 rounded-lg overflow-x-auto mb-2 text-xs">{children}</pre>,
+                            blockquote: ({children}) => <blockquote className="border-l-4 border-[#A8E6A3] pl-3 mb-2 italic text-[#B8B8B8]">{children}</blockquote>,
+                            a: ({href, children}) => <a href={href} className="text-[#A8E6A3] hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                            table: ({children}) => <table className="min-w-full border border-[#4C4C53] mb-2">{children}</table>,
+                            th: ({children}) => <th className="border border-[#4C4C53] px-2 py-1 bg-[#2C2C34] text-[#A8E6A3] text-xs">{children}</th>,
+                            td: ({children}) => <td className="border border-[#4C4C53] px-2 py-1 text-xs text-white">{children}</td>,
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </div>
                   <span className="text-xs text-[#666] mt-1">
                     {formatTime(message.created_at)}
