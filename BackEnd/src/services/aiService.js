@@ -8,18 +8,23 @@ class AIService {
     
     console.log('🔧 AIService inicializado (lazy loading de API key)')
   }
-
   // Método para obtener la API key de forma segura
   getApiKey() {
     const apiKey = process.env.DEEPSEEK_API_KEY || null
-    console.log('🔑 Verificando API Key:', apiKey ? 'PRESENTE' : 'AUSENTE')
+    console.log('🔑 Verificando API Key:')
+    console.log('   - Variable DEEPSEEK_API_KEY existe:', !!process.env.DEEPSEEK_API_KEY)
+    console.log('   - Valor presente:', apiKey ? 'SÍ (length: ' + apiKey.length + ')' : 'NO')
+    console.log('   - Primeros 10 chars:', apiKey ? apiKey.substring(0, 10) + '...' : 'N/A')
     return apiKey
   }
-
   isInDemoMode() {
     const apiKey = this.getApiKey()
     const isDemoMode = !apiKey || apiKey.trim() === '' || apiKey === 'demo_mode'
-    console.log('🎭 Modo demo:', isDemoMode)
+    console.log('🎭 Análisis modo demo:')
+    console.log('   - API Key válida:', !!apiKey)
+    console.log('   - API Key no vacía:', apiKey && apiKey.trim() !== '')
+    console.log('   - No es demo_mode:', apiKey !== 'demo_mode')
+    console.log('   - RESULTADO - Modo demo activo:', isDemoMode)
     return isDemoMode
   }
 
@@ -48,6 +53,9 @@ class AIService {
       ]
 
       console.log('🚀 Llamando a DeepSeek API...')
+      console.log('   - URL:', `${this.baseURL}/chat/completions`)
+      console.log('   - Modelo:', this.model)
+      console.log('   - Mensajes a enviar:', messages.length)
       
       const apiKey = this.getApiKey()
       const response = await axios.post(`${this.baseURL}/chat/completions`, {
@@ -63,10 +71,19 @@ class AIService {
         }
       })
 
+      console.log('✅ DeepSeek respondió exitosamente')
+      console.log('   - Status:', response.status)
+      console.log('   - Respuesta length:', response.data.choices[0].message.content.length)
+      
       return response.data.choices[0].message.content
 
     } catch (error) {
-      console.error('Error en DeepSeek API:', error.response?.data || error.message)
+      console.error('❌ Error en DeepSeek API:')
+      console.error('   - Error name:', error.name)
+      console.error('   - Error message:', error.message)
+      console.error('   - Response status:', error.response?.status)
+      console.error('   - Response data:', error.response?.data)
+      console.error('   - Full error:', error.response?.data || error.message)
       return this.getErrorResponse()
     }
   }

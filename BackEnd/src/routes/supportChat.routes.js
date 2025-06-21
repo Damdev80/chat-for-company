@@ -43,4 +43,40 @@ router.post('/:chatId/message', sendMessageValidation, SupportChatController.sen
 router.patch('/:chatId/close', chatIdValidation, SupportChatController.closeChat)
 router.get('/stats', SupportChatController.getStats)
 
+// Endpoint de diagnóstico para verificar configuración de IA
+router.get('/diagnostico', (req, res) => {
+  try {
+    const hasApiKey = !!process.env.DEEPSEEK_API_KEY
+    const apiKeyLength = process.env.DEEPSEEK_API_KEY ? process.env.DEEPSEEK_API_KEY.length : 0
+    const isDemo = !process.env.DEEPSEEK_API_KEY || 
+                   process.env.DEEPSEEK_API_KEY.trim() === '' || 
+                   process.env.DEEPSEEK_API_KEY === 'demo_mode'
+    
+    res.json({
+      success: true,
+      data: {
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        deepseek: {
+          hasApiKey,
+          apiKeyLength,
+          isDemoMode: isDemo,
+          firstChars: hasApiKey ? process.env.DEEPSEEK_API_KEY.substring(0, 10) + '...' : 'N/A'
+        },
+        server: {
+          uptime: process.uptime(),
+          memory: process.memoryUsage(),
+          platform: process.platform
+        }
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error en diagnóstico',
+      error: error.message
+    })
+  }
+})
+
 export default router
