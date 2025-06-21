@@ -47,12 +47,14 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
+  
   const loadActiveChat = async () => {
     try {
       console.log('🔄 Cargando chat activo...')
       setChatLoading(true)
       const token = localStorage.getItem('token')
-        const response = await fetch('http://localhost:3000/api/support/active', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+      const response = await fetch(`${API_URL}/support/active`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -64,12 +66,24 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
       if (response.ok) {
         console.log('✅ Chat cargado:', data.data)
         setChatId(data.data.chat.id)
-        setMessages(data.data.messages || [])
-      } else {
+        setMessages(data.data.messages || [])      } else {
         console.error('❌ Error cargando chat:', data)
+        console.error('❌ Response status:', response.status)
+        console.error('❌ API URL utilizada:', `${API_URL}/support/active`)
       }
     } catch (error) {
       console.error('Error cargando chat:', error)
+      console.error('❌ Error type:', error.name)
+      console.error('❌ Error message:', error.message)
+      
+      // Si es un error de red, mostrar información más específica
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.error('🌐 Error de conectividad - Verificar:')
+        console.error('   1. Backend está corriendo')
+        console.error('   2. URL del API es correcta')
+        console.error('   3. No hay problemas de CORS')
+        console.error('   4. Internet funciona correctamente')
+      }
     } finally {
       setChatLoading(false)
     }
@@ -99,8 +113,9 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
 
     try {
       const token = localStorage.getItem('token')
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
       
-      const response = await fetch(`http://localhost:3000/api/support/${chatId}/message`, {
+      const response = await fetch(`${API_URL}/support/${chatId}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,11 +156,11 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
 
     try {
       setLoading(true)
-      
-      // Primero cerrar el chat actual
+        // Primero cerrar el chat actual
       if (chatId) {
         const token = localStorage.getItem('token')
-        await fetch(`http://localhost:3000/api/support/${chatId}/close`, {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+        await fetch(`${API_URL}/support/${chatId}/close`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
