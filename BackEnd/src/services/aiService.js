@@ -43,12 +43,11 @@ class AIService {
         { role: 'system', content: systemPrompt },
         ...conversationHistory.map(msg => ({
           role: msg.role,
-          content: msg.content        })),
-        { role: 'user', content: userMessage }
+          content: msg.content
+        })),        { role: 'user', content: userMessage }
       ]
 
       console.log('🚀 Llamando a DeepSeek API...')
-      console.log('📝 Mensajes a enviar:', JSON.stringify(messages, null, 2))
       
       const apiKey = this.getApiKey()
       const response = await axios.post(`${this.baseURL}/chat/completions`, {
@@ -64,17 +63,10 @@ class AIService {
         }
       })
 
-      console.log('✅ Respuesta exitosa de DeepSeek:', response.data.choices[0].message.content)
       return response.data.choices[0].message.content
 
     } catch (error) {
-      console.error('❌ Error completo en DeepSeek API:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers
-      })
+      console.error('Error en DeepSeek API:', error.response?.data || error.message)
       return this.getErrorResponse()
     }
   }
