@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
 import { canReviewTasks } from "../../utils/auth";
+import logoThinkchat from "../../assets/logo-thinkchat.png";
 
 // Componente de menú de usuario simplificado
 const UserMenu = ({ onLogout, onClose, onOpenProfile }) => {
@@ -259,8 +260,7 @@ const ChatSidebar = ({
 
   return (
     <>
-      {/* Sidebar principal */}
-      <div 
+      {/* Sidebar principal */}      <div 
         className={`
           fixed lg:relative top-0 left-0 h-screen bg-gradient-to-b from-[#2C2C34] via-[#252529] to-[#1A1A1F] border-r border-[#3C4043] 
           transform transition-all duration-300 ease-in-out z-50 flex flex-col
@@ -272,11 +272,11 @@ const ChatSidebar = ({
             ? (sidebarOpen ? '100vw' : '0') 
             : (sidebarCollapsed ? '64px' : `${sidebarWidth}px`),
           maxWidth: window.innerWidth < 1024 ? '380px' : 'none',
-          minWidth: window.innerWidth < 1024 ? '320px' : (sidebarCollapsed ? '64px' : '320px')
+          minWidth: sidebarCollapsed ? '64px' : '320px'
         }}
       >
         {/* Header del sidebar */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-[#3C4043] bg-[#252529]">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-[#3C4043]">
           <div className="flex items-center gap-3">
             {/* Botón hamburguesa */}
             <button
@@ -284,11 +284,15 @@ const ChatSidebar = ({
               className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-xl transition-all duration-200 hover:bg-[#3C4043] lg:block hidden"
             >
               <Menu size={20} />
-            </button>
-            
-            {/* Logo/Título - Ocultar cuando colapsado */}
+            </button>            {/* Logo/Título - Ocultar cuando colapsado */}
             {!sidebarCollapsed && (
-              <h1 className="text-lg sm:text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
+              <div className="flex items-center">
+                <img 
+                  src={logoThinkchat} 
+                  alt="Thinkchat" 
+                  className="h-10 sm:h-12 w-auto object-contain"
+                />
+              </div>
             )}
           </div>
           
@@ -301,10 +305,10 @@ const ChatSidebar = ({
           </button>
         </div>        {/* Contenido colapsado - Solo iconos */}
         {sidebarCollapsed && (
-          <div className="flex flex-col items-center py-3 px-1 space-y-3 w-full">
+          <div className="flex flex-col items-center py-4 px-2 space-y-4 w-full max-w-[64px]">
             {/* Avatar del usuario colapsado */}
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white border-2 border-[#A8E6A3] cursor-pointer hover:scale-105 transition-transform"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white border-2 border-[#A8E6A3] cursor-pointer hover:scale-105 transition-transform mx-auto"
               style={{ backgroundColor: getAvatarColor(currentUser) }}
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               title={currentUser}
@@ -313,81 +317,81 @@ const ChatSidebar = ({
             </div>
 
             {/* Iconos de navegación colapsados */}
-            <div className="flex flex-col items-center space-y-2 w-full">
+            <div className="flex flex-col items-center space-y-3 w-full">
               <button
                 onClick={() => handleTabChange('chats')}
-                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                className={`w-8 h-8 rounded-lg transition-all duration-200 flex items-center justify-center mx-auto ${
                   activeTab === 'chats' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Chats"
               >
-                <MessageCircle size={16} />
+                <MessageCircle size={14} />
               </button>
               
               <button
                 onClick={() => handleTabChange('users')}
-                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                className={`w-8 h-8 rounded-lg transition-all duration-200 flex items-center justify-center mx-auto ${
                   activeTab === 'users' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Usuarios"
               >
-                <Users size={16} />
+                <Users size={14} />
               </button>
               
               <button
                 onClick={() => handleTabChange('objectives')}
-                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                className={`w-8 h-8 rounded-lg transition-all duration-200 flex items-center justify-center mx-auto ${
                   activeTab === 'objectives' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Objetivos"
               >
-                <Target size={16} />
+                <Target size={14} />
               </button>
 
               {/* Solo para admin/moderador */}
               {canReviewTasks(userRole) && (
                 <button
                   onClick={() => handleTabChange('review')}
-                  className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  className={`w-8 h-8 rounded-lg transition-all duration-200 flex items-center justify-center mx-auto ${
                     activeTab === 'review' 
                       ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}
                   title="Revisar Tareas"
                 >
-                  <ClipboardCheck size={16} />
+                  <ClipboardCheck size={14} />
                 </button>
               )}
 
               {/* Calendario e Ideas - Solo van a su pestaña, NO abren sidebar */}
               <button
                 onClick={() => setActiveTab('calendar')}
-                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                className={`w-8 h-8 rounded-lg transition-all duration-200 flex items-center justify-center mx-auto ${
                   activeTab === 'calendar' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Calendario"
               >
-                <Calendar size={16} />
+                <Calendar size={14} />
               </button>
               
               <button
                 onClick={() => setActiveTab('ideas')}
-                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                className={`w-8 h-8 rounded-lg transition-all duration-200 flex items-center justify-center mx-auto ${
                   activeTab === 'ideas' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Ideas"
               >
-                <Lightbulb size={16} />
+                <Lightbulb size={14} />
               </button>
             </div>
           </div>

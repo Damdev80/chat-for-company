@@ -83,7 +83,7 @@ export function Home() {
         </div>        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Logo icono arriba */}
           <div className="flex justify-center mb-8 animate-fadeIn">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center shadow-lg shadow-[#4ADE80]/20 p-4">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-2xl flex items-center justify-center">
               <img 
                 src={logoThinkchat} 
                 alt="Thinkchat" 
