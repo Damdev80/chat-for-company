@@ -463,7 +463,7 @@ const ChatSidebar = ({
                     : 'text-[#B8B8B8] border-transparent hover:text-[#A8E6A3] hover:bg-[#252529]'
                 }`}
               >
-                <MessageCircle size={16} />
+                <MessageCircle size={20} />
                 Chats
               </button>
               
@@ -475,7 +475,7 @@ const ChatSidebar = ({
                     : 'text-[#B8B8B8] border-transparent hover:text-[#A8E6A3] hover:bg-[#252529]'
                 }`}
               >
-                <Users size={16} />
+                <Users size={100} />
                 Usuarios
               </button>
               

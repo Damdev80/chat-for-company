@@ -65,7 +65,7 @@ function Login() {
           {/* Formulario principal */}
           <div className="bg-gradient-to-br from-[#2D2D3A]/80 to-[#252530]/80 backdrop-blur-md rounded-2xl shadow-2xl border border-[#3C3C4E]/50 p-8 hover:border-[#4ADE80]/30 transition-all duration-500">            {/* Header del formulario */}
             <div className="text-center mb-8">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#4ADE80]/20 p-4">
+              <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <img 
                   src={logoThinkchat} 
                   alt="Thinkchat" 

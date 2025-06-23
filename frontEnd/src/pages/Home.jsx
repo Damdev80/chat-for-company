@@ -122,9 +122,7 @@ export function Home() {
               <span className="relative">Solicitar Demo</span>
             </button>
           </div>        </div>
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 animate-bounce z-10">
-          <ChevronRight className="h-8 w-8 text-[#4ADE80] transform rotate-90" />
-        </div>
+        
       </section>      {/* Features Section */}
       <section ref={featuresRef} className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 flex items-center relative">
         <div className="absolute inset-0 z-0">
