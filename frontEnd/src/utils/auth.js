@@ -69,8 +69,8 @@ export function getUserRole() {
 }
 
 // Función para verificar si el usuario es admin
-export function isAdmin() {
-  const role = getUserRole();
+export function isAdmin(userRole = null) {
+  const role = userRole || getUserRole();
   return role === 'admin';
 }
 

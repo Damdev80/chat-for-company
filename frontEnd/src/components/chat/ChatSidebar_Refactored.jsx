@@ -18,8 +18,7 @@ import {
   ClipboardCheck,
   Star,
   Menu,
-  Settings,
-  Brain
+  Settings
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
 import { canReviewTasks, isAdmin } from "../../utils/auth";
@@ -331,92 +330,99 @@ const ChatSidebar = ({
               </div>
             </>
           )}
-        </div>        {/* Navegación por iconos (modo colapsado) */}
+        </div>
+
+        {/* Navegación por iconos (modo colapsado) */}
         {sidebarCollapsed && (
-          <div className="flex flex-col h-full p-2">
+          <div className="flex-1 p-2 space-y-2">
             {/* Iconos principales */}
-            <div className="space-y-2">
-              <button
-                onClick={() => handleIconNavigation('chats')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                  activeTab === 'chats'
-                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Chats"
+            <button
+              onClick={() => handleIconNavigation('chats')}
+              className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'chats'
+                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+              title="Chats"
             >
-              <MessageCircle size={18} />
+              <MessageCircle size={20} />
             </button>
 
-              <button
-                onClick={() => handleIconNavigation('users')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                  activeTab === 'users'
-                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Usuarios"
+            <button
+              onClick={() => handleIconNavigation('users')}
+              className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'users'
+                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+              title="Usuarios"
             >
-              <Users size={18} />
+              <Users size={20} />
             </button>
 
-              <button
-                onClick={() => handleIconNavigation('objectives')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                  activeTab === 'objectives'
-                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
+            <button
+              onClick={() => handleIconNavigation('objectives')}
+              className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'objectives'
+                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+              title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
             >
-              <Target size={18} />
+              <Target size={20} />
             </button>
 
-              {canReviewTasks() && (
-                <button
-                  onClick={() => handleIconNavigation('review')}
-                  className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                    activeTab === 'review'
-                      ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                      : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                title="Revisión"
+            {canReviewTasks() && (
+              <button
+                onClick={() => handleIconNavigation('review')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                  activeTab === 'review'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Revisión"
               >
-                <ClipboardCheck size={18} />
+                <ClipboardCheck size={20} />
               </button>
-              )}
+            )}
 
-              <div className="h-px bg-[#3C4043] my-2"></div>
+            <div className="h-px bg-[#3C4043] my-2"></div>
 
-              {/* Iconos secundarios (solo cambian pestaña) */}
-              <button
-                onClick={() => setActiveTab('ideas')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                  activeTab === 'ideas'
-                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Ideas"
+            {/* Iconos secundarios (solo cambian pestaña) */}
+            <button
+              onClick={() => setActiveTab('ideas')}
+              className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'ideas'
+                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+              title="Ideas"
             >
-              <Lightbulb size={18} />
+              <Lightbulb size={20} />
             </button>
 
-              <button
-                onClick={() => setActiveTab('calendar')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                  activeTab === 'calendar'
-                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Calendario"
+            <button
+              onClick={() => setActiveTab('calendar')}
+              className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                activeTab === 'calendar'
+                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+              }`}
+              title="Calendario"
             >
-              <Calendar size={18} />
+              <Calendar size={20} />
             </button>
-            </div>
 
-            {/* Configuraciones - Movido más arriba */}
-            <div className="mt-4 border-t border-[#3C4043]/50 pt-4">
+            {/* Configuraciones en la parte inferior */}
+            <div className="absolute bottom-4 left-2 right-2">
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="w-full p-3 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] transition-all duration-200"                title="Configuración"
-              >
-                <Settings size={18} />
-              </button>
+                  className="w-full p-3 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] transition-all duration-200"
+                  title="Configuración"
+                >
+                  <Settings size={20} />
+                </button>
                 {userMenuOpen && (
                   <div className="absolute bottom-full left-0 mb-2 w-48">
                     <UserMenu 
@@ -484,92 +490,86 @@ const ChatSidebar = ({
                   className="w-full pl-10 pr-4 py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200"
                 />
               </div>
-            </div>            {/* Tabs de navegación */}
+            </div>
+
+            {/* Tabs de navegación */}
             <div className="border-b border-[#3C4043] bg-[#252529]">
-              <div className="flex">                <button
+              <div className="flex">
+                <button
                   onClick={() => setActiveTab('chats')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
                     activeTab === 'chats'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <MessageCircle size={18} />
+                  }`}
+                >
+                  <MessageCircle size={16} />
                   Chat
                 </button>
 
                 <button
                   onClick={() => setActiveTab('users')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
                     activeTab === 'users'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Users size={18} />
+                  }`}
+                >
+                  <Users size={16} />
                   Online
-                </button><button
+                </button>
+
+                <button
                   onClick={() => setActiveTab('objectives')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[90px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
                     activeTab === 'objectives'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Target size={18} />
+                  }`}
+                >
+                  <Target size={16} />
                   {isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
                 </button>
 
                 {canReviewTasks() && (
                   <button
                     onClick={() => setActiveTab('review')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[90px] ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
                       activeTab === 'review'
                         ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                         : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                    }`}                  >
-                    <ClipboardCheck size={18} />
+                    }`}
+                  >
+                    <ClipboardCheck size={16} />
                     Revisión
                   </button>
                 )}
-              </div>              <div className="flex border-t border-[#3C4043]/50">
+              </div>
+
+              <div className="flex border-t border-[#3C4043]/50">
                 <button
                   onClick={() => setActiveTab('ideas')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[70px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
                     activeTab === 'ideas'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Lightbulb size={18} />
+                  }`}
+                >
+                  <Lightbulb size={16} />
                   Ideas
                 </button>
 
                 <button
                   onClick={() => setActiveTab('calendar')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
                     activeTab === 'calendar'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Calendar size={18} />
+                  }`}
+                >
+                  <Calendar size={16} />
                   Eventos
                 </button>
-              </div>
-            </div>            {/* Botón de ajustes - Movido más arriba */}
-            <div className="p-3 border-b border-[#3C4043] bg-[#252529]">
-              <div className="relative">                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="w-full flex items-center justify-center gap-2 p-2 text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] rounded-lg transition-all duration-200"
-                  title="Configuración"                >
-                  <Settings size={18} />
-                  <span className="text-sm font-medium">Ajustes</span>
-                </button>
-                {userMenuOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 z-10">
-                    <UserMenu 
-                      onLogout={handleLogout} 
-                      onClose={() => setUserMenuOpen(false)}
-                      onOpenProfile={() => setShowProfile(true)}
-                    />
-                  </div>
-                )}
               </div>
             </div>
 
