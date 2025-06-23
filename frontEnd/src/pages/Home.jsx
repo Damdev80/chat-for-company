@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react"
 import { ChevronRight, MessageSquare, Shield, Zap, Star, Check } from "lucide-react"
+import logoThinkchat from "../assets/logo-thinkchat.png"
 
 export function Home() {
   // Estado para controlar efectos interactivos
@@ -79,8 +80,19 @@ export function Home() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-[#1E1E2E]"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-[#3C3C4E] to-[#1E1E2E] opacity-20 animate-gradient"></div>
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 animate-fadeIn">
+        </div>        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Logo de Thinkchat */}
+          <div className="flex justify-center mb-8 animate-fadeIn">
+            <div className="w-20 h-20 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center shadow-lg shadow-[#4ADE80]/20 p-4">
+              <img 
+                src={logoThinkchat} 
+                alt="Thinkchat" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+          
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 animate-fadeIn">
             Comunicación Empresarial{" "}
             <span className="text-[#4ADE80]">
               Segura y Privada

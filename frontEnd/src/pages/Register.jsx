@@ -2,6 +2,7 @@ import { useState } from "react"
 import { ArrowLeft, Check, User, Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react"
 import { registerUser } from "../utils/auth"
 import { useNavigate } from "react-router-dom"
+import logoThinkchat from "../assets/logo-thinkchat.png"
 import "../../styles/index.css"
 
 function Register() {
@@ -84,11 +85,13 @@ function Register() {
       <div className="flex-1 flex items-center justify-center relative z-10 px-4 py-8">
         <div className="w-full max-w-md animate-fadeIn animation-delay-100">
           {/* Formulario principal */}
-          <div className="bg-gradient-to-br from-[#2D2D3A]/80 to-[#252530]/80 backdrop-blur-md rounded-2xl shadow-2xl border border-[#3C3C4E]/50 p-8 hover:border-[#4ADE80]/30 transition-all duration-500">
-            {/* Header del formulario */}
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#4ADE80]/20">
-                <UserPlus className="h-8 w-8 text-black" />
+          <div className="bg-gradient-to-br from-[#2D2D3A]/80 to-[#252530]/80 backdrop-blur-md rounded-2xl shadow-2xl border border-[#3C3C4E]/50 p-8 hover:border-[#4ADE80]/30 transition-all duration-500">            {/* Header del formulario */}
+            <div className="text-center mb-8">              <div className="w-24 h-24 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#4ADE80]/20 p-4">
+                <img 
+                  src={logoThinkchat} 
+                  alt="Thinkchat" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-[#FFFFFF] to-[#A0A0B0] bg-clip-text text-transparent">
                 Crear Cuenta

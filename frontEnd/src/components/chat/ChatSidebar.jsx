@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import logoThinkchat from "../../assets/logo-thinkchat.png";
 import {
   Search,
   MessageCircle,
@@ -304,17 +305,23 @@ const ChatSidebar = ({
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#252529] min-h-[72px]">
-          {sidebarCollapsed ? (
-            <button
-              onClick={toggleSidebar}
-              className="p-2 text-[#A8E6A3] hover:bg-[#3C4043] rounded-lg transition-all duration-200"
-            >
-              <Menu size={20} />
-            </button>
-          ) : (
-            <>
-              <h1 className="text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
+        <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#252529] min-h-[72px]">          {sidebarCollapsed ? (            <div className="flex flex-col items-center gap-2">
+              <img 
+                src={logoThinkchat} 
+                alt="Thinkchat" 
+                className="w-12 h-12 object-contain cursor-pointer hover:scale-110 transition-transform"
+                onClick={toggleSidebar}
+                title="Thinkchat - Expandir menú"
+              />
+            </div>
+          ) : (<>              <div className="flex items-center gap-2">
+                <img 
+                  src={logoThinkchat} 
+                  alt="Thinkchat" 
+                  className="w-10 h-10 object-contain"
+                />
+                <h1 className="text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleSidebar}
@@ -344,7 +351,7 @@ const ChatSidebar = ({
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}              title="Chats"
             >
-              <MessageCircle size={18} />
+              <MessageCircle size={22} />
             </button>
 
               <button
@@ -355,7 +362,7 @@ const ChatSidebar = ({
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}              title="Usuarios"
             >
-              <Users size={18} />
+              <Users size={22} />
             </button>
 
               <button
@@ -366,7 +373,7 @@ const ChatSidebar = ({
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}              title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
             >
-              <Target size={18} />
+              <Target size={22} />
             </button>
 
               {canReviewTasks() && (
@@ -378,7 +385,7 @@ const ChatSidebar = ({
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}                title="Revisión"
               >
-                <ClipboardCheck size={18} />
+                <ClipboardCheck size={22} />
               </button>
               )}
 
@@ -393,7 +400,7 @@ const ChatSidebar = ({
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}              title="Ideas"
             >
-              <Lightbulb size={18} />
+              <Lightbulb size={22} />
             </button>
 
               <button
@@ -404,18 +411,17 @@ const ChatSidebar = ({
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}              title="Calendario"
             >
-              <Calendar size={18} />
+              <Calendar size={22} />
             </button>
             </div>
 
             {/* Configuraciones - Movido más arriba */}
             <div className="mt-4 border-t border-[#3C4043]/50 pt-4">
               <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                <button                  onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="w-full p-3 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] transition-all duration-200"                title="Configuración"
               >
-                <Settings size={18} />
+                <Settings size={22} />
               </button>
                 {userMenuOpen && (
                   <div className="absolute bottom-full left-0 mb-2 w-48">
@@ -493,7 +499,7 @@ const ChatSidebar = ({
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}                >
-                  <MessageCircle size={18} />
+                  <MessageCircle size={22} />
                   Chat
                 </button>
 
@@ -504,7 +510,7 @@ const ChatSidebar = ({
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}                >
-                  <Users size={18} />
+                  <Users size={22} />
                   Online
                 </button><button
                   onClick={() => setActiveTab('objectives')}
@@ -513,7 +519,7 @@ const ChatSidebar = ({
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}                >
-                  <Target size={18} />
+                  <Target size={22} />
                   {isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
                 </button>
 
@@ -525,7 +531,7 @@ const ChatSidebar = ({
                         ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                         : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                     }`}                  >
-                    <ClipboardCheck size={18} />
+                    <ClipboardCheck size={22} />
                     Revisión
                   </button>
                 )}
@@ -537,7 +543,7 @@ const ChatSidebar = ({
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}                >
-                  <Lightbulb size={18} />
+                  <Lightbulb size={22} />
                   Ideas
                 </button>
 
@@ -548,17 +554,16 @@ const ChatSidebar = ({
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}                >
-                  <Calendar size={18} />
+                  <Calendar size={22} />
                   Eventos
                 </button>
               </div>
             </div>            {/* Botón de ajustes - Movido más arriba */}
             <div className="p-3 border-b border-[#3C4043] bg-[#252529]">
               <div className="relative">                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="w-full flex items-center justify-center gap-2 p-2 text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] rounded-lg transition-all duration-200"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}                  className="w-full flex items-center justify-center gap-2 p-2 text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] rounded-lg transition-all duration-200"
                   title="Configuración"                >
-                  <Settings size={18} />
+                  <Settings size={22} />
                   <span className="text-sm font-medium">Ajustes</span>
                 </button>
                 {userMenuOpen && (

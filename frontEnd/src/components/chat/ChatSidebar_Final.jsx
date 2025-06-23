@@ -20,7 +20,7 @@ import {
   Menu
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
-import { canReviewTasks, isAdmin } from "../../utils/auth";
+import { canReviewTasks } from "../../utils/auth";
 
 // Componente de menú de usuario simplificado
 const UserMenu = ({ onLogout, onClose, onOpenProfile }) => {
@@ -458,8 +458,8 @@ const ChatSidebar = ({
               {[
                 { id: 'chats', label: 'Chats', icon: MessageCircle },
                 { id: 'users', label: 'Usuarios', icon: Users },
-                { id: 'objectives', label: 'Objetivos', icon: Target }
-              ].map(({ id, label, icon: Icon }) => (
+                { id: 'objectives', label: 'Objetivos', icon: Target },
+              ].map(({ id, label }) => (
                 <button
                   key={id}
                   onClick={() => setActiveTab(id)}
@@ -469,7 +469,7 @@ const ChatSidebar = ({
                       : 'text-[#B8B8B8] border-transparent hover:text-[#A8E6A3] hover:bg-[#252529]'
                   }`}
                 >
-                  <Icon size={16} />
+                  <Icon size={20} />
                   {label}
                 </button>
               ))}
