@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import logoThinkchat from "../../assets/logo-thinkchat.png";
 import {
   Search,
   MessageCircle,
@@ -18,7 +19,8 @@ import {
   ClipboardCheck,
   Star,
   Menu,
-  Settings
+  Settings,
+  Brain
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
 import { canReviewTasks, isAdmin } from "../../utils/auth";
@@ -190,10 +192,10 @@ const ChatSidebar = ({
   onCreateGroup,
   onEditGroup,
   onDeleteGroup,
-}) => {
-  // Estados principales
+}) => {  // Estados principales
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Iniciar colapsado
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false); // Menú expandido
+  const [userMenuCollapsedOpen, setUserMenuCollapsedOpen] = useState(false); // Menú colapsado
   const [showProfile, setShowProfile] = useState(false);
   const [showGroupOptions, setShowGroupOptions] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -299,28 +301,33 @@ const ChatSidebar = ({
           fixed lg:relative top-0 left-0 h-screen bg-gradient-to-b from-[#2C2C34] via-[#252529] to-[#1A1A1F] border-r border-[#3C4043] 
           transform transition-all duration-300 ease-in-out z-50 flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${sidebarCollapsed ? 'w-16' : 'w-80'}
+          ${sidebarCollapsed ? 'w-16 min-w-16' : 'w-80'}
         `}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#252529] min-h-[72px]">
-          {sidebarCollapsed ? (
-            <button
-              onClick={toggleSidebar}
-              className="p-2 text-[#A8E6A3] hover:bg-[#3C4043] rounded-lg transition-all duration-200"
-            >
-              <Menu size={20} />
-            </button>
-          ) : (
+      >        {/* Header */}
+        <div className={`flex items-center justify-between p-4 border-b border-[#3C4043] min-h-[72px] ${sidebarCollapsed ? '' : 'bg-[#252529]'}`}>{sidebarCollapsed ? (            <div className="flex flex-col items-center gap-2">              <img 
+                src={logoThinkchat} 
+                alt="Thinkchat" 
+                className="h-10 sm:h-12 w-auto object-contain cursor-pointer hover:scale-110 transition-transform"
+                onClick={toggleSidebar}
+                title="Thinkchat - Expandir menú"
+              />
+            </div>          ) : (
             <>
-              <h1 className="text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
               <div className="flex items-center gap-2">
+                <img 
+                  src={logoThinkchat} 
+                  alt="Thinkchat" 
+                  className="h-10 sm:h-12 w-auto object-contain"
+                />
+              </div><div className="flex items-center gap-2">
+                {/* Botón hamburguesa - Solo en desktop */}
                 <button
                   onClick={toggleSidebar}
-                  className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-lg hover:bg-[#3C4043] transition-all duration-200"
+                  className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-lg hover:bg-[#3C4043] transition-all duration-200 hidden lg:block"
                 >
                   <Menu size={18} />
                 </button>
+                {/* Botón cerrar - Solo en móvil */}
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-lg hover:bg-[#3C4043] transition-all duration-200 lg:hidden"
@@ -330,99 +337,95 @@ const ChatSidebar = ({
               </div>
             </>
           )}
-        </div>
-
-        {/* Navegación por iconos (modo colapsado) */}
+        </div>        {/* Navegación por iconos (modo colapsado) */}
         {sidebarCollapsed && (
-          <div className="flex-1 p-2 space-y-2">
-            {/* Iconos principales */}
-            <button
-              onClick={() => handleIconNavigation('chats')}
-              className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                activeTab === 'chats'
-                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-              }`}
-              title="Chats"
-            >
-              <MessageCircle size={20} />
-            </button>
-
-            <button
-              onClick={() => handleIconNavigation('users')}
-              className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                activeTab === 'users'
-                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-              }`}
-              title="Usuarios"
-            >
-              <Users size={20} />
-            </button>
-
-            <button
-              onClick={() => handleIconNavigation('objectives')}
-              className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                activeTab === 'objectives'
-                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-              }`}
-              title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
-            >
-              <Target size={20} />
-            </button>
-
-            {canReviewTasks() && (
+          <div className="flex flex-col h-full p-2">
+            {/* Iconos principales */}            <div className="space-y-2">
               <button
-                onClick={() => handleIconNavigation('review')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                  activeTab === 'review'
+                onClick={() => handleIconNavigation('chats')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'chats'
                     ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
-                title="Revisión"
+                title="Chats"
               >
-                <ClipboardCheck size={20} />
+                <MessageCircle size={14} />
               </button>
-            )}
 
-            <div className="h-px bg-[#3C4043] my-2"></div>
+              <button
+                onClick={() => handleIconNavigation('users')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'users'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Usuarios"
+              >
+                <Users size={14} />
+              </button>
 
-            {/* Iconos secundarios (solo cambian pestaña) */}
-            <button
-              onClick={() => setActiveTab('ideas')}
-              className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                activeTab === 'ideas'
-                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-              }`}
-              title="Ideas"
-            >
-              <Lightbulb size={20} />
-            </button>
+              <button
+                onClick={() => handleIconNavigation('objectives')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'objectives'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
+              >
+                <Target size={14} />
+              </button>
 
-            <button
-              onClick={() => setActiveTab('calendar')}
-              className={`w-full p-3 rounded-lg transition-all duration-200 ${
-                activeTab === 'calendar'
-                  ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                  : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-              }`}
-              title="Calendario"
-            >
-              <Calendar size={20} />
-            </button>
-
-            {/* Configuraciones en la parte inferior */}
-            <div className="absolute bottom-4 left-2 right-2">
-              <div className="relative">
+              {canReviewTasks() && (
                 <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="w-full p-3 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] transition-all duration-200"
-                  title="Configuración"
+                  onClick={() => handleIconNavigation('review')}
+                  className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                    activeTab === 'review'
+                      ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                      : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                  }`}
+                  title="Revisión"
                 >
-                  <Settings size={20} />
+                  <ClipboardCheck size={14} />
                 </button>
+              )}
+
+              <div className="h-px bg-[#3C4043] my-2"></div>
+
+              {/* Iconos secundarios (solo cambian pestaña) */}
+              <button
+                onClick={() => setActiveTab('ideas')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'ideas'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Ideas"
+              >
+                <Lightbulb size={14} />
+              </button>
+
+              <button
+                onClick={() => setActiveTab('calendar')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'calendar'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Calendario"
+              >
+                <Calendar size={14} />
+              </button>
+            </div>
+
+            {/* Configuraciones - Movido más arriba */}
+            <div className="mt-4 border-t border-[#3C4043]/50 pt-4">
+              <div className="relative">
+                <button                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="w-full p-3 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] transition-all duration-200"                title="Configuración"
+              >
+                <Settings size={22} />
+              </button>
                 {userMenuOpen && (
                   <div className="absolute bottom-full left-0 mb-2 w-48">
                     <UserMenu 
@@ -490,26 +493,22 @@ const ChatSidebar = ({
                   className="w-full pl-10 pr-4 py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200"
                 />
               </div>
-            </div>
-
-            {/* Tabs de navegación */}
+            </div>            {/* Tabs de navegación */}
             <div className="border-b border-[#3C4043] bg-[#252529]">
-              <div className="flex">
-                <button
+              <div className="flex">                <button
                   onClick={() => setActiveTab('chats')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
                     activeTab === 'chats'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}
-                >
+                  }`}                >
                   <MessageCircle size={16} />
                   Chat
                 </button>
 
                 <button
                   onClick={() => setActiveTab('users')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
                     activeTab === 'users'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
@@ -521,7 +520,7 @@ const ChatSidebar = ({
 
                 <button
                   onClick={() => setActiveTab('objectives')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[90px] ${
                     activeTab === 'objectives'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
@@ -534,7 +533,7 @@ const ChatSidebar = ({
                 {canReviewTasks() && (
                   <button
                     onClick={() => setActiveTab('review')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[90px] ${
                       activeTab === 'review'
                         ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                         : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
@@ -549,7 +548,7 @@ const ChatSidebar = ({
               <div className="flex border-t border-[#3C4043]/50">
                 <button
                   onClick={() => setActiveTab('ideas')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[70px] ${
                     activeTab === 'ideas'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
@@ -561,7 +560,7 @@ const ChatSidebar = ({
 
                 <button
                   onClick={() => setActiveTab('calendar')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
                     activeTab === 'calendar'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
@@ -569,7 +568,20 @@ const ChatSidebar = ({
                 >
                   <Calendar size={16} />
                   Eventos
-                </button>
+                </button>              </div>
+            </div>
+
+            {/* Barra de búsqueda */}
+            <div className="p-4 bg-[#252529]">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A8E6A3]" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar..."
+                  className="w-full pl-10 pr-4 py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200"
+                />
               </div>
             </div>
 

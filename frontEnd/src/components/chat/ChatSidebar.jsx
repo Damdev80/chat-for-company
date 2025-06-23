@@ -301,27 +301,25 @@ const ChatSidebar = ({
           fixed lg:relative top-0 left-0 h-screen bg-gradient-to-b from-[#2C2C34] via-[#252529] to-[#1A1A1F] border-r border-[#3C4043] 
           transform transition-all duration-300 ease-in-out z-50 flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${sidebarCollapsed ? 'w-16' : 'w-80'}
+          ${sidebarCollapsed ? 'w-16 min-w-16' : 'w-80 min-w-80'}
         `}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#252529] min-h-[72px]">          {sidebarCollapsed ? (            <div className="flex flex-col items-center gap-2">
-              <img 
+      >        {/* Header */}
+        <div className={`flex items-center justify-between p-4 border-b border-[#3C4043] min-h-[72px] ${sidebarCollapsed ? '' : 'bg-[#252529]'}`}>{sidebarCollapsed ? (            <div className="flex flex-col items-center gap-2">              <img 
                 src={logoThinkchat} 
                 alt="Thinkchat" 
-                className="w-12 h-12 object-contain cursor-pointer hover:scale-110 transition-transform"
+                className="h-10 sm:h-12 w-auto object-contain cursor-pointer hover:scale-110 transition-transform"
                 onClick={toggleSidebar}
                 title="Thinkchat - Expandir menú"
               />
-            </div>
-          ) : (<>              <div className="flex items-center gap-2">
+            </div>          ) : (
+            <>
+              <div className="flex items-center gap-2">
                 <img 
                   src={logoThinkchat} 
                   alt="Thinkchat" 
-                  className="w-10 h-10 object-contain"
+                  className="h-10 sm:h-12 w-auto object-contain"
                 />
-                <h1 className="text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
-              </div>              <div className="flex items-center gap-2">
+              </div><div className="flex items-center gap-2">
                 {/* Botón hamburguesa - Solo en desktop */}
                 <button
                   onClick={toggleSidebar}
@@ -342,52 +340,55 @@ const ChatSidebar = ({
         </div>        {/* Navegación por iconos (modo colapsado) */}
         {sidebarCollapsed && (
           <div className="flex flex-col h-full p-2">
-            {/* Iconos principales */}
-            <div className="space-y-2">
+            {/* Iconos principales */}            <div className="space-y-2">
               <button
                 onClick={() => handleIconNavigation('chats')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'chats'
                     ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Chats"
-            >
-              <MessageCircle size={22} />
-            </button>
+                }`}
+                title="Chats"
+              >
+                <MessageCircle size={16} />
+              </button>
 
               <button
                 onClick={() => handleIconNavigation('users')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'users'
                     ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Usuarios"
-            >
-              <Users size={22} />
-            </button>
+                }`}
+                title="Usuarios"
+              >
+                <Users size={16} />
+              </button>
 
               <button
                 onClick={() => handleIconNavigation('objectives')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'objectives'
                     ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
-            >
-              <Target size={22} />
-            </button>
+                }`}
+                title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
+              >
+                <Target size={16} />
+              </button>
 
               {canReviewTasks() && (
                 <button
                   onClick={() => handleIconNavigation('review')}
-                  className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                  className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
                     activeTab === 'review'
                       ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                title="Revisión"
-              >
-                <ClipboardCheck size={22} />
-              </button>
+                  }`}
+                  title="Revisión"
+                >
+                  <ClipboardCheck size={16} />
+                </button>
               )}
 
               <div className="h-px bg-[#3C4043] my-2"></div>
@@ -395,25 +396,26 @@ const ChatSidebar = ({
               {/* Iconos secundarios (solo cambian pestaña) */}
               <button
                 onClick={() => setActiveTab('ideas')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'ideas'
-                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
-                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Ideas"
-            >
-              <Lightbulb size={22} />
-            </button>
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Ideas"
+              >
+                <Lightbulb size={16} />
+              </button>
 
               <button
                 onClick={() => setActiveTab('calendar')}
-                className={`w-full p-3 rounded-lg transition-all duration-200 ${
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'calendar'
                     ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                }`}              title="Calendario"
-            >
-              <Calendar size={22} />
-            </button>
+                }`}
+                title="Calendario"
+              >
+                <Calendar size={16} />
+              </button>
             </div>
 
             {/* Configuraciones - Movido más arriba */}
@@ -422,7 +424,7 @@ const ChatSidebar = ({
                 <button                  onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="w-full p-3 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] transition-all duration-200"                title="Configuración"
               >
-                <Settings size={22} />
+                <Settings size={16} />
               </button>
                 {userMenuOpen && (
                   <div className="absolute bottom-full left-0 mb-2 w-48">
@@ -495,84 +497,72 @@ const ChatSidebar = ({
             <div className="border-b border-[#3C4043] bg-[#252529]">
               <div className="flex">                <button
                   onClick={() => setActiveTab('chats')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[60px] ${
                     activeTab === 'chats'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <MessageCircle size={22} />
+                  }`}
+                >
+                  <MessageCircle size={16} />
                   Chat
-                </button>
-
-                <button
+                </button>                <button
                   onClick={() => setActiveTab('users')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[60px] ${
                     activeTab === 'users'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Users size={22} />
+                  }`}
+                >
+                  <Users size={16} />
                   Online
-                </button><button
+                </button>                <button
                   onClick={() => setActiveTab('objectives')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[90px] ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[70px] ${
                     activeTab === 'objectives'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Target size={22} />
+                  }`}
+                >
+                  <Target size={16} />
                   {isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
                 </button>
 
                 {canReviewTasks() && (
                   <button
-                    onClick={() => setActiveTab('review')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[90px] ${
+                    onClick={() => setActiveTab('review')}                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[70px] ${
                       activeTab === 'review'
                         ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                         : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                    }`}                  >
-                    <ClipboardCheck size={22} />
+                    }`}
+                  >
+                    <ClipboardCheck size={16} />
                     Revisión
                   </button>
                 )}
-              </div>              <div className="flex border-t border-[#3C4043]/50">
+              </div>
+
+              <div className="flex border-t border-[#3C4043]/50">
                 <button
-                  onClick={() => setActiveTab('ideas')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[70px] ${
+                  onClick={() => setActiveTab('ideas')}                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[50px] ${
                     activeTab === 'ideas'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Lightbulb size={22} />
+                  }`}
+                >
+                  <Lightbulb size={16} />
                   Ideas
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('calendar')}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[80px] ${
+                  onClick={() => setActiveTab('calendar')}                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all duration-200 min-w-[60px] ${
                     activeTab === 'calendar'
                       ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
-                  }`}                >
-                  <Calendar size={22} />
+                  }`}
+                >
+                  <Calendar size={16} />
                   Eventos
-                </button>              </div>
-            </div>
-
-            {/* Barra de búsqueda */}
-            <div className="p-4 bg-[#252529]">
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A8E6A3]" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar..."
-                  className="w-full pl-10 pr-4 py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200"
-                />
-              </div>
-            </div>
+                </button>              </div>              </div>
 
             {/* Contenido de tabs */}
             <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#3C4043] scrollbar-track-[#252529]">

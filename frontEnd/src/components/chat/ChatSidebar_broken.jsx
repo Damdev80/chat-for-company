@@ -17,7 +17,16 @@ import {
   Calendar,
   ClipboardCheck,
   Star,
-  Menu
+  Menu,
+  Settings,
+  Camera,
+  Palette,
+  Moon,
+  Sun,
+  Shield,
+  Volume2,
+  VolumeX,
+  Globe
 } from "lucide-react";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
 import { canReviewTasks, isAdmin } from "../../utils/auth";
@@ -88,13 +97,20 @@ const ChatSidebar = ({
       return false;
     }
   };
-  const [showGroupOptions, setShowGroupOptions] = useState(null);
-  const [sidebarWidth, setSidebarWidth] = useState(380);
-  const [isResizing, setIsResizing] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingGroup, setEditingGroup] = useState(null);
-  const [groupForm, setGroupForm] = useState({ name: '', description: '' });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Iniciar colapsado
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState({
+    theme: 'dark',
+    notifications: true,
+    sound: true,
+    language: 'es'
+  });
+  const [profileForm, setProfileForm] = useState({
+    username: currentUser,
+    email: '',
+    bio: '',
+    avatar: null
+  });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Iniciar colapsado
