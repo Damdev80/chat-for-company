@@ -81,9 +81,9 @@ export function Home() {
           <div className="absolute inset-0 bg-[#1E1E2E]"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-[#3C3C4E] to-[#1E1E2E] opacity-20 animate-gradient"></div>
         </div>        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Logo de Thinkchat */}
+          {/* Logo icono arriba */}
           <div className="flex justify-center mb-8 animate-fadeIn">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center shadow-lg shadow-[#4ADE80]/20 p-4">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-2xl flex items-center justify-center shadow-lg shadow-[#4ADE80]/20 p-4">
               <img 
                 src={logoThinkchat} 
                 alt="Thinkchat" 
@@ -91,18 +91,24 @@ export function Home() {
               />
             </div>
           </div>
+            {/* Logo ThinkChat! más pequeño */}
+          <div className="flex justify-center mb-8 animate-fadeIn animation-delay-100">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+              <span className="text-[#4ADE80]">Think</span>
+              <span className="text-white">Chat!</span>
+            </h1>
+          </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 animate-fadeIn">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 animate-fadeIn animation-delay-200">
             Comunicación Empresarial{" "}
             <span className="text-[#4ADE80]">
               Segura y Privada
             </span>
-          </h1>
-          <p className="text-[#A0A0B0] text-xl mb-8 max-w-2xl mx-auto animate-fadeIn animation-delay-200">
+          </h2><p className="text-[#A0A0B0] text-xl mb-8 max-w-2xl mx-auto animate-fadeIn animation-delay-300">
             Mantén a tu equipo conectado con nuestra plataforma de chat empresarial diseñada para máxima seguridad y
             productividad.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeIn animation-delay-300">            <a 
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeIn animation-delay-400"><a 
               className="group bg-[#4ADE80] hover:bg-opacity-90 text-black font-semibold py-3 px-8 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-105 relative overflow-hidden"
               href="/login"
             >
