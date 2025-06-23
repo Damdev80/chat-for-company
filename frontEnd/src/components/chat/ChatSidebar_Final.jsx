@@ -299,97 +299,95 @@ const ChatSidebar = ({
           >
             <X size={20} />
           </button>
-        </div>
-
-        {/* Contenido colapsado - Solo iconos */}
+        </div>        {/* Contenido colapsado - Solo iconos */}
         {sidebarCollapsed && (
-          <div className="flex flex-col items-center p-2 space-y-4">
+          <div className="flex flex-col items-center py-3 px-1 space-y-3 w-full">
             {/* Avatar del usuario colapsado */}
             <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium text-white border-2 border-[#A8E6A3] cursor-pointer hover:scale-110 transition-transform"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white border-2 border-[#A8E6A3] cursor-pointer hover:scale-105 transition-transform"
               style={{ backgroundColor: getAvatarColor(currentUser) }}
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               title={currentUser}
             >
               {getInitials(currentUser)}
             </div>
-            
+
             {/* Iconos de navegación colapsados */}
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col items-center space-y-2 w-full">
               <button
                 onClick={() => handleTabChange('chats')}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'chats' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Chats"
               >
-                <MessageCircle size={18} />
+                <MessageCircle size={16} />
               </button>
               
               <button
                 onClick={() => handleTabChange('users')}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'users' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Usuarios"
               >
-                <Users size={18} />
+                <Users size={16} />
               </button>
               
               <button
                 onClick={() => handleTabChange('objectives')}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'objectives' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Objetivos"
               >
-                <Target size={18} />
+                <Target size={16} />
               </button>
 
               {/* Solo para admin/moderador */}
               {canReviewTasks(userRole) && (
                 <button
                   onClick={() => handleTabChange('review')}
-                  className={`p-2 rounded-xl transition-all duration-200 ${
+                  className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
                     activeTab === 'review' 
                       ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                       : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                   }`}
                   title="Revisar Tareas"
                 >
-                  <ClipboardCheck size={18} />
+                  <ClipboardCheck size={16} />
                 </button>
               )}
 
               {/* Calendario e Ideas - Solo van a su pestaña, NO abren sidebar */}
               <button
                 onClick={() => setActiveTab('calendar')}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'calendar' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Calendario"
               >
-                <Calendar size={18} />
+                <Calendar size={16} />
               </button>
               
               <button
                 onClick={() => setActiveTab('ideas')}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`w-9 h-9 rounded-lg transition-all duration-200 flex items-center justify-center ${
                   activeTab === 'ideas' 
                     ? 'bg-[#A8E6A3] text-[#1A1A1F]' 
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
                 title="Ideas"
               >
-                <Lightbulb size={18} />
+                <Lightbulb size={16} />
               </button>
             </div>
           </div>
