@@ -627,3 +627,53 @@
   animation: shimmer 2s infinite;
   pointer-events: none;
 }
+
+/* Utilidades para line-clamp y truncado de texto */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Utilidades responsivas adicionales */
+.break-words {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+/* Utilidades para prevenir overflow en móvil */
+@media (max-width: 640px) {
+  .mobile-no-overflow {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .mobile-text-wrap {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+}

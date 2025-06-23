@@ -192,10 +192,10 @@ const ChatSidebar = ({
   onCreateGroup,
   onEditGroup,
   onDeleteGroup,
-}) => {
-  // Estados principales
+}) => {  // Estados principales
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Iniciar colapsado
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false); // Menú expandido
+  const [userMenuCollapsedOpen, setUserMenuCollapsedOpen] = useState(false); // Menú colapsado
   const [showProfile, setShowProfile] = useState(false);
   const [showGroupOptions, setShowGroupOptions] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -321,14 +321,15 @@ const ChatSidebar = ({
                   className="w-10 h-10 object-contain"
                 />
                 <h1 className="text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
-              </div>
-              <div className="flex items-center gap-2">
+              </div>              <div className="flex items-center gap-2">
+                {/* Botón hamburguesa - Solo en desktop */}
                 <button
                   onClick={toggleSidebar}
-                  className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-lg hover:bg-[#3C4043] transition-all duration-200"
+                  className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-lg hover:bg-[#3C4043] transition-all duration-200 hidden lg:block"
                 >
                   <Menu size={18} />
                 </button>
+                {/* Botón cerrar - Solo en móvil */}
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-lg hover:bg-[#3C4043] transition-all duration-200 lg:hidden"
@@ -556,25 +557,20 @@ const ChatSidebar = ({
                   }`}                >
                   <Calendar size={22} />
                   Eventos
-                </button>
-              </div>
-            </div>            {/* Botón de ajustes - Movido más arriba */}
-            <div className="p-3 border-b border-[#3C4043] bg-[#252529]">
-              <div className="relative">                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}                  className="w-full flex items-center justify-center gap-2 p-2 text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] rounded-lg transition-all duration-200"
-                  title="Configuración"                >
-                  <Settings size={22} />
-                  <span className="text-sm font-medium">Ajustes</span>
-                </button>
-                {userMenuOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 z-10">
-                    <UserMenu 
-                      onLogout={handleLogout} 
-                      onClose={() => setUserMenuOpen(false)}
-                      onOpenProfile={() => setShowProfile(true)}
-                    />
-                  </div>
-                )}
+                </button>              </div>
+            </div>
+
+            {/* Barra de búsqueda */}
+            <div className="p-4 bg-[#252529]">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A8E6A3]" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar..."
+                  className="w-full pl-10 pr-4 py-3 bg-[#1A1A1F] border border-[#2C2C34] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3] focus:border-transparent text-[#E8E8E8] placeholder-[#B8B8B8] transition-all duration-200"
+                />
               </div>
             </div>
 

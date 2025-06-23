@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Target, Bell, X, MessageCircle, Users, ClipboardCheck, Star } from "lucide-react";
+import { Target, Bell, X, MessageCircle, Users, ClipboardCheck, Star, Bot } from "lucide-react";
 import {  fetchMessages,
   fetchGroups,
   createGroup,
@@ -950,7 +950,7 @@ const ChatContainer = () => {  // Estados principales
         className="fixed bottom-30 right-6 bg-gradient-to-r from-[#A8E6A3] to-[#88D982] hover:from-[#88D982] hover:to-[#70C266] text-[#1A1A1F] p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-50"
         title="Chat de Apoyo con IA"
       >
-        <Star size={28} className="text-[#1A1A1F]" />
+        <Bot size={28} className="text-[#1A1A1F]" />
       </button>
 
       {/* Componente de chat de apoyo */}

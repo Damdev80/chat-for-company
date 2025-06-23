@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { 
   MessageCircle, 
   Send, 
-  Brain,
+  Bot,
   User, 
   X, 
   RotateCcw, 
@@ -198,7 +198,7 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#3C4043] bg-[#1A1A1F] rounded-t-2xl">
           <div className="flex items-center gap-3">            <div className="w-10 h-10 bg-gradient-to-br from-[#A8E6A3] to-[#90D68C] rounded-full flex items-center justify-center">
-              <Brain size={20} className="text-[#1A1A1F]" />
+              <Bot size={20} className="text-[#1A1A1F]" />
             </div>
             <div>
               <h3 className="font-bold text-[#A8E6A3]">Asistente de Apoyo</h3>
@@ -260,7 +260,7 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
                 }`}>                  {message.role === 'user' ? (
                     <User size={16} />
                   ) : (
-                    <Brain size={16} />
+                    <Bot size={16} />
                   )}
                 </div>
 
@@ -316,7 +316,7 @@ const SupportChat = ({ isOpen, onClose, currentUser }) => {
           {/* Loading indicator */}
           {loading && (
             <div className="flex items-start gap-3">              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3C4043] to-[#2C2C34] text-[#A8E6A3] flex items-center justify-center">
-                <Brain size={16} />
+                <Bot size={16} />
               </div>
               <div className="bg-[#3C4043] rounded-2xl px-4 py-3 border border-[#4C4C53]">
                 <div className="flex items-center gap-2 text-[#B8B8B8]">

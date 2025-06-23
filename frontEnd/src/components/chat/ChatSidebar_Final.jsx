@@ -451,28 +451,43 @@ const ChatSidebar = ({
                   className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-[#1A1A1F] border border-[#3C4043] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A8E6A3]/30 focus:border-[#A8E6A3] text-[#E8E8E8] placeholder-[#B8B8B8] text-sm sm:text-base transition-all duration-200"
                 />
               </div>
-            </div>
-
-            {/* Pestañas */}
+            </div>            {/* Pestañas */}
             <div className="flex bg-[#1A1A1F] border-b border-[#3C4043] overflow-x-auto">
-              {[
-                { id: 'chats', label: 'Chats', icon: MessageCircle },
-                { id: 'users', label: 'Usuarios', icon: Users },
-                { id: 'objectives', label: 'Objetivos', icon: Target },
-              ].map(({ id, label }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
-                    activeTab === id
-                      ? 'text-[#A8E6A3] border-[#A8E6A3] bg-[#252529]'
-                      : 'text-[#B8B8B8] border-transparent hover:text-[#A8E6A3] hover:bg-[#252529]'
-                  }`}
-                >
-                  <Icon size={20} />
-                  {label}
-                </button>
-              ))}
+              <button
+                onClick={() => setActiveTab('chats')}
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+                  activeTab === 'chats'
+                    ? 'text-[#A8E6A3] border-[#A8E6A3] bg-[#252529]'
+                    : 'text-[#B8B8B8] border-transparent hover:text-[#A8E6A3] hover:bg-[#252529]'
+                }`}
+              >
+                <MessageCircle size={16} />
+                Chats
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+                  activeTab === 'users'
+                    ? 'text-[#A8E6A3] border-[#A8E6A3] bg-[#252529]'
+                    : 'text-[#B8B8B8] border-transparent hover:text-[#A8E6A3] hover:bg-[#252529]'
+                }`}
+              >
+                <Users size={16} />
+                Usuarios
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('objectives')}
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+                  activeTab === 'objectives'
+                    ? 'text-[#A8E6A3] border-[#A8E6A3] bg-[#252529]'
+                    : 'text-[#B8B8B8] border-transparent hover:text-[#A8E6A3] hover:bg-[#252529]'
+                }`}
+              >
+                <Target size={16} />
+                Objetivos
+              </button>
             </div>
 
             {/* Segunda fila de pestañas */}
