@@ -14,6 +14,7 @@ import {
   Trash2,
   MoreVertical
 } from 'lucide-react';
+import { API_ENDPOINTS, apiRequest } from '../../config/api';
 
 const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,13 +32,11 @@ const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
   // Verificar si el usuario es admin
   const userRole = localStorage.getItem('userRole');
   const isAdmin = userRole === 'admin' || userRole === 'supervisor';
-
   const loadIdeas = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
-      let url = `http://localhost:3000/api/ideas/group/${groupId}`;
+      let url = `${API_ENDPOINTS.ideas}/group/${groupId}`;
       const params = new URLSearchParams();
       
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
@@ -47,11 +46,7 @@ const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
         url += `?${params.toString()}`;
       }
 
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await apiRequest(url);
 
       if (response.ok) {
         const data = await response.json();
@@ -63,7 +58,7 @@ const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
       console.error('Error cargando ideas:', error);
     } finally {
       setLoading(false);
-    }  }, [groupId, filter, selectedCategory]);
+    }}, [groupId, filter, selectedCategory]);
   // Cargar ideas al montar el componente
   useEffect(() => {
     if (groupId) {
@@ -84,15 +79,10 @@ const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [showOptionsMenu]);const handleVote = async (ideaId, voteType) => {
+  }, [showOptionsMenu]);  const handleVote = async (ideaId, voteType) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/ideas/${ideaId}/vote`, {
+      const response = await apiRequest(`${API_ENDPOINTS.ideas}/${ideaId}/vote`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({ vote_type: voteType })
       });
 
@@ -115,17 +105,11 @@ const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
       console.error('Error votando idea:', error);
     }
   };
-
   const handleCreateIdea = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/ideas', {
+      const response = await apiRequest(API_ENDPOINTS.ideas, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({
           ...newIdea,
           group_id: groupId
@@ -144,11 +128,11 @@ const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
             priority: 'medium'
           });
         }
-      }    } catch (error) {
+      }
+    } catch (error) {
       console.error('Error creando idea:', error);
     }
   };
-
   // Función para eliminar ideas (solo admin o creador)
   const handleDeleteIdea = async (ideaId) => {
     if (!window.confirm('¿Estás seguro de que quieres eliminar esta idea? Esta acción no se puede deshacer.')) {
@@ -156,12 +140,8 @@ const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/ideas/${ideaId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await apiRequest(`${API_ENDPOINTS.ideas}/${ideaId}`, {
+        method: 'DELETE'
       });
 
       if (response.ok) {

@@ -1,12 +1,10 @@
 // app.js
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import http from 'http'
 import { Server as SocketServer } from 'socket.io'
+import { config } from './src/config/config.js'
 
-// Configurar dotenv para cargar variables de entorno
-dotenv.config()
 import { configureSocket } from './src/config/socket.io.js'
 import { setSocketInstance } from './src/utils/socketManager.js'
 import { serverError } from './src/middlewares/error.middlewar.js' 
@@ -37,17 +35,18 @@ console.log('✅ eventRoutes imported');
 import supportChatRoutes from './src/routes/supportChat.routes.js'
 console.log('✅ supportChatRoutes imported');
 
-// Configurar variables de entorno
-dotenv.config()
-//hOLAS
 // Inicializar Express
 const app = express()
 const server = http.createServer(app)
 
 // CORS configuration
+const corsOrigin = config.NODE_ENV === 'production' 
+    ? ['https://chat-for-company.vercel.app', 'https://chat-for-company.onrender.com'] 
+    : '*';
+
 const corsOptions = {
-  origin: '*',  // Permitir todas las origenes para depuración
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    origin: corsOrigin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }
@@ -66,6 +65,16 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     message: 'Server is running',
     timestamp: new Date().toISOString()
+  })
+})
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    environment: config.NODE_ENV,
+    port: config.PORT
   })
 })
 
@@ -192,13 +201,5 @@ try {
   console.error('❌ Socket.IO configuration error:', error)
 }
 
-
-
-// Iniciar servidor
-const PORT = process.env.PORT || 3000
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
-  console.log(`🌐 Server started at ${new Date().toISOString()}`)
-  console.log(`✅ All routes loaded successfully`)
-  console.log(`🔧 Build version: ${new Date().toISOString()}`) // Force rebuild
-})
+// Export app and server for use in server.js
+export { app, server }
