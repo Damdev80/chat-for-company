@@ -1,5 +1,6 @@
 // src/controllers/idea.controller.js - Controlador para muro de ideas
 import { Idea } from '../models/idea.js'
+import { canDeleteIdea } from '../utils/auth.js'
 
 export class IdeaController {
   // Crear nueva idea
@@ -224,12 +225,12 @@ export class IdeaController {
       })
     }
   }
-
   // Eliminar idea
   static async deleteIdea(req, res) {
     try {
       const { id } = req.params
       const user_id = req.user.id
+      const user_role = req.user.role
 
       // Verificar que la idea existe
       const idea = await Idea.findById(id)
@@ -240,8 +241,8 @@ export class IdeaController {
         })
       }
 
-      // Verificar que el usuario sea el creador de la idea
-      if (idea.user_id !== user_id) {
+      // Verificar permisos: admin puede eliminar cualquier idea, usuario solo las suyas
+      if (!canDeleteIdea(user_role, idea.user_id, user_id)) {
         return res.status(403).json({
           success: false,
           message: 'No tienes permisos para eliminar esta idea'

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import logoThinkchat from "../../assets/logo-thinkchat.png";
 import {
   Search,
   MessageCircle,
@@ -28,6 +29,9 @@ import {
   VolumeX,
   Globe
 } from "lucide-react";
+import { getInitials, getAvatarColor } from "../../utils/chatUtils";
+import { canReviewTasks, isAdmin } from "../../utils/auth";
+import logoThinkchat from "../../assets/logo-thinkchat.png";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
 import { canReviewTasks, isAdmin } from "../../utils/auth";
 
@@ -97,15 +101,14 @@ const ChatSidebar = ({
       return false;
     }
   };
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Iniciar colapsado
+
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({
     theme: 'dark',
     notifications: true,
     sound: true,
     language: 'es'
-  });
-  const [profileForm, setProfileForm] = useState({
+  });  const [profileForm, setProfileForm] = useState({
     username: currentUser,
     email: '',
     bio: '',
@@ -113,13 +116,14 @@ const ChatSidebar = ({
   });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Iniciar colapsado
-  const [profileForm, setProfileForm] = useState({
-    username: currentUser,
-    email: '',
-    bio: '',
-    avatar: null
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showGroupOptions, setShowGroupOptions] = useState(null);
+  const [groupForm, setGroupForm] = useState({ name: '', description: '' });
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [sidebarWidth, setSidebarWidth] = useState(350);
+  const [isResizing, setIsResizing] = useState(false);
 
   // Función para toggle del sidebar
   const toggleSidebar = () => {
@@ -217,34 +221,157 @@ const ChatSidebar = ({
     }
   };  return (
     <>
-      {/* Sidebar mejorado para móvil */}
+      {/* Sidebar mejorado con modo colapsado */}
       <div 
         className={`
           fixed lg:relative top-0 left-0 h-screen bg-gradient-to-b from-[#2C2C34] via-[#252529] to-[#1A1A1F] border-r border-[#3C4043] 
-          transform transition-transform duration-300 ease-in-out z-50 flex flex-col
+          transform transition-all duration-300 ease-in-out z-50 flex flex-col
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          w-full max-w-xs sm:max-w-sm lg:max-w-none
-        `}        style={{ 
-          width: window.innerWidth < 1024 ? '100vw' : `${sidebarWidth}px`, 
-          maxWidth: window.innerWidth < 1024 ? '380px' : 'none',
-          minWidth: window.innerWidth < 1024 ? '320px' : '320px'
+          ${sidebarCollapsed ? 'w-16 min-w-16' : 'w-full max-w-xs sm:max-w-sm lg:max-w-none'}
+        `}
+        style={{ 
+          width: window.innerWidth < 1024 
+            ? (sidebarCollapsed ? '64px' : '100vw') 
+            : (sidebarCollapsed ? '64px' : `${sidebarWidth}px`), 
+          maxWidth: window.innerWidth < 1024 
+            ? (sidebarCollapsed ? '64px' : '380px') 
+            : 'none',
+          minWidth: window.innerWidth < 1024 
+            ? (sidebarCollapsed ? '64px' : '320px') 
+            : (sidebarCollapsed ? '64px' : '320px')
         }}
       >
-        {/* Header del sidebar - Responsivo */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-[#3C4043] bg-[#252529]">
-          <h1 className="text-lg sm:text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
-          
-          {/* Botón cerrar móvil */}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-full hover:bg-[#3C4043] transition-all duration-200 lg:hidden"
-          >
-            <X size={20} />
-          </button>
+        {/* Header del sidebar - Adaptativo */}
+        <div className={`flex items-center justify-between p-4 border-b border-[#3C4043] min-h-[72px] ${sidebarCollapsed ? '' : 'bg-[#252529]'}`}>
+          {sidebarCollapsed ? (            <div className="flex flex-col items-center gap-2 w-full">
+              <img 
+                src={logoThinkchat} 
+                alt="Thinkchat" 
+                className="h-8 w-auto object-contain cursor-pointer hover:scale-110 transition-transform"
+                onClick={toggleSidebar}
+                title="Thinkchat - Expandir menú"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <img 
+                  src={logoThinkchat} 
+                  alt="Thinkchat" 
+                  className="h-8 w-auto object-contain"
+                />
+                <h1 className="text-lg sm:text-xl font-bold text-[#A8E6A3]">Thinkchat</h1>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Botón hamburguesa - Solo en desktop */}
+                <button
+                  onClick={toggleSidebar}
+                  className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-lg hover:bg-[#3C4043] transition-all duration-200 hidden lg:block"
+                >
+                  <Menu size={18} />
+                </button>
+                {/* Botón cerrar móvil */}
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-2 text-[#B8B8B8] hover:text-[#A8E6A3] rounded-full hover:bg-[#3C4043] transition-all duration-200 lg:hidden"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Menú de usuario - Mejorado para móvil */}
-        <div className="p-3 sm:p-4 border-b border-[#3C4043] relative bg-[#252529]">
+        {/* Navegación por iconos (modo colapsado) */}
+        {sidebarCollapsed && (
+          <div className="flex flex-col h-full p-2">
+            {/* Iconos principales */}
+            <div className="space-y-2">
+              <button
+                onClick={() => handleTabChange('chats')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'chats'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Chats"
+              >
+                <MessageCircle size={18} />
+              </button>
+
+              <button
+                onClick={() => handleTabChange('users')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'users'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Usuarios"
+              >
+                <Users size={18} />
+              </button>
+
+              <button
+                onClick={() => handleTabChange('objectives')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'objectives'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title={isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
+              >
+                <Target size={18} />
+              </button>
+
+              {canReviewTasks() && (
+                <button
+                  onClick={() => handleTabChange('review')}
+                  className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                    activeTab === 'review'
+                      ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                      : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                  }`}
+                  title="Revisión"
+                >
+                  <ClipboardCheck size={18} />
+                </button>
+              )}
+
+              <div className="h-px bg-[#3C4043] my-2"></div>
+
+              {/* Iconos secundarios */}
+              <button
+                onClick={() => setActiveTab('ideas')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'ideas'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Ideas"
+              >
+                <Lightbulb size={18} />
+              </button>
+
+              <button
+                onClick={() => setActiveTab('calendar')}
+                className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  activeTab === 'calendar'
+                    ? 'bg-[#A8E6A3]/20 text-[#A8E6A3]'
+                    : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
+                }`}
+                title="Calendario"
+              >
+                <Calendar size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Sidebar expandido */}
+        {!sidebarCollapsed && (
+          <>
+            {/* Menú de usuario - Mejorado para móvil */}
+            <div className="p-3 sm:p-4 border-b border-[#3C4043] relative bg-[#252529]">
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="w-full flex items-center justify-between p-2 sm:p-3 text-left text-[#E8E6E8] hover:bg-[#3C4043] rounded-xl transition-all duration-200 group"
@@ -295,88 +422,72 @@ const ChatSidebar = ({
         </div>        {/* Tabs de navegación - Rediseñado y responsive */}
         <div className="border-b border-[#3C4043] bg-[#252529]">
           {/* Primera fila - Funcionalidades principales */}
-          <div className="flex">
-            <button
+          <div className="flex">            <button
               onClick={() => setActiveTab('chats')}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeTab === 'chats'
                   ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                   : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
               }`}
             >
-              <MessageCircle size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Chat</span>
-              <span className="sm:hidden">Chat</span>
+              Chat
             </button>
 
             <button
-              onClick={() => setActiveTab('users')}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              onClick={() => setActiveTab('users')}              className={`flex-1 flex items-center justify-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeTab === 'users'
                   ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                   : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
               }`}
             >
-              <Users size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Online</span>
-              <span className="sm:hidden">On</span>
+              Online
             </button>
 
             <button
-              onClick={() => setActiveTab('objectives')}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              onClick={() => setActiveTab('objectives')}              className={`flex-1 flex items-center justify-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeTab === 'objectives'
                   ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                   : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
               }`}
             >
-              <Target size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">{isAdmin(userRole) ? 'Objetivos' : 'Tareas'}</span>
-              <span className="sm:hidden">{isAdmin(userRole) ? 'Obj' : 'Tar'}</span>
+              {isAdmin(userRole) ? 'Objetivos' : 'Tareas'}
             </button>
 
             {/* Tab de revisión - Solo para admins/supervisores */}
-            {canReviewTasks() && (
-              <button
+            {canReviewTasks() && (              <button
                 onClick={() => setActiveTab('review')}
-                className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                className={`flex-1 flex items-center justify-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
                   activeTab === 'review'
                     ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                     : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
                 }`}
               >
-                <ClipboardCheck size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Revisión</span>
-                <span className="sm:hidden">Rev</span>
+                Revisión
               </button>
             )}
           </div>
 
           {/* Segunda fila - Funcionalidades colaborativas */}
           <div className="flex border-t border-[#3C4043]/50">
-            <button
-              onClick={() => setActiveTab('ideas')}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+            <button              onClick={() => setActiveTab('ideas')}
+              className={`flex-1 flex items-center justify-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeTab === 'ideas'
                   ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                   : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
               }`}
             >
-              <Lightbulb size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Ideas</span>
-              <span className="sm:hidden">Ideas</span>
+              Ideas
             </button>
 
             <button
               onClick={() => setActiveTab('calendar')}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeTab === 'calendar'
                   ? 'text-[#A8E6A3] border-b-2 border-[#A8E6A3] bg-[#2C2C34]'
                   : 'text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043]'
               }`}
             >
-              <Calendar size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Eventos</span>
+              Eventos
               <span className="sm:hidden">Cal</span>
             </button>
           </div>
@@ -478,8 +589,7 @@ const ChatSidebar = ({
                         <div 
                           className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#252529] ${
                             isOnline ? 'bg-green-500' : 'bg-gray-500'
-                          }`}
-                          title={isOnline ? 'En línea' : 'Desconectado'}
+                          }`}                          title={isOnline ? 'En línea' : 'Desconectado'}
                         />
                       </div>
                       <div className="flex-1">
@@ -494,10 +604,10 @@ const ChatSidebar = ({
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  );                })}
               </div>
-                {filteredUsers.length === 0 && (
+              
+              {filteredUsers.length === 0 && (
                 <div className="text-center py-8 text-[#B8B8B8]">
                   <Users size={48} className="mx-auto mb-4 text-[#3C4043]" />
                   <p>No hay usuarios conectados</p>
@@ -567,12 +677,10 @@ const ChatSidebar = ({
               </div>
             </div>
           )}
-        </div>
-
-        {/* Sección inferior del sidebar */}
+        </div>        {/* Sección inferior del sidebar */}
         <div className="mt-auto border-t border-[#3C4043] bg-[#252529] p-4">
           <div className="flex flex-col items-center justify-center space-y-3">
-            {userRole === "admin" && (
+            {(userRole === "admin" || userRole === "supervisor") && (
               <button
                 onClick={handleCreateGroup}
                 className="flex items-center justify-center w-full h-12 gap-2 bg-[#A8E6A3]/20 rounded-xl hover:bg-[#A8E6A3]/30 transition-all duration-200"
@@ -589,10 +697,11 @@ const ChatSidebar = ({
               title="Cerrar sesión"
             >
               <LogOut size={18} className="text-red-400 group-hover:scale-110 transition-transform mr-2" />
-              <span className="text-red-400 font-medium">Cerrar Sesión</span>
-            </button>
+              <span className="text-red-400 font-medium">Cerrar Sesión</span>            </button>
           </div>
         </div>
+            </>
+        )}
 
         {/* Redimensionador del sidebar */}
         <div 

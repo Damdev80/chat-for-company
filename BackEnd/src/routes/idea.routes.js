@@ -10,7 +10,8 @@ const router = Router()
 router.use(verifyToken)
 
 // Rutas para Ideas
-router.post('/create', ideaValidation.create, IdeaController.createIdea)
+router.post('/', ideaValidation.create, IdeaController.createIdea) // Ruta raíz para crear idea
+router.post('/create', ideaValidation.create, IdeaController.createIdea) // Ruta alternativa
 router.get('/group/:group_id', IdeaController.getGroupIdeas)
 router.get('/stats/:group_id', IdeaController.getIdeaStats)
 router.get('/:id', IdeaController.getIdeaById)

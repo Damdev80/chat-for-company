@@ -27,6 +27,12 @@ import uploadRoutes from './src/routes/upload.routes.js'
 console.log('✅ uploadRoutes imported');
 import audioRoutes from './src/routes/audio.routes.js'
 console.log('✅ audioRoutes imported');
+import ideaRoutes from './src/routes/idea.routes.js'
+console.log('✅ ideaRoutes imported');
+import eventRoutes from './src/routes/event.routes.js'
+console.log('✅ eventRoutes imported');
+import supportChatRoutes from './src/routes/supportChat.routes.js'
+console.log('✅ supportChatRoutes imported');
 
 // Configurar variables de entorno
 dotenv.config()
@@ -131,23 +137,11 @@ app.use('/api/tasks', taskRoutes)
 console.log('✅ Ruta tasks registrada');
 app.use('/api/upload', uploadRoutes)
 console.log('✅ Ruta upload registrada');
-
-// Import dinámico de ideaRoutes - NUEVA FUNCIONALIDAD
-console.log('📦 Importando ideaRoutes...');
-const ideaRoutes = await import('./src/routes/idea.routes.js')
-app.use('/api/ideas', ideaRoutes.default)
+app.use('/api/ideas', ideaRoutes)
 console.log('✅ Ruta ideas registrada');
-
-// Import dinámico de eventRoutes - NUEVA FUNCIONALIDAD  
-console.log('📦 Importando eventRoutes...');
-const eventRoutes = await import('./src/routes/event.routes.js')
-app.use('/api/events', eventRoutes.default)
+app.use('/api/events', eventRoutes)
 console.log('✅ Ruta events registrada');
-
-// Import dinámico de supportChatRoutes - NUEVA FUNCIONALIDAD
-console.log('📦 Importando supportChatRoutes...');
-const supportChatRoutes = await import('./src/routes/supportChat.routes.js')
-app.use('/api/support', supportChatRoutes.default)
+app.use('/api/support', supportChatRoutes)
 console.log('✅ Ruta support chat registrada');
 
 // Registrar rutas de audio con manejo de errores específico

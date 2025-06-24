@@ -10,16 +10,18 @@ import {
   Clock,
   Heart,
   ThumbsDown,
-  X
+  X,
+  Trash2,
+  MoreVertical
 } from 'lucide-react';
 
-const IdeasBoard = ({ groupId }) => {
-  const [ideas, setIdeas] = useState([]);
+const IdeasBoard = ({ groupId }) => {  const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('votes');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showOptionsMenu, setShowOptionsMenu] = useState(null);
   const [newIdea, setNewIdea] = useState({
     title: '',
     description: '',
@@ -62,13 +64,27 @@ const IdeasBoard = ({ groupId }) => {
     } finally {
       setLoading(false);
     }  }, [groupId, filter, selectedCategory]);
-
   // Cargar ideas al montar el componente
   useEffect(() => {
     if (groupId) {
       loadIdeas();
     }
-  }, [groupId, loadIdeas]);  const handleVote = async (ideaId, voteType) => {
+  }, [groupId, loadIdeas]);
+
+  // Cerrar menú de opciones al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowOptionsMenu(null);
+    };
+
+    if (showOptionsMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showOptionsMenu]);const handleVote = async (ideaId, voteType) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3000/api/ideas/${ideaId}/vote`, {
@@ -128,10 +144,49 @@ const IdeasBoard = ({ groupId }) => {
             priority: 'medium'
           });
         }
-      }
-    } catch (error) {
+      }    } catch (error) {
       console.error('Error creando idea:', error);
     }
+  };
+
+  // Función para eliminar ideas (solo admin o creador)
+  const handleDeleteIdea = async (ideaId) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta idea? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/api/ideas/${ideaId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Remover la idea del estado
+          setIdeas(prevIdeas => prevIdeas.filter(idea => idea.id !== ideaId));
+          setShowOptionsMenu(null);
+        } else {
+          alert(data.message || 'Error al eliminar la idea');
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'No tienes permisos para eliminar esta idea');
+      }
+    } catch (error) {
+      console.error('Error eliminando idea:', error);
+      alert('Error al eliminar la idea');
+    }
+  };
+
+  // Verificar si el usuario puede eliminar una idea
+  const canDeleteIdea = (idea) => {
+    const currentUsername = localStorage.getItem('username');
+    return isAdmin || idea.created_by_username === currentUsername;
   };
 
   const getStatusColor = (status) => {
@@ -303,8 +358,7 @@ const IdeasBoard = ({ groupId }) => {
                 <div 
                   key={idea.id} 
                   className="group bg-gradient-to-br from-[#252529] to-[#1A1A1F] border border-[#3C4043] rounded-2xl p-6 hover:border-[#A8E6A3]/50 hover:shadow-2xl hover:shadow-[#A8E6A3]/10 transition-all duration-300 transform hover:-translate-y-2 cursor-pointer relative overflow-hidden"
-                >
-                  {/* Header de la card */}
+                >                  {/* Header de la card */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`p-3 rounded-xl bg-gradient-to-br ${
@@ -324,27 +378,60 @@ const IdeasBoard = ({ groupId }) => {
                         </div>
                       </div>
                     </div>
+                    
+                    <div className="flex items-center gap-2">
                       {/* Votación simple */}
-                    <div className="flex items-center gap-2 bg-[#1A1A1F] rounded-xl p-2 group-hover:bg-[#2C2C34] transition-colors">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleVote(idea.id, 'up');
-                        }}
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#A8E6A3]/10 transition-all"
-                      >
-                        <Heart size={16} />
-                        <span className="text-sm font-medium">{idea.votes || 0}</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleVote(idea.id, 'down');
-                        }}
-                        className="p-1 rounded-lg text-[#B8B8B8] hover:text-red-400 hover:bg-red-400/10 transition-all"
-                      >
-                        <ThumbsDown size={16} />
-                      </button>
+                      <div className="flex items-center gap-2 bg-[#1A1A1F] rounded-xl p-2 group-hover:bg-[#2C2C34] transition-colors">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleVote(idea.id, 'up');
+                          }}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#A8E6A3]/10 transition-all"
+                        >
+                          <Heart size={16} />
+                          <span className="text-sm font-medium">{idea.votes || 0}</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleVote(idea.id, 'down');
+                          }}
+                          className="p-1 rounded-lg text-[#B8B8B8] hover:text-red-400 hover:bg-red-400/10 transition-all"
+                        >
+                          <ThumbsDown size={16} />
+                        </button>
+                      </div>
+
+                      {/* Menú de opciones (solo para admin o creador) */}
+                      {canDeleteIdea(idea) && (
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowOptionsMenu(showOptionsMenu === idea.id ? null : idea.id);
+                            }}
+                            className="p-2 rounded-lg text-[#B8B8B8] hover:text-[#A8E6A3] hover:bg-[#3C4043] transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+
+                          {showOptionsMenu === idea.id && (
+                            <div className="absolute top-10 right-0 bg-[#1A1A1F] border border-[#3C4043] rounded-xl z-50 min-w-[150px] overflow-hidden">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteIdea(idea.id);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-left text-red-400 hover:bg-red-900/20 transition-all"
+                              >
+                                <Trash2 size={14} />
+                                Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
