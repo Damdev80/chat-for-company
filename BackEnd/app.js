@@ -4,6 +4,9 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import http from 'http'
 import { Server as SocketServer } from 'socket.io'
+
+// Configurar dotenv para cargar variables de entorno
+dotenv.config()
 import { configureSocket } from './src/config/socket.io.js'
 import { setSocketInstance } from './src/utils/socketManager.js'
 import { serverError } from './src/middlewares/error.middlewar.js' 
