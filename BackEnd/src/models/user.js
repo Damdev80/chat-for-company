@@ -73,12 +73,52 @@ export class ModelsUser {    static async create({ username, email, password, ro
       connection.end()
       return result
     }
-  
     static async delete(id) {
       const connection = await getConnection()
       const [result] = await connection.execute(
         'DELETE FROM users WHERE id = ?',
         [id]
+      )
+      connection.end()
+      return result
+    }
+
+    // Funciones para recuperación de contraseña
+    static async setPasswordResetToken(userId, token, expiry) {
+      const connection = await getConnection()
+      const [result] = await connection.execute(
+        'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
+        [token, expiry.toISOString(), userId]
+      )
+      connection.end()
+      return result
+    }
+
+    static async getByResetToken(token) {
+      const connection = await getConnection()
+      const [rows] = await connection.execute(
+        'SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > ?',
+        [token, new Date().toISOString()]
+      )
+      connection.end()
+      return rows[0]
+    }
+
+    static async updatePassword(userId, hashedPassword) {
+      const connection = await getConnection()
+      const [result] = await connection.execute(
+        'UPDATE users SET password = ? WHERE id = ?',
+        [hashedPassword, userId]
+      )
+      connection.end()
+      return result
+    }
+
+    static async clearPasswordResetToken(userId) {
+      const connection = await getConnection()
+      const [result] = await connection.execute(
+        'UPDATE users SET reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
+        [userId]
       )
       connection.end()
       return result

@@ -5,6 +5,9 @@ import bcrypt from 'bcrypt'
 import { v4 as uuid } from 'uuid'
 import jwt from 'jsonwebtoken'
 import { ModelsRole } from '../models/role.js' // Asegúrate de importar el modelo de rol
+import { EmailService } from '../services/emailService.js'
+import { config } from '../config/config.js'
+import crypto from 'crypto'
 
 export class UserController {  static async register(req, res) {
     try {
@@ -87,8 +90,14 @@ export class UserController {  static async register(req, res) {
     try {
       const { username, password } = req.body
 
-      // Verificar si existe el usuario
-      const user = await ModelsUser.getByUsername(username)
+      // Verificar si existe el usuario (puede ser username o email)
+      let user = await ModelsUser.getByUsername(username)
+      
+      // Si no se encuentra por username, intentar buscar por email
+      if (!user) {
+        user = await ModelsUser.getByEmail(username)
+      }
+      
       if (!user) {
         return res.status(401).json({ message: 'Credenciales incorrectas' })
       }
@@ -179,18 +188,152 @@ export class UserController {  static async register(req, res) {
       const adminRole = await ModelsRole.getByName('admin')
       if (!adminRole) {
         return res.status(500).json({ message: 'Rol admin no configurado' })
-      }
-      const hashedPassword = await bcrypt.hash(password, 10)
+      }      const hashedPassword = await bcrypt.hash(password, 10)
       await ModelsUser.create({
         username,
         email,
         password: hashedPassword,
         role_id: adminRole.id
       })
+      
       res.status(201).json({ message: 'Administrador creado correctamente' })
     } catch (error) {
       console.error('Error al crear administrador:', error)
       res.status(500).json({ message: 'Error interno del servidor' })
+    }
+  }
+
+  // Función para solicitar recuperación de contraseña
+  static async requestPasswordReset(req, res) {
+    try {
+      const { email } = req.body
+
+      if (!email) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'El email es requerido' 
+        })
+      }
+
+      // Buscar usuario por email
+      const user = await ModelsUser.getByEmail(email)
+      if (!user) {
+        // Por seguridad, siempre devolvemos éxito aunque el email no exista
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña' 
+        })
+      }
+
+      // Generar token de recuperación
+      const resetToken = crypto.randomBytes(32).toString('hex')
+      const resetTokenExpiry = new Date(Date.now() + 3600000) // 1 hora
+
+      // Guardar token en la base de datos
+      await ModelsUser.setPasswordResetToken(user.id, resetToken, resetTokenExpiry)
+
+      // Enviar email de recuperación
+      await EmailService.sendPasswordResetEmail(email, resetToken, user.username)
+
+      res.status(200).json({ 
+        success: true, 
+        message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña' 
+      })
+    } catch (error) {
+      console.error('Error en requestPasswordReset:', error)
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error interno del servidor' 
+      })
+    }
+  }
+
+  // Función para validar token de recuperación
+  static async validateResetToken(req, res) {
+    try {
+      const { token } = req.params
+
+      if (!token) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Token requerido' 
+        })
+      }
+
+      // Buscar usuario por token válido
+      const user = await ModelsUser.getByResetToken(token)
+      if (!user) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Token inválido o expirado' 
+        })
+      }
+
+      res.status(200).json({ 
+        success: true, 
+        message: 'Token válido',
+        data: {
+          username: user.username,
+          email: user.email
+        }
+      })
+    } catch (error) {
+      console.error('Error en validateResetToken:', error)
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error interno del servidor' 
+      })
+    }
+  }
+
+  // Función para restablecer contraseña
+  static async resetPassword(req, res) {
+    try {
+      const { token, newPassword } = req.body
+
+      if (!token || !newPassword) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Token y nueva contraseña son requeridos' 
+        })
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'La contraseña debe tener al menos 6 caracteres' 
+        })
+      }
+
+      // Buscar usuario por token válido
+      const user = await ModelsUser.getByResetToken(token)
+      if (!user) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Token inválido o expirado' 
+        })
+      }
+
+      // Hashear nueva contraseña
+      const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+      // Actualizar contraseña y limpiar token
+      await ModelsUser.updatePassword(user.id, hashedPassword)
+      await ModelsUser.clearPasswordResetToken(user.id)
+
+      // Enviar email de confirmación
+      await EmailService.sendPasswordChangeConfirmation(user.email, user.username)
+
+      res.status(200).json({ 
+        success: true, 
+        message: 'Contraseña actualizada correctamente' 
+      })
+    } catch (error) {
+      console.error('Error en resetPassword:', error)
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error interno del servidor' 
+      })
     }
   }
 }

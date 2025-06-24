@@ -5,8 +5,16 @@ export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3
 // URLs específicas
 export const API_ENDPOINTS = {
   // Auth
+  auth: `${API_BASE_URL}`,
   login: `${API_BASE_URL}/auth/login`,
   register: `${API_BASE_URL}/auth/register`,
+  
+  // Password Reset
+  passwordReset: {
+    request: `${API_BASE_URL}/password-reset/request`,
+    validate: `${API_BASE_URL}/password-reset/validate`,
+    reset: `${API_BASE_URL}/password-reset/reset`
+  },
   
   // Users
   users: `${API_BASE_URL}/users`,

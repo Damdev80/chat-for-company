@@ -1,12 +1,11 @@
 import { useState } from "react"
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, User } from "lucide-react"
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, User, AtSign } from "lucide-react"
 import { loginUser } from "../utils/auth"
 import { useNavigate } from "react-router-dom"
 import logoThinkchat from "../assets/logo-thinkchat.png"
 import "../../styles/index.css"
 
-function Login() {
-  const [username, setUsername] = useState("")
+function Login() {  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -88,15 +87,13 @@ function Login() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Campo de usuario */}
+            <form onSubmit={handleSubmit} className="space-y-6">              {/* Campo de usuario/email */}
               <div className="space-y-2">
                 <label htmlFor="username" className="block text-sm font-medium text-[#A0A0B0] mb-2">
-                  Usuario
-                </label>
-                <div className="relative group">
+                  Usuario o Email
+                </label>                <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-[#A0A0B0] group-focus-within:text-[#4ADE80] transition-colors duration-300" />
+                    <AtSign className="h-5 w-5 text-[#A0A0B0] group-focus-within:text-[#4ADE80] transition-colors duration-300" />
                   </div>
                   <input
                     id="username"
@@ -104,20 +101,25 @@ function Login() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#1E1E2E]/70 border border-[#3C3C4E] text-[#FFFFFF] placeholder-[#A0A0B0] focus:outline-none focus:ring-2 focus:ring-[#4ADE80]/50 focus:border-[#4ADE80] transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Ingresa tu usuario"
+                    placeholder="Ingresa tu usuario o email"
                   />
                 </div>
+                <p className="text-xs text-[#A0A0B0] mt-1">
+                  Puedes usar tu nombre de usuario o dirección de correo electrónico
+                </p>
               </div>
 
               {/* Campo de contraseña */}
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label htmlFor="password" className="block text-sm font-medium text-[#A0A0B0]">
+                <div className="flex justify-between items-center">                  <label htmlFor="password" className="block text-sm font-medium text-[#A0A0B0]">
                     Contraseña
-                  </label>
-                  <a href="#" className="text-sm text-[#4ADE80] hover:text-[#22C55E] transition-colors duration-300">
+                  </label>                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-sm text-[#4ADE80] hover:text-[#22C55E] transition-colors duration-300"
+                  >
                     ¿Olvidaste tu contraseña?
-                  </a>
+                  </button>
                 </div>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -188,16 +190,13 @@ function Login() {
                 </a>
               </p>
             </div>
-          </div>
-
-          {/* Copyright mejorado */}          <div className="mt-8 text-center animate-fadeIn animation-delay-300">
+          </div>          {/* Copyright mejorado */}          <div className="mt-8 text-center animate-fadeIn animation-delay-300">
             <p className="text-[#A0A0B0] text-sm">
               © {new Date().getFullYear()} Thinkchat. Comunicación segura y privada.
             </p>
           </div>
         </div>
-      </div>
-    </div>
+      </div>    </div>
   )
 }
 

@@ -34,6 +34,8 @@ import eventRoutes from './src/routes/event.routes.js'
 console.log('✅ eventRoutes imported');
 import supportChatRoutes from './src/routes/supportChat.routes.js'
 console.log('✅ supportChatRoutes imported');
+import passwordResetRoutes from './src/routes/password-reset.routes.js'
+console.log('✅ passwordResetRoutes imported');
 
 // Inicializar Express
 const app = express()
@@ -155,6 +157,8 @@ app.use('/api/events', eventRoutes)
 console.log('✅ Ruta events registrada');
 app.use('/api/support', supportChatRoutes)
 console.log('✅ Ruta support chat registrada');
+app.use('/api/password-reset', passwordResetRoutes)
+console.log('✅ Ruta password reset registrada');
 
 // Registrar rutas de audio con manejo de errores específico
 try {
