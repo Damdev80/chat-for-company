@@ -215,9 +215,12 @@ export class UserController {  static async register(req, res) {
         })
       }
 
+      console.log('🔐 Solicitud de reset de contraseña para:', email)
+
       // Buscar usuario por email
       const user = await ModelsUser.getByEmail(email)
       if (!user) {
+        console.log('⚠️ Email no encontrado en la base de datos:', email)
         // Por seguridad, siempre devolvemos éxito aunque el email no exista
         return res.status(200).json({ 
           success: true, 
@@ -225,25 +228,37 @@ export class UserController {  static async register(req, res) {
         })
       }
 
+      console.log('✅ Usuario encontrado:', { id: user.id, username: user.username })
+
       // Generar token de recuperación
       const resetToken = crypto.randomBytes(32).toString('hex')
       const resetTokenExpiry = new Date(Date.now() + 3600000) // 1 hora
 
+      console.log('🔑 Token generado, guardando en BD...')
+
       // Guardar token en la base de datos
       await ModelsUser.setPasswordResetToken(user.id, resetToken, resetTokenExpiry)
 
+      console.log('💾 Token guardado, enviando email...')
+
       // Enviar email de recuperación
       await EmailService.sendPasswordResetEmail(email, resetToken, user.username)
+
+      console.log('✅ Email enviado exitosamente')
 
       res.status(200).json({ 
         success: true, 
         message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña' 
       })
     } catch (error) {
-      console.error('Error en requestPasswordReset:', error)
+      console.error('❌ Error en requestPasswordReset:', error)
+      console.error('Stack:', error.stack)
+      console.error('Mensaje:', error.message)
+      
       res.status(500).json({ 
         success: false, 
-        message: 'Error interno del servidor' 
+        message: 'Error interno del servidor',
+        ...(config.NODE_ENV === 'development' && { error: error.message, stack: error.stack })
       })
     }
   }

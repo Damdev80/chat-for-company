@@ -27,7 +27,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node --watch server.js",
     "start": "node server.js",
-    "prod": "NODE_ENV=production node server.js"
+    "prod": "NODE_ENV=production node server.js",
+    "migrate:password-reset": "node scripts/migrate-password-reset.js",
+    "migrate:password-reset:prod": "node scripts/migrate-password-reset-turso.js"
   },
   "repository": {
     "type": "git",

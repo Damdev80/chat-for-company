@@ -85,42 +85,74 @@ export class ModelsUser {    static async create({ username, email, password, ro
 
     // Funciones para recuperación de contraseña
     static async setPasswordResetToken(userId, token, expiry) {
-      const connection = await getConnection()
-      const [result] = await connection.execute(
-        'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
-        [token, expiry.toISOString(), userId]
-      )
-      connection.end()
-      return result
+      try {
+        const connection = await getConnection()
+        const [result] = await connection.execute(
+          'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
+          [token, expiry.toISOString(), userId]
+        )
+        connection.end()
+        console.log('✅ Token de reset guardado para usuario:', userId)
+        return result
+      } catch (error) {
+        console.error('❌ Error en setPasswordResetToken:', error.message)
+        if (error.message?.includes('no such column') || error.message?.includes('no column named')) {
+          throw new Error('Las columnas de reset de contraseña no existen en la base de datos. Ejecuta la migración: npm run migrate:password-reset')
+        }
+        throw error
+      }
     }
 
     static async getByResetToken(token) {
-      const connection = await getConnection()
-      const [rows] = await connection.execute(
-        'SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > ?',
-        [token, new Date().toISOString()]
-      )
-      connection.end()
-      return rows[0]
+      try {
+        const connection = await getConnection()
+        const [rows] = await connection.execute(
+          'SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > ?',
+          [token, new Date().toISOString()]
+        )
+        connection.end()
+        return rows[0]
+      } catch (error) {
+        console.error('❌ Error en getByResetToken:', error.message)
+        if (error.message?.includes('no such column') || error.message?.includes('no column named')) {
+          throw new Error('Las columnas de reset de contraseña no existen en la base de datos. Ejecuta la migración: npm run migrate:password-reset')
+        }
+        throw error
+      }
     }
 
     static async updatePassword(userId, hashedPassword) {
-      const connection = await getConnection()
-      const [result] = await connection.execute(
-        'UPDATE users SET password = ? WHERE id = ?',
-        [hashedPassword, userId]
-      )
-      connection.end()
-      return result
+      try {
+        const connection = await getConnection()
+        const [result] = await connection.execute(
+          'UPDATE users SET password = ? WHERE id = ?',
+          [hashedPassword, userId]
+        )
+        connection.end()
+        console.log('✅ Contraseña actualizada para usuario:', userId)
+        return result
+      } catch (error) {
+        console.error('❌ Error en updatePassword:', error.message)
+        throw error
+      }
     }
 
     static async clearPasswordResetToken(userId) {
-      const connection = await getConnection()
-      const [result] = await connection.execute(
-        'UPDATE users SET reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
-        [userId]
-      )
-      connection.end()
-      return result
+      try {
+        const connection = await getConnection()
+        const [result] = await connection.execute(
+          'UPDATE users SET reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
+          [userId]
+        )
+        connection.end()
+        console.log('✅ Token de reset limpiado para usuario:', userId)
+        return result
+      } catch (error) {
+        console.error('❌ Error en clearPasswordResetToken:', error.message)
+        if (error.message?.includes('no such column') || error.message?.includes('no column named')) {
+          throw new Error('Las columnas de reset de contraseña no existen en la base de datos. Ejecuta la migración: npm run migrate:password-reset')
+        }
+        throw error
+      }
     }
   }

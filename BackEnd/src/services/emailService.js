@@ -16,10 +16,12 @@ export class EmailService {
       console.log('🔑 Enviando email de recuperación:', { email, username, hasToken: !!resetToken });
       console.log('📧 RESEND_API_KEY configurada:', !!config.RESEND_API_KEY);
       
-      // URL de reset (cambiar según tu dominio en producción)
+      // URL de reset - usar variable de entorno o dominio de producción
       const resetUrl = config.NODE_ENV === 'production' 
-        ? `https://your-domain.com/reset-password?token=${resetToken}`
-        : `http://localhost:5173/reset-password?token=${resetToken}`;      console.log('🔗 Reset URL generada:', resetUrl);
+        ? `https://chat-for-company.vercel.app/reset-password?token=${resetToken}`
+        : `http://localhost:5173/reset-password?token=${resetToken}`;
+      
+      console.log('🔗 Reset URL generada:', resetUrl);
 
       const { data, error } = await resend.emails.send({
         from: 'Acme <onboarding@resend.dev>', // Dominio sandbox de Resend para desarrollo
