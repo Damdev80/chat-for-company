@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Edit2, Trash2, MapPin, Clock, AlertCircle, Users, Target } from 'lucide-react';
+import { API_ENDPOINTS } from '../../config/api';
 
 const CalendarBoard = ({ groupId }) => {
   const [events, setEvents] = useState([]);
@@ -24,9 +25,10 @@ const CalendarBoard = ({ groupId }) => {
     try {
       setLoading(true);
       console.log('CalendarBoard: Fetching data for groupId:', groupId);
+      console.log('CalendarBoard: Token present:', !!token);
       
       // Cargar eventos
-      const eventsResponse = await fetch(`http://localhost:3000/api/events/group/${groupId}`, {
+      const eventsResponse = await fetch(`${API_ENDPOINTS.events}/group/${groupId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -46,13 +48,20 @@ const CalendarBoard = ({ groupId }) => {
             : [];
         setEvents(loadedEvents);
       } else {
-        console.error('Error al cargar eventos:', eventsResponse.statusText);
+        const errorData = await eventsResponse.json().catch(() => ({}));
+        console.error('Error al cargar eventos:', eventsResponse.statusText, errorData);
+        
+        // Si es 401 o 403, el token es inválido
+        if (eventsResponse.status === 401 || eventsResponse.status === 403) {
+          console.error('Token inválido o expirado. Usuario debe reloguearse.');
+          alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        }
         setEvents([]);
       }
 
       // Cargar objetivos para mostrar fechas importantes
       console.log('CalendarBoard: Fetching objectives for groupId:', groupId);
-      const objectivesResponse = await fetch(`http://localhost:3000/api/objectives/group/${groupId}`, {
+      const objectivesResponse = await fetch(`${API_ENDPOINTS.objectives}/group/${groupId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -95,8 +104,8 @@ const CalendarBoard = ({ groupId }) => {
         event_date: formData.event_date,
         event_time: formData.event_time || '00:00'
       };      const url = editingEvent 
-        ? `http://localhost:3000/api/events/${editingEvent.id}`
-        : `http://localhost:3000/api/events/create`;
+        ? `${API_ENDPOINTS.events}/${editingEvent.id}`
+        : `${API_ENDPOINTS.events}/create`;
       
       const method = editingEvent ? 'PUT' : 'POST';
 
@@ -113,10 +122,18 @@ const CalendarBoard = ({ groupId }) => {
         await fetchEvents();
         closeModal();
       } else {
-        console.error('Error al guardar evento:', response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error al guardar evento:', response.statusText, errorData);
+        
+        if (response.status === 401 || response.status === 403) {
+          alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        } else {
+          alert('Error al guardar el evento. Inténtalo de nuevo.');
+        }
       }
     } catch (error) {
       console.error('Error al guardar evento:', error);
+      alert('Error de conexión. Verifica tu conexión a internet.');
     }
   };
 
@@ -124,7 +141,7 @@ const CalendarBoard = ({ groupId }) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este evento?')) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/api/events/${eventId}`, {
+      const response = await fetch(`${API_ENDPOINTS.events}/${eventId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
