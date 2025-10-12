@@ -23,8 +23,14 @@ export class EmailService {
       
       console.log('🔗 Reset URL generada:', resetUrl);
 
+      // Para producción sin dominio propio, usa el email verificado en Resend
+      // Ve a: https://resend.com/settings para ver tu email verificado
+      const fromEmail = config.NODE_ENV === 'production' 
+        ? config.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
+        : 'onboarding@resend.dev';
+
       const { data, error } = await resend.emails.send({
-        from: 'Acme <onboarding@resend.dev>', // Dominio sandbox de Resend para desarrollo
+        from: fromEmail,
         to: [email],
         subject: 'Recuperación de Contraseña - Chat App',
         html: `
@@ -210,8 +216,13 @@ Este email fue enviado automáticamente, por favor no respondas a este mensaje.
    */
   static async sendPasswordChangeConfirmation(email, username) {
     try {
+      // Usar el mismo from que en sendPasswordResetEmail
+      const fromEmail = config.NODE_ENV === 'production' 
+        ? config.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
+        : 'onboarding@resend.dev';
+
       const { data, error } = await resend.emails.send({
-        from: 'Acme <onboarding@resend.dev>', // Dominio sandbox de Resend para desarrollo
+        from: fromEmail,
         to: [email],
         subject: 'Contraseña Cambiada Exitosamente - Chat App',
         html: `

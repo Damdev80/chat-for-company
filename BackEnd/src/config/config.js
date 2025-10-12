@@ -11,6 +11,7 @@ export const config = {
     
     // Email configuration (Resend)
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
       // Database configuration (Turso)
     TURSO_DATABASE_URL: process.env.TURSO_URL,
     TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
