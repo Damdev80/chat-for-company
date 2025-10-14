@@ -84,4 +84,41 @@ export class ModelsGroup {    static async create({ name }) {
         connection.end()
       }
     }
+
+    // Obtener grupos de un usuario (asumiendo tabla user_groups)
+    static async getUserGroups(userId) {
+      console.log('👥 Obteniendo grupos del usuario:', userId);
+      const connection = await getConnection()
+      
+      try {
+        // Intentar obtener de la tabla user_groups si existe
+        const [rows] = await connection.execute(`
+          SELECT hex(g.id) as id, g.name 
+          FROM groups g
+          INNER JOIN user_groups ug ON hex(g.id) = ug.group_id
+          WHERE ug.user_id = ?
+        `, [userId])
+        
+        if (rows.length > 0) {
+          console.log('✅ Grupos encontrados:', rows.length);
+          return rows
+        }
+        
+        // Si no hay user_groups, retornar todos los grupos (fallback)
+        console.log('⚠️ Tabla user_groups no disponible, usando todos los grupos');
+        const [allGroups] = await connection.execute('SELECT hex(id) as id, name FROM groups LIMIT 1')
+        return allGroups
+      } catch (error) {
+        console.error('❌ Error al obtener grupos del usuario:', error);
+        // Fallback: retornar el primer grupo disponible
+        try {
+          const [fallback] = await connection.execute('SELECT hex(id) as id, name FROM groups LIMIT 1')
+          return fallback
+        } catch (fallbackError) {
+          return []
+        }
+      } finally {
+        connection.end()
+      }
+    }
 }

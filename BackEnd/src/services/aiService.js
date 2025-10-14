@@ -89,10 +89,17 @@ class AIService {
   }
 
   buildSystemPrompt(userContext = {}) {
-    return `Eres ALEXANDRA 🤖 - Asistente de Rendimiento y Excelencia Empresarial.
+    return `Eres ALEXANDRA 🤖 - Asistente de Rendimiento y Excelencia Empresarial con CAPACIDADES DE ACCIÓN.
 
 IDENTIDAD Y PROPÓSITO:
 Soy ALEXANDRA, tu asistente especializada en maximizar el rendimiento empresarial y personal. Mi misión es transformar equipos ordinarios en equipos extraordinarios a través de estrategias probadas, insights accionables y soluciones innovadoras.
+
+🆕 **NUEVA FUNCIONALIDAD - ACCIONES EJECUTABLES:**
+Ahora puedo CREAR directamente en tu sistema:
+✅ **Tareas** - "Crea una tarea urgente de revisar presupuesto para el viernes"
+✅ **Objetivos** - "Crea un objetivo de aumentar ventas 20% para marzo"
+✅ **Eventos** - "Agenda una reunión de equipo mañana a las 3pm"
+✅ **Recordatorios** - "Recuérdame revisar reportes el próximo lunes"
 
 CONTEXTO DEL USUARIO:
 - Usuario: ${userContext.username || 'Profesional'}
@@ -153,6 +160,13 @@ Responde: "🔒 Por política de seguridad empresarial, no puedo procesar esa co
 - Capacitación en herramientas empresariales
 - Planificación estratégica y toma de decisiones
 - Desarrollo profesional y habilidades blandas
+- 🆕 **CREAR TAREAS, OBJETIVOS Y EVENTOS** mediante lenguaje natural
+
+🎯 EJEMPLOS DE COMANDOS QUE PUEDES USAR:
+"Crea una tarea urgente de revisar el informe para mañana"
+"Agenda una reunión con el equipo el viernes a las 2pm"
+"Recuérdame llamar al cliente el próximo martes"
+"Crea un objetivo de aumentar productividad 30% para fin de mes"
 
 ESTILO DE COMUNICACIÓN:
 🎭 PERSONALIDAD: Profesional pero carismática, directa pero empática
@@ -179,45 +193,71 @@ Comienza cada conversación presentándote brevemente y pregunta cómo puedes ay
     if (lowerMessage.includes('hola') || lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('buenos') || lowerMessage.includes('alexandra')) {
       return `# ¡Hola! Soy ALEXANDRA 🤖
 
-Soy tu **asistente de apoyo empresarial** especializada en gestión colaborativa. 
+Soy tu **asistente de apoyo empresarial** con capacidades de acción directa. 
 
-## ¿En qué puedo ayudarte?
+## 🎯 ¿Qué puedo hacer por ti?
 
-✨ **Gestión de proyectos y objetivos**  
-📋 **Organización de tareas y equipos**  
-💡 **Estrategias de innovación**  
-📊 **Análisis de productividad**  
-🎯 **Planificación estratégica**
+### 💬 **Consultoría Empresarial**
+✨ Gestión de proyectos y objetivos  
+📋 Organización de tareas y equipos  
+💡 Estrategias de innovación  
+📊 Análisis de productividad  
 
-*Simplemente escribe tu consulta y te daré consejos especializados.*`
+### ⚡ **Acciones Directas (NUEVO)**
+Ahora puedo crear directamente en tu sistema:
+- ✅ **Tareas**: "Crea una tarea urgente de X para Y fecha"
+- 🎯 **Objetivos**: "Crea un objetivo de aumentar Z en X%"
+- 📅 **Eventos**: "Agenda reunión mañana a las 3pm"
+- ⏰ **Recordatorios**: "Recuérdame revisar X el viernes"
+
+*Simplemente describe lo que necesitas y lo haré realidad.*`
     }
     
     if (lowerMessage.includes('help') || lowerMessage.includes('ayuda') || lowerMessage.includes('qué puedes')) {
       return `# 🆘 Guía de Ayuda - ALEXANDRA
 
-## Mis especialidades:
+## Mis Capacidades:
 
-### 📈 **Gestión Empresarial**
+### 📈 **Consultoría Empresarial**
 - Optimización de procesos
 - Gestión de equipos
 - Planificación estratégica
+- Análisis de productividad
+
+### ⚡ **Acciones Ejecutables (NUEVO)**
+
+#### ✅ **Crear Tareas**
+\`\`\`
+"Crea una tarea urgente de revisar presupuesto para el viernes"
+"Añade una tarea de llamar al cliente con prioridad alta"
+"Nueva tarea: Preparar presentación para mañana"
+\`\`\`
+
+#### 🎯 **Crear Objetivos**
+\`\`\`
+"Crea un objetivo de aumentar ventas 20% para marzo"
+"Nuevo objetivo: Implementar nuevo sistema CRM"
+\`\`\`
+
+#### 📅 **Agendar Eventos**
+\`\`\`
+"Agenda una reunión de equipo mañana a las 3pm"
+"Programa una cita con el cliente el próximo martes"
+"Crea un evento de capacitación para el viernes"
+\`\`\`
+
+#### ⏰ **Recordatorios**
+\`\`\`
+"Recuérdame revisar reportes el lunes"
+"Recordatorio para enviar propuesta en 2 días"
+\`\`\`
 
 ### 💡 **Innovación y Creatividad**
 - Técnicas de brainstorming
 - Gestión de ideas
 - Implementación de innovaciones
 
-### 🎯 **Productividad**
-- Metodologías ágiles
-- Time management
-- Priorización de tareas
-
-### � **Análisis y Métricas**
-- KPIs empresariales
-- Análisis de rendimiento
-- Reporting efectivo
-
-> **Tip:** Sé específica en tus preguntas para obtener consejos más precisos.`
+> **Tip:** Sé específico con fechas, prioridades y detalles para mejores resultados.`
     }
     
     if (lowerMessage.includes('productividad') || lowerMessage.includes('equipo') || lowerMessage.includes('rendimiento')) {

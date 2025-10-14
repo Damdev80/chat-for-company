@@ -2,6 +2,8 @@
 import { ModelsMessage } from '../models/message.js'
 import { messageSchema } from '../validations/message.validation.js'
 import { getConnection } from '../config/db.js'
+import nlpActionService from '../services/nlpActionService.js'
+import { getSocketInstance } from '../utils/socketManager.js'
 
 export class MessageController {  static async create(req, res) {
     try {
@@ -35,7 +37,7 @@ export class MessageController {  static async create(req, res) {
   }  static async createFromSocket(data) {
     try {
       // Log para depuración
-      console.log('Mensaje recibido desde socket:', JSON.stringify(data))
+      console.log('💬 Mensaje recibido desde socket:', JSON.stringify(data))
       
       // Validación manual extra
       if (data.group_id && (typeof data.group_id !== 'string' || data.group_id.length > 350)) {
@@ -52,6 +54,53 @@ export class MessageController {  static async create(req, res) {
       if (!data.sender_id) {
         console.error('sender_id faltante');
         throw new Error('ID de remitente requerido');
+      }
+
+      // 🎯 NUEVO: Detectar si el mensaje contiene una solicitud de acción (tarea, objetivo, evento)
+      console.log('\n🔍 Detectando acción NLP en mensaje de grupo...')
+      const actionType = nlpActionService.detectAction(data.content)
+      console.log('   Tipo de acción:', actionType || 'ninguna')
+      
+      if (actionType) {
+        console.log('\n✅ ACCIÓN DETECTADA:', actionType)
+        
+        // Ejecutar la acción correspondiente
+        const actionResult = await nlpActionService.executeAction(
+          actionType,
+          data.content,
+          data.sender_id,
+          data.group_id
+        )
+        
+        if (actionResult && actionResult.success) {
+          console.log('   ✅ Acción ejecutada exitosamente')
+          console.log('   Respuesta:', actionResult.message)
+          
+          // Guardar el mensaje original del usuario
+          const userMessage = await ModelsMessage.create(data)
+          
+          // Crear mensaje de confirmación de ALEXANDRA
+          const alexandraMessage = await ModelsMessage.create({
+            sender_id: 'ALEXANDRA',
+            group_id: data.group_id,
+            content: actionResult.message
+          })
+          
+          // Emitir mensaje de confirmación por socket
+          const io = getSocketInstance()
+          if (io) {
+            io.to(`group-${data.group_id}`).emit('new-message', alexandraMessage)
+          }
+          
+          console.log('   Mensajes guardados y emitidos')
+          
+          // Retornar el mensaje original del usuario (el de confirmación ya se emitió)
+          return {
+            ...userMessage,
+            actionExecuted: actionType,
+            actionData: actionResult.data
+          }
+        }
       }
       
       console.log('MessageController.createFromSocket - Validaciones pasadas, creando mensaje');
