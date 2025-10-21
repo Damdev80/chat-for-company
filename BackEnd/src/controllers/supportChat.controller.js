@@ -118,6 +118,79 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
       console.log('   User ID:', userId)
       console.log('   Mensaje:', message)
 
+      // 🔍 VERIFICAR SI HAY UNA ACCIÓN PENDIENTE (esperando selección de grupo)
+      const recentMessages = await SupportMessage.getRecentMessages(chatId, 5)
+      const lastAssistantMessage = recentMessages.reverse().find(msg => msg.role === 'assistant')
+      
+      if (lastAssistantMessage?.metadata?.pendingAction) {
+        console.log('\n⏳ HAY UNA ACCIÓN PENDIENTE')
+        console.log('   Acción:', lastAssistantMessage.metadata.pendingAction.actionType)
+        console.log('   Mensaje original:', lastAssistantMessage.metadata.pendingAction.originalMessage)
+        
+        const { ModelsGroup } = await import('../models/group.js')
+        const userGroups = lastAssistantMessage.metadata.pendingAction.userGroups
+        
+        // Verificar si el usuario respondió con un número válido
+        const selectedIndex = parseInt(message.trim())
+        
+        if (isNaN(selectedIndex) || selectedIndex < 1 || selectedIndex > userGroups.length) {
+          const errorMessage = await SupportMessage.create(
+            chatId,
+            'assistant',
+            `❌ Por favor, responde con un número válido entre 1 y ${userGroups.length}.\n\n` +
+            userGroups.map((g, i) => `${i + 1}. **${g.name}**`).join('\n') +
+            '\n\nEscribe el número del grupo donde quieres crear.',
+            {
+              timestamp: new Date().toISOString(),
+              pendingAction: lastAssistantMessage.metadata.pendingAction
+            }
+          )
+          
+          return res.json({
+            success: true,
+            data: {
+              userMessage: userMessage,
+              assistantMessage: errorMessage
+            }
+          })
+        }
+        
+        // Grupo seleccionado válido
+        const selectedGroup = userGroups[selectedIndex - 1]
+        console.log('   ✅ Grupo seleccionado:', selectedGroup.name)
+        
+        // Ejecutar la acción pendiente
+        const actionResult = await nlpActionService.executeAction(
+          lastAssistantMessage.metadata.pendingAction.actionType,
+          lastAssistantMessage.metadata.pendingAction.originalMessage,
+          userId,
+          selectedGroup.id
+        )
+        
+        const assistantMessage = await SupportMessage.create(
+          chatId,
+          'assistant',
+          `✅ Creado en **${selectedGroup.name}**\n\n${actionResult.message}`,
+          {
+            timestamp: new Date().toISOString(),
+            action: actionResult.action,
+            actionData: actionResult.data,
+            selectedGroup: selectedGroup,
+            model: 'nlp-action-service'
+          }
+        )
+        
+        await SupportChat.updateLastMessage(chatId)
+        
+        return res.json({
+          success: true,
+          data: {
+            userMessage: userMessage,
+            assistantMessage: assistantMessage
+          }
+        })
+      }
+
       // 🆕 DETECTAR SI ES UNA SOLICITUD DE ACCIÓN (crear tarea, objetivo, evento)
       console.log('\n🔍 Detectando acción NLP...')
       const actionType = nlpActionService.detectAction(message)
@@ -126,12 +199,19 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
       if (actionType) {
         console.log('\n✅ ACCIÓN DETECTADA:', actionType)
         
-        // Obtener el primer grupo del usuario (asumiendo que tiene al menos uno)
-        // En una implementación más robusta, podrías permitir al usuario especificar el grupo
         const { ModelsGroup } = await import('../models/group.js')
+        console.log('   🔍 Buscando grupos del usuario:', userId)
         const userGroups = await ModelsGroup.getUserGroups(userId)
         
+        console.log('   📋 Grupos encontrados:', userGroups ? userGroups.length : 0)
+        if (userGroups && userGroups.length > 0) {
+          userGroups.forEach((group, index) => {
+            console.log(`      ${index + 1}. ${group.name || 'Sin nombre'} (ID: ${group.id})`)
+          })
+        }
+        
         if (!userGroups || userGroups.length === 0) {
+          console.log('   ⚠️ Usuario no tiene grupos')
           const errorMessage = await SupportMessage.create(
             chatId,
             'assistant',
@@ -151,10 +231,47 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
           })
         }
         
-        // Usar el primer grupo o el grupo especificado
+        // 🆕 SI TIENE MÚLTIPLES GRUPOS, PREGUNTAR EN CUÁL CREAR
+        if (userGroups.length > 1) {
+          console.log('   🤔 Usuario tiene múltiples grupos, preguntando...')
+          
+          const groupsList = userGroups.map((group, index) => 
+            `${index + 1}. **${group.name}**`
+          ).join('\n')
+          
+          const questionMessage = await SupportMessage.create(
+            chatId,
+            'assistant',
+            `🏢 Tienes ${userGroups.length} grupos. ¿En cuál quieres crear?\n\n${groupsList}\n\n👉 Responde con el número del grupo.`,
+            {
+              timestamp: new Date().toISOString(),
+              pendingAction: {
+                actionType: actionType,
+                originalMessage: message,
+                userGroups: userGroups.map(g => ({ id: g.id, name: g.name }))
+              }
+            }
+          )
+          
+          await SupportChat.updateLastMessage(chatId)
+          
+          return res.json({
+            success: true,
+            data: {
+              userMessage: userMessage,
+              assistantMessage: questionMessage
+            }
+          })
+        }
+        
+        // Un solo grupo, ejecutar directamente
         const groupId = userGroups[0].id
+        console.log('   🏢 Usuario tiene un solo grupo:', userGroups[0].name || 'Sin nombre')
+        console.log('   🆔 Group ID:', groupId)
+        console.log('   🔍 Tipo de groupId:', typeof groupId)
         
         // Ejecutar la acción
+        console.log('   ⚡ Ejecutando acción en grupo:', groupId)
         const actionResult = await nlpActionService.executeAction(
           actionType,
           message,

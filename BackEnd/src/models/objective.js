@@ -2,8 +2,23 @@ import { getConnection } from '../config/db.js'
 import { v4 as uuidv4 } from 'uuid'
 
 function bufferToUuid(buffer) {
-  if (!buffer || buffer.length !== 16) return null
-  const hex = Array.from(buffer, byte => byte.toString(16).padStart(2, '0')).join('')
+  if (!buffer) return null
+  
+  // Si es ArrayBuffer (Turso), convertir a Uint8Array
+  let bytes
+  if (buffer instanceof ArrayBuffer) {
+    bytes = new Uint8Array(buffer)
+  } else if (buffer instanceof Uint8Array) {
+    bytes = buffer
+  } else if (Buffer.isBuffer(buffer)) {
+    bytes = new Uint8Array(buffer)
+  } else {
+    return null
+  }
+  
+  if (bytes.length !== 16) return null
+  
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
   return [
     hex.substring(0, 8),
     hex.substring(8, 12),

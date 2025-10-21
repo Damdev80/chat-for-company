@@ -155,4 +155,37 @@ export class ModelsUser {    static async create({ username, email, password, ro
         throw error
       }
     }
+
+    /**
+     * 🆕 Obtener usuarios de un grupo
+     * Nota: Como no existe tabla user_groups, retorna todos los usuarios
+     * En el futuro, deberías agregar la tabla user_groups para la relación
+     */
+    static async getByGroupId(groupId) {
+      try {
+        const connection = await getConnection()
+        
+        // Intentar obtener de user_groups si existe
+        try {
+          const [rows] = await connection.execute(`
+            SELECT u.id, u.username, u.email, u.role_id
+            FROM users u
+            INNER JOIN user_groups ug ON u.id = ug.user_id
+            WHERE ug.group_id = ?
+          `, [groupId])
+          
+          connection.end()
+          return rows
+        } catch (error) {
+          // Si no existe la tabla, retornar todos los usuarios (fallback)
+          console.log('⚠️ Tabla user_groups no existe, retornando todos los usuarios')
+          const [allUsers] = await connection.execute('SELECT id, username, email, role_id FROM users LIMIT 50')
+          connection.end()
+          return allUsers
+        }
+      } catch (error) {
+        console.error('❌ Error en getByGroupId:', error)
+        return []
+      }
+    }
   }

@@ -85,34 +85,43 @@ export class ModelsGroup {    static async create({ name }) {
       }
     }
 
-    // Obtener grupos de un usuario (asumiendo tabla user_groups)
+    // Obtener grupos de un usuario
     static async getUserGroups(userId) {
       console.log('👥 Obteniendo grupos del usuario:', userId);
       const connection = await getConnection()
       
       try {
-        // Intentar obtener de la tabla user_groups si existe
-        const [rows] = await connection.execute(`
-          SELECT hex(g.id) as id, g.name 
-          FROM groups g
-          INNER JOIN user_groups ug ON hex(g.id) = ug.group_id
-          WHERE ug.user_id = ?
-        `, [userId])
+        // Primero verificar si la tabla user_groups existe
+        const [tables] = await connection.execute(`
+          SELECT name FROM sqlite_master 
+          WHERE type='table' AND name='user_groups'
+        `)
         
-        if (rows.length > 0) {
-          console.log('✅ Grupos encontrados:', rows.length);
-          return rows
+        if (tables.length > 0) {
+          // La tabla existe, usarla
+          const [rows] = await connection.execute(`
+            SELECT hex(g.id) as id, g.name 
+            FROM groups g
+            INNER JOIN user_groups ug ON hex(g.id) = ug.group_id
+            WHERE ug.user_id = ?
+          `, [userId])
+          
+          if (rows.length > 0) {
+            console.log('✅ Grupos encontrados desde user_groups:', rows.length);
+            return rows
+          }
         }
         
-        // Si no hay user_groups, retornar todos los grupos (fallback)
-        console.log('⚠️ Tabla user_groups no disponible, usando todos los grupos');
-        const [allGroups] = await connection.execute('SELECT hex(id) as id, name FROM groups LIMIT 1')
+        // Si no existe la tabla o no hay resultados, retornar todos los grupos
+        console.log('⚠️ Usando todos los grupos disponibles (fallback)');
+        const [allGroups] = await connection.execute('SELECT hex(id) as id, name FROM groups')
+        console.log('✅ Grupos encontrados:', allGroups.length);
         return allGroups
       } catch (error) {
         console.error('❌ Error al obtener grupos del usuario:', error);
-        // Fallback: retornar el primer grupo disponible
+        // Fallback final: retornar todos los grupos
         try {
-          const [fallback] = await connection.execute('SELECT hex(id) as id, name FROM groups LIMIT 1')
+          const [fallback] = await connection.execute('SELECT hex(id) as id, name FROM groups')
           return fallback
         } catch (fallbackError) {
           return []

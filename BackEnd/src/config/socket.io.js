@@ -42,6 +42,11 @@ export function configureSocket(io) {
       socket.join(groupId);
       socket.currentGroup = groupId;
     });    socket.on('send_message', async (data) => {
+      console.log('\n📨 SOCKET: Mensaje recibido')
+      console.log('   📦 Data completa:', JSON.stringify(data, null, 2))
+      console.log('   🏢 Group ID del frontend:', data.group_id)
+      console.log('   👤 User ID:', socket.user.id)
+      
       const messageData = {
         sender_id: socket.user.id,
         content: data.content,
@@ -52,6 +57,8 @@ export function configureSocket(io) {
         // Incluir attachments si están presentes
         attachments: data.attachments || null
       };
+      
+      console.log('   📋 MessageData preparado:', JSON.stringify(messageData, null, 2))
 
       try {
         // Actualizar actividad del usuario

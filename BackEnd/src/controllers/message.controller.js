@@ -58,11 +58,17 @@ export class MessageController {  static async create(req, res) {
 
       // 🎯 NUEVO: Detectar si el mensaje contiene una solicitud de acción (tarea, objetivo, evento)
       console.log('\n🔍 Detectando acción NLP en mensaje de grupo...')
+      console.log('   📦 DATA COMPLETA:', JSON.stringify(data, null, 2))
+      console.log('   👤 Sender ID:', data.sender_id)
+      console.log('   🏢 Group ID:', data.group_id)
+      console.log('   💬 Contenido:', data.content)
+      
       const actionType = nlpActionService.detectAction(data.content)
       console.log('   Tipo de acción:', actionType || 'ninguna')
       
       if (actionType) {
         console.log('\n✅ ACCIÓN DETECTADA:', actionType)
+        console.log('   🎯 Ejecutando en grupo:', data.group_id)
         
         // Ejecutar la acción correspondiente
         const actionResult = await nlpActionService.executeAction(
