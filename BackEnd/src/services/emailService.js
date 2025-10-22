@@ -13,15 +13,12 @@ export class EmailService {
    * @param {string} username - Nombre de usuario
    */  static async sendPasswordResetEmail(email, resetToken, username) {
     try {
-      console.log('🔑 Enviando email de recuperación:', { email, username, hasToken: !!resetToken });
-      console.log('📧 RESEND_API_KEY configurada:', !!config.RESEND_API_KEY);
       
       // URL de reset - usar variable de entorno o dominio de producción
       const resetUrl = config.NODE_ENV === 'production' 
         ? `https://chat-for-company.vercel.app/reset-password?token=${resetToken}`
         : `http://localhost:5173/reset-password?token=${resetToken}`;
       
-      console.log('🔗 Reset URL generada:', resetUrl);
 
       // Para producción sin dominio propio, usa el email verificado en Resend
       // Ve a: https://resend.com/settings para ver tu email verificado
@@ -194,14 +191,12 @@ Este email fue enviado automáticamente, por favor no respondas a este mensaje.
 © 2024 Chat App. Todos los derechos reservados.
         `      });
 
-      console.log('📤 Respuesta de Resend:', { data, error });
 
       if (error) {
         console.error('❌ Error enviando email con Resend:', error);
         throw new Error('Error al enviar el email de recuperación');
       }
 
-      console.log('✅ Email de recuperación enviado exitosamente:', data);
       return data;
     } catch (error) {
       console.error('Error en EmailService.sendPasswordResetEmail:', error);
@@ -333,7 +328,6 @@ Este email fue enviado automáticamente, por favor no respondas a este mensaje.
         throw new Error('Error al enviar el email de confirmación');
       }
 
-      console.log('Email de confirmación enviado:', data);
       return data;
     } catch (error) {
       console.error('Error en EmailService.sendPasswordChangeConfirmation:', error);

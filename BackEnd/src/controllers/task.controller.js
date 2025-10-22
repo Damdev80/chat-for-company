@@ -6,28 +6,21 @@ import { emitTaskCompleted, emitProgressUpdate, emitObjectiveCompleted } from '.
 export class TaskController {
   static async create(req, res) {
     try {
-      console.log('=== TASK CREATION REQUEST ===');
-      console.log('Request body:', req.body);
-      console.log('User:', req.user);
       
       // Validar datos con Zod
       const result = taskSchema.safeParse(req.body)
       if (!result.success) {
-        console.log('Validation failed:', result.error.issues);
         return res.status(400).json({ errors: result.error.issues })
       }      const { title, description, objective_id, assigned_to, priority } = result.data
       const created_by = req.user.id
 
-      console.log('Parsed data:', { title, description, objective_id, assigned_to, priority, created_by });
 
       // Verificar que el objetivo existe
       const objective = await ModelsObjective.getById(objective_id)
       if (!objective) {
-        console.log('Objective not found:', objective_id);
         return res.status(404).json({ message: 'Objetivo no encontrado' })
       }
 
-      console.log('Objective found:', objective);      // Crear la tarea
       const task = await ModelsTask.create({
         title,
         description,
@@ -37,7 +30,6 @@ export class TaskController {
         created_by
       })
 
-      console.log('Task created successfully:', task);
 
       res.status(201).json({
         message: 'Tarea creada correctamente',
@@ -199,20 +191,15 @@ export class TaskController {
       const { id } = req.params
       const userId = req.user.id
 
-      console.log('=== TASK COMPLETION REQUEST ===')
-      console.log('Task ID:', id)
-      console.log('User ID:', userId)
 
       // Marcar como completada (verificará permisos internamente)
       await ModelsTask.markAsCompleted(id, userId)
 
       // Get the completed task with full details
       const completedTask = await ModelsTask.getById(id)
-      console.log('Completed task details:', completedTask)
 
       // Get the objective details
       const objective = await ModelsObjective.getById(completedTask.objective_id)
-      console.log('Objective details:', objective)
 
       if (objective) {
         // Emit task completion event
@@ -220,13 +207,11 @@ export class TaskController {
 
         // Calculate and emit progress update
         const progress = await ModelsObjective.getProgress(objective.id)
-        console.log('Updated progress:', progress)
         
         await emitProgressUpdate(objective, progress)
 
         // Check if objective is now completed (100% progress)
         if (progress.progress >= 100) {
-          console.log('🎉 Objective completed! Emitting objective_completed event')
           await emitObjectiveCompleted(objective)
         }
       }
@@ -277,9 +262,6 @@ export class TaskController {
       const { id } = req.params
       const userId = req.user.id
 
-      console.log('=== TASK SUBMIT FOR REVIEW REQUEST ===')
-      console.log('Task ID:', id)
-      console.log('User ID:', userId)
 
       // Enviar tarea a revisión (verificará permisos internamente)
       await ModelsTask.submitForReview(id, userId)
@@ -318,10 +300,6 @@ export class TaskController {
 
       const { comments } = result.data
 
-      console.log('=== TASK APPROVAL REQUEST ===')
-      console.log('Task ID:', id)
-      console.log('Reviewer ID:', reviewerId)
-      console.log('Comments:', comments)
 
       // Verificar que el usuario tiene permisos de admin/supervisor
       if (req.user.role !== 'admin' && req.user.role !== 'supervisor') {
@@ -333,11 +311,9 @@ export class TaskController {
 
       // Obtener la tarea completada con detalles completos
       const completedTask = await ModelsTask.getById(id)
-      console.log('Approved task details:', completedTask)
 
       // Obtener los detalles del objetivo
       const objective = await ModelsObjective.getById(completedTask.objective_id)
-      console.log('Objective details:', objective)
 
       if (objective) {
         // Emitir evento de tarea completada
@@ -345,13 +321,11 @@ export class TaskController {
 
         // Calcular y emitir actualización de progreso
         const progress = await ModelsObjective.getProgress(objective.id)
-        console.log('Updated progress:', progress)
         
         await emitProgressUpdate(objective, progress)
 
         // Verificar si el objetivo está ahora completo (100% progreso)
         if (progress.progress >= 100) {
-          console.log('🎉 Objective completed! Emitting objective_completed event')
           await emitObjectiveCompleted(objective)
         }
       }
@@ -379,10 +353,6 @@ export class TaskController {
 
       const { comments } = result.data
 
-      console.log('=== TASK RETURN REQUEST ===')
-      console.log('Task ID:', id)
-      console.log('Reviewer ID:', reviewerId)
-      console.log('Comments:', comments)      // Verificar que el usuario tiene permisos de admin/supervisor
       if (req.user.role !== 'admin' && req.user.role !== 'supervisor') {
         return res.status(403).json({ message: 'No tienes permisos para revisar tareas' })
       }

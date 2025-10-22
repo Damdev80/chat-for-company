@@ -89,10 +89,7 @@ const ChatContainer = () => {
   };
 
   // Función para reintentar mensajes
-  const retryMessage = (failedMessage) => {
-    console.log("Retrying message:", failedMessage);
-    showNotification("Info", "Reintentando envío de mensaje");
-  };
+  
 
   // Función para crear grupo
   const handleCreateGroup = async (name) => {
@@ -190,11 +187,7 @@ const ChatContainer = () => {
     retryMessage(failedMessage);
   };
 
-  const handleDeleteMessage = async (messageId) => {
-    // Placeholder - implementar cuando sea necesario
-    console.log("Message to delete:", messageId);
-    showNotification("Info", "Funcionalidad de eliminar mensaje próximamente");
-  };
+  
 
   const handleLogout = () => {
     localStorage.removeItem("token");

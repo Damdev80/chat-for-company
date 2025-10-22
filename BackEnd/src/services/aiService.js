@@ -6,31 +6,20 @@ class AIService {
     this.baseURL = 'https://api.deepseek.com/v1'
     this.model = 'deepseek-chat'
     
-    console.log('🔧 AIService inicializado (lazy loading de API key)')
   }
   // Método para obtener la API key de forma segura
   getApiKey() {
     const apiKey = process.env.DEEPSEEK_API_KEY || null
-    console.log('🔑 Verificando API Key:')
-    console.log('   - Variable DEEPSEEK_API_KEY existe:', !!process.env.DEEPSEEK_API_KEY)
-    console.log('   - Valor presente:', apiKey ? 'SÍ (length: ' + apiKey.length + ')' : 'NO')
-    console.log('   - Primeros 10 chars:', apiKey ? apiKey.substring(0, 10) + '...' : 'N/A')
     return apiKey
   }
   isInDemoMode() {
     const apiKey = this.getApiKey()
     const isDemoMode = !apiKey || apiKey.trim() === '' || apiKey === 'demo_mode'
-    console.log('🎭 Análisis modo demo:')
-    console.log('   - API Key válida:', !!apiKey)
-    console.log('   - API Key no vacía:', apiKey && apiKey.trim() !== '')
-    console.log('   - No es demo_mode:', apiKey !== 'demo_mode')
-    console.log('   - RESULTADO - Modo demo activo:', isDemoMode)
     return isDemoMode
   }
 
   async processMessage(userMessage, conversationHistory = [], userContext = {}) {
     if (this.isInDemoMode()) {
-      console.log('🔄 Usando respuestas demo')
       return await this.getDemoResponse(userMessage)
     }
 
@@ -52,10 +41,6 @@ class AIService {
         })),        { role: 'user', content: userMessage }
       ]
 
-      console.log('🚀 Llamando a DeepSeek API...')
-      console.log('   - URL:', `${this.baseURL}/chat/completions`)
-      console.log('   - Modelo:', this.model)
-      console.log('   - Mensajes a enviar:', messages.length)
       
       const apiKey = this.getApiKey()
       const response = await axios.post(`${this.baseURL}/chat/completions`, {
@@ -71,9 +56,6 @@ class AIService {
         }
       })
 
-      console.log('✅ DeepSeek respondió exitosamente')
-      console.log('   - Status:', response.status)
-      console.log('   - Respuesta length:', response.data.choices[0].message.content.length)
       
       return response.data.choices[0].message.content
 

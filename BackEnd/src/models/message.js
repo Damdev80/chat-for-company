@@ -15,7 +15,6 @@ function bufferToUuid(buffer) {
 export class ModelsMessage {
   static async create({ content, sender_id, group_id, temp_id, attachments = null }) {
     try {
-      console.log('ModelsMessage.create - Iniciando creación de mensaje:', { content, sender_id, group_id, temp_id, attachments });
       
       // Si group_id es un buffer, conviértelo a string
       if (typeof group_id === 'object' && group_id !== null && group_id.type === 'Buffer') {
@@ -25,7 +24,6 @@ export class ModelsMessage {
       // Generar UUID usando JavaScript en lugar de SQL
       const messageId = uuidv4();
       
-      console.log('Ejecutando query con ID generado:', messageId);
       const connection = await getConnection();
       
       // Serializar attachments como JSON si existen
@@ -36,7 +34,6 @@ export class ModelsMessage {
         [messageId, content, sender_id, group_id, attachmentsJson]
       );
       
-      console.log('Mensaje insertado, obteniendo detalles completos');
         
       // Obtener el mensaje recién creado usando el ID específico
       const [insertedMessage] = await connection.execute(
@@ -54,10 +51,8 @@ export class ModelsMessage {
           attachments: insertedMessage[0].attachments ? JSON.parse(insertedMessage[0].attachments) : null,
           temp_id
         };
-        console.log('Mensaje creado con éxito:', finalMessage);
         return finalMessage;
       } else {
-        console.log('No se pudo obtener el mensaje insertado, devolviendo result:', result);
         return result;
       }
     } catch (error) {

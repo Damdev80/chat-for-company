@@ -1,19 +1,16 @@
 import { getConnection } from '../config/db.js'
 export class ModelsUser {    static async create({ username, email, password, role_id }) {
       try {
-        console.log('Creando usuario en la base de datos:', { username, email, role_id });
         const connection = await getConnection();
           // Para SQLite/Turso: usamos hex(randomblob(16)) en lugar de UUID()
         const query = 'INSERT INTO users (id, username, email, password, role_id) VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?)';
         
-        console.log('Ejecutando query:', query);
         const [result] = await connection.execute(
           query,
           [username, email, password, role_id || null]
         );
         
         connection.end();
-        console.log('Usuario creado con éxito:', result);
         return result;
       } catch (error) {
         console.error('Error en ModelsUser.create:', error);
@@ -92,7 +89,6 @@ export class ModelsUser {    static async create({ username, email, password, ro
           [token, expiry.toISOString(), userId]
         )
         connection.end()
-        console.log('✅ Token de reset guardado para usuario:', userId)
         return result
       } catch (error) {
         console.error('❌ Error en setPasswordResetToken:', error.message)
@@ -129,7 +125,6 @@ export class ModelsUser {    static async create({ username, email, password, ro
           [hashedPassword, userId]
         )
         connection.end()
-        console.log('✅ Contraseña actualizada para usuario:', userId)
         return result
       } catch (error) {
         console.error('❌ Error en updatePassword:', error.message)
@@ -145,7 +140,6 @@ export class ModelsUser {    static async create({ username, email, password, ro
           [userId]
         )
         connection.end()
-        console.log('✅ Token de reset limpiado para usuario:', userId)
         return result
       } catch (error) {
         console.error('❌ Error en clearPasswordResetToken:', error.message)
@@ -178,7 +172,6 @@ export class ModelsUser {    static async create({ username, email, password, ro
           return rows
         } catch (error) {
           // Si no existe la tabla, retornar todos los usuarios (fallback)
-          console.log('⚠️ Tabla user_groups no existe, retornando todos los usuarios')
           const [allUsers] = await connection.execute('SELECT id, username, email, role_id FROM users LIMIT 50')
           connection.end()
           return allUsers

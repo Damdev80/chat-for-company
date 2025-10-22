@@ -12,7 +12,6 @@ function bufferToUuid(buffer) {
 }
 
 export class ModelsGroup {    static async create({ name }) {
-      console.log('📝 Creando grupo:', { name });
       const connection = await getConnection()
       
       try {
@@ -20,7 +19,6 @@ export class ModelsGroup {    static async create({ name }) {
           'INSERT INTO groups (id, name) VALUES (randomblob(16), ?)',
           [name]
         )
-        console.log('✅ Grupo creado exitosamente:', result);
         
         // Retornar un objeto consistente independientemente de la base de datos
         return {
@@ -34,14 +32,12 @@ export class ModelsGroup {    static async create({ name }) {
         connection.end()
       }
     }static async getAll() {
-      console.log('📋 Obteniendo todos los grupos');
       const connection = await getConnection()
       
       try {
         const [rows] = await connection.execute(
           'SELECT hex(id) as id, name FROM groups'
         )
-        console.log('✅ Grupos obtenidos:', rows);
         return rows
       } catch (error) {
         console.error('❌ Error al obtener grupos:', error);
@@ -50,7 +46,6 @@ export class ModelsGroup {    static async create({ name }) {
         connection.end()
       }
     }    static async update(id, { name }) {
-      console.log('✏️ Actualizando grupo:', { id, name });
       const connection = await getConnection()
       
       try {
@@ -58,7 +53,6 @@ export class ModelsGroup {    static async create({ name }) {
           'UPDATE groups SET name = ? WHERE hex(id) = ?',
           [name, id]
         )
-        console.log('✅ Grupo actualizado:', result);
         return result
       } catch (error) {
         console.error('❌ Error al actualizar grupo:', error);
@@ -67,7 +61,6 @@ export class ModelsGroup {    static async create({ name }) {
         connection.end()
       }
     }    static async delete(id) {
-      console.log('🗑️ Eliminando grupo:', { id });
       const connection = await getConnection()
       
       try {
@@ -75,7 +68,6 @@ export class ModelsGroup {    static async create({ name }) {
           'DELETE FROM groups WHERE hex(id) = ?',
           [id]
         )
-        console.log('✅ Grupo eliminado:', result);
         return result
       } catch (error) {
         console.error('❌ Error al eliminar grupo:', error);
@@ -87,7 +79,6 @@ export class ModelsGroup {    static async create({ name }) {
 
     // Obtener grupos de un usuario
     static async getUserGroups(userId) {
-      console.log('👥 Obteniendo grupos del usuario:', userId);
       const connection = await getConnection()
       
       try {
@@ -107,15 +98,12 @@ export class ModelsGroup {    static async create({ name }) {
           `, [userId])
           
           if (rows.length > 0) {
-            console.log('✅ Grupos encontrados desde user_groups:', rows.length);
             return rows
           }
         }
         
         // Si no existe la tabla o no hay resultados, retornar todos los grupos
-        console.log('⚠️ Usando todos los grupos disponibles (fallback)');
         const [allGroups] = await connection.execute('SELECT hex(id) as id, name FROM groups')
-        console.log('✅ Grupos encontrados:', allGroups.length);
         return allGroups
       } catch (error) {
         console.error('❌ Error al obtener grupos del usuario:', error);

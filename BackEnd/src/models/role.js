@@ -7,7 +7,6 @@ export class ModelsRole {    static async create({ name, description }) {
         ? 'INSERT INTO roles (id, name, description) VALUES (lower(hex(randomblob(16))), ?, ?)'
         : 'INSERT INTO roles (id, name, description) VALUES (UUID(), ?, ?)';
       
-      console.log('Ejecutando query para crear rol:', query);
       const [result] = await connection.execute(
         query,
         [name, description || null]
