@@ -11,10 +11,7 @@ const AudioPlayer = ({ audioUrl, duration, fileName, className = '' }) => {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;    const handleLoadedMetadata = () => {
-      console.log('🎵 Audio metadata loaded:', {
-        duration: audio.duration,
-        src: audio.src
-      });
+      
       if (audio.duration && isFinite(audio.duration)) {
         setAudioDuration(audio.duration);
       }
@@ -29,7 +26,6 @@ const AudioPlayer = ({ audioUrl, duration, fileName, className = '' }) => {
       setIsPlaying(false);
       setCurrentTime(0);
     };    const handleCanPlay = () => {
-      console.log('🎵 Audio can play, duration:', audio.duration);
       if (audio.duration && isFinite(audio.duration) && audioDuration === 0) {
         setAudioDuration(audio.duration);
       }
@@ -37,7 +33,6 @@ const AudioPlayer = ({ audioUrl, duration, fileName, className = '' }) => {
     };
 
     const handleDurationChange = () => {
-      console.log('🎵 Duration changed:', audio.duration);
       if (audio.duration && isFinite(audio.duration)) {
         setAudioDuration(audio.duration);
       }
@@ -52,7 +47,6 @@ const AudioPlayer = ({ audioUrl, duration, fileName, className = '' }) => {
     };
 
     const handleLoadStart = () => {
-      console.log('🎵 Audio load started for:', audio.src);
       setIsLoading(true);
     };
 

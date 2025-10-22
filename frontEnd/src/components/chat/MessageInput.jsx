@@ -154,7 +154,6 @@ const MessageInput = ({
         }]
       };
 
-      console.log('🎵 Mensaje optimista de audio:', optimisticMessage);      console.log('🎵 Añadiendo mensaje optimista al chat');
       
       // Añadir el mensaje optimista inmediatamente al chat
       if (typeof onSendMessage === 'function') {
@@ -171,7 +170,7 @@ const MessageInput = ({
       const result = await uploadAudioMessage(audioBlob, groupId, token, duration, tempId);
       
       if (result.success) {
-        console.log('🎵 Audio enviado exitosamente:', result);
+
         if (onNotification) {
           onNotification("Success", "Mensaje de audio enviado");
         }

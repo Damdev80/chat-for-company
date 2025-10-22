@@ -3,12 +3,8 @@ import { MessageController } from '../controllers/message.controller.js'
 import { addOnlineUser, removeOnlineUser, updateUserActivity, getOnlineUsersList } from '../utils/socketManager.js'
 
 export function configureSocket(io) {
-  console.log(`Socket.IO configurado en modo: ${process.env.NODE_ENV || 'development'}`)  // Log de todos los intentos de conexión
-  console.log('Socket.IO esperando conexiones en URL base:', process.env.CORS_ORIGIN || '*');
   
   io.use((socket, next) => {
-    console.log('Intento de conexión a Socket.io desde:', socket.handshake.headers.origin);
-    console.log('Headers de conexión:', JSON.stringify(socket.handshake.headers));
     
     const token = socket.handshake.auth?.token
     if (!token) {
@@ -17,9 +13,7 @@ export function configureSocket(io) {
     }
 
     try {
-      console.log('Verificando token JWT...');
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
-      console.log('Token válido para usuario:', decoded.username);
       socket.user = decoded // Guardamos los datos del usuario en el socket
       next()
     } catch (err) {
@@ -28,7 +22,6 @@ export function configureSocket(io) {
     }
   })
   io.on('connection', (socket) => {
-    console.log(`🔌 Usuario conectado: ${socket.user.id}`)
 
     // Agregar usuario al tracking de online
     addOnlineUser(socket.user.id, socket.user.username, socket.id);
@@ -42,10 +35,6 @@ export function configureSocket(io) {
       socket.join(groupId);
       socket.currentGroup = groupId;
     });    socket.on('send_message', async (data) => {
-      console.log('\n📨 SOCKET: Mensaje recibido')
-      console.log('   📦 Data completa:', JSON.stringify(data, null, 2))
-      console.log('   🏢 Group ID del frontend:', data.group_id)
-      console.log('   👤 User ID:', socket.user.id)
       
       const messageData = {
         sender_id: socket.user.id,
@@ -58,7 +47,6 @@ export function configureSocket(io) {
         attachments: data.attachments || null
       };
       
-      console.log('   📋 MessageData preparado:', JSON.stringify(messageData, null, 2))
 
       try {
         // Actualizar actividad del usuario
@@ -87,8 +75,8 @@ export function configureSocket(io) {
 
     }); // Cierra socket.on('send_message', ...)
       // Añadir evento para debugging de conexión
-    socket.on('ping_server', (data) => {
-      console.log('Cliente envió ping:', data);
+    socket.on('ping_server', () => {
+      
       updateUserActivity(socket.user.id); // Actualizar actividad en ping
       socket.emit('pong_client', { 
         message: 'Conexión Socket.io funcionando correctamente',
@@ -103,7 +91,6 @@ export function configureSocket(io) {
     });
 
     socket.on('disconnect', () => {
-      console.log(`👋 Usuario desconectado: ${socket.user.id}`)
       // Remover usuario del tracking de online
       removeOnlineUser(socket.user.id);
     });

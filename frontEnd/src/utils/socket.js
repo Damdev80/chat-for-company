@@ -10,7 +10,6 @@ export const connectSocket = (token) => {
   
   // IMPORTANTE: Socket.io debe conectarse a la URL base, no a la ruta /api
   const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:3000";
-  console.log("Conectando a Socket.io en:", socketUrl);
   
   // Crear una nueva conexión con opciones de alta disponibilidad
   const socket = io(socketUrl, {
@@ -25,7 +24,6 @@ export const connectSocket = (token) => {
   
   // Manejar eventos comunes de conexión
   socket.on("connect", () => {
-    console.log("✅ Socket.io conectado exitosamente con ID:", socket.id);
     
     // Enviar ping de prueba para verificar comunicación bidireccional
     setTimeout(() => {
@@ -33,8 +31,7 @@ export const connectSocket = (token) => {
     }, 1000);
   });
   
-  socket.on("pong_client", (data) => {
-    console.log("✅ Respuesta del servidor recibida:", data);
+  socket.on("pong_client", () => {
   });
   
   socket.on("connect_error", (error) => {
@@ -45,8 +42,7 @@ export const connectSocket = (token) => {
     console.warn("⚠️ Socket.io desconectado, razón:", reason);
   });
   
-  socket.on("reconnect", (attemptNumber) => {
-    console.log(`🔄 Socket.io reconectado después de ${attemptNumber} intentos`);
+  socket.on("reconnect", () => {
   });
   
   socket.on("error", (error) => {
@@ -59,7 +55,6 @@ export const connectSocket = (token) => {
 // Función para desconectar Socket.io de forma limpia
 export const disconnectSocket = (socket) => {
   if (socket && socket.connected) {
-    console.log("Desconectando Socket.io...");
     socket.disconnect();
   }
 };

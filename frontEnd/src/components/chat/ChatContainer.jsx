@@ -185,7 +185,6 @@ const ChatContainer = () => {  // Estados principales
 
     const socket = connectSocket(token);
     socketRef.current = socket;    socket.on("receive_message", (messageData) => {
-      console.log("Mensaje recibido por Socket.IO:", messageData);
       setMessages((prev) => {
         // Si es mi mensaje optimista, actualizarlo con los datos reales
         const isMyOptimisticMessage = 
@@ -310,8 +309,7 @@ const ChatContainer = () => {  // Estados principales
     });
 
     // Eventos para tracking de usuarios online
-    socket.on("user_connected", (data) => {
-      console.log("Usuario conectado:", data);
+    socket.on("user_connected", () => {
       // Solicitar lista actualizada de forma segura
       try {
         socket.emit("get_online_users");
@@ -320,8 +318,7 @@ const ChatContainer = () => {  // Estados principales
       }
     });
 
-    socket.on("user_disconnected", (data) => {
-      console.log("Usuario desconectado:", data);
+    socket.on("user_disconnected", () => {
       // Solicitar lista actualizada de forma segura
       try {
         socket.emit("get_online_users");
@@ -331,7 +328,6 @@ const ChatContainer = () => {  // Estados principales
     });
 
     socket.on("online_users_updated", (usersList) => {
-      console.log("Lista de usuarios online actualizada:", usersList);
       try {
         if (Array.isArray(usersList)) {
           setOnlineUsers(usersList);
@@ -346,7 +342,6 @@ const ChatContainer = () => {  // Estados principales
     });
 
     socket.on("online_users_list", (usersList) => {
-      console.log("Lista inicial de usuarios online:", usersList);
       try {
         if (Array.isArray(usersList)) {
           setOnlineUsers(usersList);
@@ -380,7 +375,6 @@ const ChatContainer = () => {  // Estados principales
 
     // Unirse al grupo activo
     socket.emit("join_group", activeGroup);
-    console.log("Uniéndose al grupo:", activeGroup);
 
     return () => {
       disconnectSocket();
@@ -391,7 +385,6 @@ const ChatContainer = () => {  // Estados principales
   useEffect(() => {
     if (socketRef.current && activeGroup) {
       socketRef.current.emit("join_group", activeGroup);
-      console.log("Cambiando a grupo:", activeGroup);
     }
   }, [activeGroup]);  // Funciones de manejo
   const sendMessage = async (message, attachments = null) => {
@@ -427,13 +420,7 @@ const ChatContainer = () => {  // Estados principales
         attachments: attachments || [],
       });
       
-      console.log("Mensaje enviado por Socket.IO:", {
-        content: message,
-        sender_name: user,
-        group_id: activeGroup,
-        temp_id: tempId,
-        attachments: attachments || [],
-      });
+      
 
     } catch (error) {
       console.error("Error enviando mensaje:", error);
@@ -445,8 +432,7 @@ const ChatContainer = () => {  // Estados principales
       showNotification("Error", "No se pudo enviar el mensaje");
     }
   };
-  const retryMessage = (failedMessage) => {
-    console.log("Reintentando mensaje:", failedMessage);
+  const retryMessage = () => {
     showNotification("Info", "Funcionalidad de reintento próximamente");
   };
 
@@ -537,8 +523,7 @@ const ChatContainer = () => {  // Estados principales
 
   const handleRetryMessage = (failedMessage) => {
     retryMessage(failedMessage);
-  };  const handleDeleteMessage = (messageId) => {
-    console.log("Eliminando mensaje:", messageId);
+  };  const handleDeleteMessage = () => {
     showNotification("Info", "Funcionalidad de eliminar mensaje próximamente");
   };
   const handleDeleteChat = (chatId) => {

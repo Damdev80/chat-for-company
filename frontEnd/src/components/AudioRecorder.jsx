@@ -48,7 +48,6 @@ const AudioRecorder = ({ onAudioReady, onCancel, isOpen }) => {
 
   const startRecording = async () => {
     try {
-      console.log('🎵 [RECORDER] Starting recording...');
       
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -70,7 +69,6 @@ const AudioRecorder = ({ onAudioReady, onCancel, isOpen }) => {
           audioChunksRef.current.push(event.data);
         }
       };      mediaRecorder.onstop = () => {
-        console.log('🎵 [RECORDER] Recording stopped');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(audioBlob);
         setAudioBlob(audioBlob);
@@ -80,7 +78,7 @@ const AudioRecorder = ({ onAudioReady, onCancel, isOpen }) => {
         const tempAudio = new Audio(url);
         tempAudio.addEventListener('loadedmetadata', () => {
           const actualDuration = tempAudio.duration;
-          console.log('🎵 [RECORDER] Actual audio duration:', actualDuration);
+          ('🎵 [RECORDER] Actual audio duration:', actualDuration);
           setRecordingTime(actualDuration || recordingTime); // Use actual duration if available
         });
         tempAudio.load();
@@ -97,7 +95,6 @@ const AudioRecorder = ({ onAudioReady, onCancel, isOpen }) => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
       
-      console.log('🎵 [RECORDER] Recording started successfully');
     } catch (error) {
       console.error('🎵 [RECORDER] Error starting recording:', error);
       alert('Error al acceder al micrófono. Verifica los permisos.');
@@ -106,7 +103,6 @@ const AudioRecorder = ({ onAudioReady, onCancel, isOpen }) => {
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      console.log('🎵 [RECORDER] Stopping recording...');
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       if (timerRef.current) {

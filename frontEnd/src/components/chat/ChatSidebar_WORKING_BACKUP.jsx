@@ -195,7 +195,6 @@ const ChatSidebar = ({
 }) => {  // Estados principales
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Iniciar colapsado
   const [userMenuOpen, setUserMenuOpen] = useState(false); // Menú expandido
-  const [userMenuCollapsedOpen, setUserMenuCollapsedOpen] = useState(false); // Menú colapsado
   const [showProfile, setShowProfile] = useState(false);
   const [showGroupOptions, setShowGroupOptions] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);

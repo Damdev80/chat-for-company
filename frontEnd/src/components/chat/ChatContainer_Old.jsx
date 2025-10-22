@@ -183,11 +183,25 @@ const ChatContainer = () => {
     setNewMessage("");
   };
 
-  const handleRetryMessage = (failedMessage) => { 
-    retryMessage(failedMessage);
+  const handleRetryMessage = async (failedMessage) => {
+    // Simple retry: re-send the failed message content
+    if (!failedMessage || !failedMessage.content) return;
+    await sendMessage(failedMessage.content);
   };
 
-  
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      // Optimistically remove the message from local state
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+      // If you have an API endpoint to delete messages, call it here.
+      // await deleteMessage(messageId);
+
+      showNotification("Éxito", "Mensaje eliminado exitosamente");
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      showNotification("Error", "Error al eliminar mensaje");
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");

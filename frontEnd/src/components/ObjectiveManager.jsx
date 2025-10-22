@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import {
   fetchObjectivesByGroup,
-  createObjective,
   updateObjective,
   deleteObjective
 } from '../utils/api';
@@ -82,15 +81,10 @@ const ObjectiveManager = ({ groupId, groupName, token, onObjectiveCreated, onTas
         deadline: deadline
       };
       
-      console.log('Datos del objetivo a enviar:', objectiveData);
-      console.log('Token:', token ? 'Present' : 'Missing');
         if (editingObjective) {
-        console.log('Actualizando objetivo:', editingObjective.id);
         await updateObjective(editingObjective.id, objectiveData, token);
       } else {
-        console.log('Creando nuevo objetivo...');
-        const response = await createObjective(objectiveData, token);
-        console.log('Respuesta del servidor:', response);
+
         
         // Call the callback to redirect to chat after creating an objective
         if (onObjectiveCreated && typeof onObjectiveCreated === 'function') {

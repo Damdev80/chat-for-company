@@ -7,20 +7,6 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  // Debug: Log the objective prop whenever it changes
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('🎯 ObjectiveProgress received objective:', {
-        id: objective?.id,
-        title: objective?.title,
-        tasks: objective?.tasks,
-        tasksCount: objective?.tasks?.length,
-        progress: objective?.progress,
-        fullObjective: objective
-      });
-    }
-  }, [objective]);
-
   // Confetti effect
   const triggerConfetti = useCallback(() => {
     confetti({
@@ -59,14 +45,7 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
 
   useEffect(() => {
     // Debug: Log all tasks and their status in development
-    if (import.meta.env.DEV && objective?.tasks) {
-      console.log('📋 ObjectiveProgress: Tasks breakdown:', objective.tasks.map(task => ({
-        id: task.id,
-        title: task.title,
-        status: task.status,
-        rawTask: task
-      })));
-    }
+    
 
     if (objective) {
       // Always calculate progress from tasks since backend progress calculation has issues
@@ -268,7 +247,7 @@ const ObjectiveProgress = ({ objective, onProgressUpdate }) => {
                 <span className="text-xs font-medium text-white">Próximas ({progress.pendingTasks.length})</span>
               </div>
               <div className="space-y-1">
-                {progress.pendingTasks.slice(0, 2).map((task, index) => (
+                {progress.pendingTasks.slice(0, 2).map((task) => (
                   <div key={task.id} className="flex items-center p-1 bg-[#3C3C4E]/20 rounded text-xs">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] mr-2"></div>
                     <span className="text-[#A0A0B0] truncate">{task.title}</span>
