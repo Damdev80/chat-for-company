@@ -4,18 +4,13 @@ import { ModelsMessage } from '../models/message.js' // Importar modelo de mensa
 export class GroupController {
   static async create(req, res) {
     try {
-      console.log('🏗️ Creando nuevo grupo - Datos recibidos:', req.body);
-      console.log('👤 Usuario que intenta crear grupo:', req.user);
       
       const { name } = req.body
       if (!name || name.trim() === '') {
-        console.log('❌ Validación fallida: nombre de grupo vacío');
         return res.status(400).json({ message: 'El nombre es requerido' })
       }
-        console.log('✅ Validación pasada, procediendo a crear grupo:', name.trim());
       const result = await ModelsGroup.create({ name: name.trim() })
       
-      console.log('✅ Grupo creado exitosamente:', result);
       res.status(201).json({ 
         message: 'Grupo creado correctamente', 
         group: { 

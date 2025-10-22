@@ -4,7 +4,6 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { getSocketInstance } from '../utils/socketManager.js';
 
-console.log('🎵 Loading audio controller...');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +12,6 @@ const __dirname = path.dirname(__filename);
 const audioDir = path.join(__dirname, '../../uploads/audio');
 if (!fs.existsSync(audioDir)) {
   fs.mkdirSync(audioDir, { recursive: true });
-  console.log('📁 Directorio de audio creado:', audioDir);
 }
 
 export class AudioController {
@@ -22,7 +20,6 @@ export class AudioController {
    */
   static async sendAudioMessage(req, res) {
     try {
-      console.log('🎵 AudioController: Procesando mensaje de audio...');
       
       if (!req.file) {
         return res.status(400).json({ 
@@ -55,7 +52,7 @@ export class AudioController {
         group_id,
         temp_id,
         attachments: [audioAttachment]
-      };console.log('🎵 Creando mensaje de audio:', messageData);
+      };
       const newMessage = await ModelsMessage.create(messageData);
 
       // Obtener el nombre del usuario para el Socket.IO
@@ -64,7 +61,7 @@ export class AudioController {
       // Emitir el mensaje por Socket.IO
       const io = getSocketInstance();
       if (io) {
-        console.log('📡 Emitiendo mensaje de audio por Socket.IO');        io.emit('receive_message', {
+        io.emit('receive_message', {
           ...newMessage,
           sender_name: userName,
           temp_id,

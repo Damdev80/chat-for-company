@@ -113,19 +113,12 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
         message.trim()
       )
 
-      console.log('\n💬 SOPORTE CHAT: Mensaje recibido')
-      console.log('   Chat ID:', chatId)
-      console.log('   User ID:', userId)
-      console.log('   Mensaje:', message)
 
       // 🔍 VERIFICAR SI HAY UNA ACCIÓN PENDIENTE (esperando selección de grupo)
       const recentMessages = await SupportMessage.getRecentMessages(chatId, 5)
       const lastAssistantMessage = recentMessages.reverse().find(msg => msg.role === 'assistant')
       
       if (lastAssistantMessage?.metadata?.pendingAction) {
-        console.log('\n⏳ HAY UNA ACCIÓN PENDIENTE')
-        console.log('   Acción:', lastAssistantMessage.metadata.pendingAction.actionType)
-        console.log('   Mensaje original:', lastAssistantMessage.metadata.pendingAction.originalMessage)
         
         const { ModelsGroup } = await import('../models/group.js')
         const userGroups = lastAssistantMessage.metadata.pendingAction.userGroups
@@ -157,7 +150,6 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
         
         // Grupo seleccionado válido
         const selectedGroup = userGroups[selectedIndex - 1]
-        console.log('   ✅ Grupo seleccionado:', selectedGroup.name)
         
         // Ejecutar la acción pendiente
         const actionResult = await nlpActionService.executeAction(
@@ -192,26 +184,16 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
       }
 
       // 🆕 DETECTAR SI ES UNA SOLICITUD DE ACCIÓN (crear tarea, objetivo, evento)
-      console.log('\n🔍 Detectando acción NLP...')
       const actionType = nlpActionService.detectAction(message)
-      console.log('   Tipo de acción:', actionType || 'ninguna')
       
       if (actionType) {
-        console.log('\n✅ ACCIÓN DETECTADA:', actionType)
         
         const { ModelsGroup } = await import('../models/group.js')
-        console.log('   🔍 Buscando grupos del usuario:', userId)
         const userGroups = await ModelsGroup.getUserGroups(userId)
         
-        console.log('   📋 Grupos encontrados:', userGroups ? userGroups.length : 0)
-        if (userGroups && userGroups.length > 0) {
-          userGroups.forEach((group, index) => {
-            console.log(`      ${index + 1}. ${group.name || 'Sin nombre'} (ID: ${group.id})`)
-          })
-        }
+        
         
         if (!userGroups || userGroups.length === 0) {
-          console.log('   ⚠️ Usuario no tiene grupos')
           const errorMessage = await SupportMessage.create(
             chatId,
             'assistant',
@@ -233,7 +215,6 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
         
         // 🆕 SI TIENE MÚLTIPLES GRUPOS, PREGUNTAR EN CUÁL CREAR
         if (userGroups.length > 1) {
-          console.log('   🤔 Usuario tiene múltiples grupos, preguntando...')
           
           const groupsList = userGroups.map((group, index) => 
             `${index + 1}. **${group.name}**`
@@ -266,12 +247,8 @@ export class SupportChatController {  // Obtener o crear chat de apoyo para el u
         
         // Un solo grupo, ejecutar directamente
         const groupId = userGroups[0].id
-        console.log('   🏢 Usuario tiene un solo grupo:', userGroups[0].name || 'Sin nombre')
-        console.log('   🆔 Group ID:', groupId)
-        console.log('   🔍 Tipo de groupId:', typeof groupId)
         
         // Ejecutar la acción
-        console.log('   ⚡ Ejecutando acción en grupo:', groupId)
         const actionResult = await nlpActionService.executeAction(
           actionType,
           message,

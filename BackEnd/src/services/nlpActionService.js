@@ -124,27 +124,35 @@ class NLPActionService {
     const descMatch = message.match(/(?:descripción|detalles?|sobre|acerca de):\s*([^\.]+)/i)
     const description = descMatch ? descMatch[1].trim() : ''
     
-    // 🆕 Detectar asignación de usuario
+    // 🆕 Detectar asignación de usuario - PATRONES MÁS ESPECÍFICOS
     let assigned_to = null
-    const assignPatterns = [
-      /(?:asigna|asignar|para|asignado?\s+a)\s+(?:@)?(\w+)/i,
-      /(?:que\s+lo\s+haga|encargado)\s+(?:@)?(\w+)/i,
-      /(?:responsable)\s+(?:@)?(\w+)/i
-    ]
     
-    for (const pattern of assignPatterns) {
-      const match = message.match(pattern)
-      if (match && match[1]) {
-        assigned_to = match[1].toLowerCase()
-        console.log('   👤 Asignado a:', assigned_to)
-        break
-      }
-    }
-    
-    // Detectar si es para "todos"
+    // Primero verificar si es para "todos" (tiene prioridad)
     if (/(?:para\s+)?todos|todo\s+el\s+(?:equipo|grupo)|equipo\s+completo/i.test(message)) {
       assigned_to = 'all'
       console.log('   👥 Asignado a: TODOS')
+    } else {
+      // Solo buscar asignación a usuario específico si NO es para todos
+      const assignPatterns = [
+        /(?:asignada|asignado|asignar)\s+a\s+(?:@)?(\w+)/i,  // "asignada a juan", "asignado a maria", "asignar a pedro"
+        /(?:que\s+lo\s+haga|que\s+la\s+haga)\s+(?:@)?(\w+)/i,  // "que lo haga pedro"
+        /(?:responsable)\s+(?:@)?(\w+)/i,  // "responsable maria"
+        /(?:encargado)\s+(?:@)?(\w+)/i  // "encargado carlos"
+      ]
+      
+      for (const pattern of assignPatterns) {
+        const match = message.match(pattern)
+        if (match && match[1]) {
+          assigned_to = match[1].toLowerCase()
+          console.log('   👤 Asignado a:', assigned_to)
+          break
+        }
+      }
+    }
+    
+    // Log si la tarea es libre
+    if (!assigned_to) {
+      console.log('   🆓 Tarea LIBRE (sin asignar)')
     }
     
     // Detectar fecha usando chrono-node
@@ -464,11 +472,6 @@ class NLPActionService {
    */
   async executeAction(actionType, message, userId, groupId, objectiveId = null) {
     try {
-      console.log('\n🎯 NLP Action Service - Executing:', actionType)
-      console.log('   👤 User ID:', userId)
-      console.log('   🏢 Group ID RECIBIDO:', groupId)
-      console.log('   📝 Mensaje:', message)
-      console.log('   🎯 Objective ID:', objectiveId || 'ninguno')
       
       switch (actionType) {
         case 'createTask': {
@@ -476,13 +479,8 @@ class NLPActionService {
           
           // Si NO hay un objective_id especificado, buscar o crear "Tareas Generales"
           if (!objectiveId && !taskInfo.objective_id) {
-            console.log('   No hay objetivo especificado, buscando/creando "Tareas Generales"...')
             
-            // Buscar si existe el objetivo "Tareas Generales" en el grupo
-            console.log('   🔍 Buscando objetivos en grupo:', groupId)
-            const objectives = await ModelsObjective.getByGroupId(groupId)
-            console.log('   📋 Objetivos encontrados:', objectives.length)
-            objectives.forEach(obj => console.log(`      - ${obj.title} (ID: ${obj.id})`))
+            
             
             let generalObjective = objectives.find(obj => 
               obj.title.toLowerCase().includes('tareas generales') || 
@@ -491,7 +489,6 @@ class NLPActionService {
             
             // Si no existe, crearlo
             if (!generalObjective) {
-              console.log('   ⚠️ No existe "Tareas Generales", creando...')
               console.log('   📦 Datos para crear objetivo:', {
                 title: 'Tareas Generales',
                 group_id: groupId,

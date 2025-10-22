@@ -106,25 +106,19 @@ export class ObjectiveController {
   static async getByGroupId(req, res) {
     try {
       const { groupId } = req.params;
-      console.log(`[ObjectiveController] getByGroupId called with groupId: ${groupId}`); // Log entry
 
       const objectives = await ModelsObjective.getByGroupId(groupId);
-      console.log(`[ObjectiveController] Objectives fetched for groupId ${groupId}:`, objectives); // Log fetched objectives
 
       if (!objectives) {
-        console.log(`[ObjectiveController] No objectives found for groupId: ${groupId}`);
         return res.status(404).json({ message: 'No objectives found for this group' });
       }        // Obtener progreso para cada objetivo
       const objectivesWithProgress = await Promise.all(
         objectives.map(async (objective) => {
-          console.log(`[ObjectiveController] Getting progress for objectiveId: ${objective.id}`);
           const progress = await ModelsObjective.getProgress(objective.id);
           
           // Get ALL tasks, not just pending ones
           const allTasks = await ModelsTask.getByObjectiveId(objective.id);
           
-          console.log(`[ObjectiveController] Progress for objectiveId ${objective.id}:`, progress);
-          console.log(`[ObjectiveController] All tasks for objectiveId ${objective.id}:`, allTasks);
           
           return {
             ...objective,
@@ -134,7 +128,6 @@ export class ObjectiveController {
         })
       );
       
-      console.log(`[ObjectiveController] Objectives with progress for groupId ${groupId}:`, objectivesWithProgress); // Log final result
       res.json(objectivesWithProgress);
     } catch (error) {
       console.error(`[ObjectiveController] Error in getByGroupId for groupId ${req.params.groupId}:`, error); // Log error

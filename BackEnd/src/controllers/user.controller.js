@@ -11,39 +11,32 @@ import crypto from 'crypto'
 
 export class UserController {  static async register(req, res) {
     try {
-      console.log('Recibida solicitud de registro:', req.body);
       
       // Validar datos con Zod
       const result = userSchema.safeParse(req.body)
       if (!result.success) {
-        console.log('Error de validación:', result.error.issues);
         return res.status(400).json({ errors: result.error.issues })
       }
   
       const { username, email, password } = result.data // 👈🏻 Ya NO pedimos role_id
-      console.log('Datos validados correctamente');
   
       // Verificar si el usuario ya existe
       const existingUser = await ModelsUser.getByUsername(username)
       if (existingUser) {
-        console.log('Usuario ya existe:', username);
         return res.status(400).json({ message: 'El nombre de usuario ya está en uso' })
       }
   
       // Verificar si el email ya existe
       const existingEmail = await ModelsUser.getByEmail(email)
       if (existingEmail) {
-        console.log('Email ya existe:', email);
         return res.status(400).json({ message: 'El email ya está en uso' })
       }      // Hashear la contraseña
       const hashedPassword = await bcrypt.hash(password, 10)
   
       // Buscar o crear el rol por defecto ("user")
-      console.log('Buscando rol "user" en la base de datos');
       let userRole = await ModelsRole.getByName('user');
       
       if (!userRole) {
-        console.log('Rol "user" no encontrado, creándolo');        // Crear el rol "user" si no existe
         // Para SQLite/Turso, usamos hex(randomblob(16))
         const createRoleQuery = 'INSERT INTO roles (id, name, description) VALUES (lower(hex(randomblob(16))), ?, ?)';
           
@@ -56,17 +49,13 @@ export class UserController {  static async register(req, res) {
         
         // Obtener el rol creado
         userRole = await ModelsRole.getByName('user');
-        console.log('Rol "user" creado con ID:', userRole?.id);
-      } else {
-        console.log('Rol "user" encontrado con ID:', userRole.id);
       }
-      
+
       if (!userRole || !userRole.id) {
         throw new Error('No se pudo obtener o crear el rol de usuario');
       }
       
       // Crear el usuario con el ID del rol encontrado o creado
-      console.log('Creando usuario con role_id:', userRole.id);
       try {
         await ModelsUser.create({
           username,
@@ -74,7 +63,6 @@ export class UserController {  static async register(req, res) {
           password: hashedPassword,
           role_id: userRole.id
         });
-        console.log('Usuario creado correctamente');
         
         res.status(201).json({ message: 'Usuario registrado correctamente' });
       } catch (dbError) {
@@ -215,12 +203,10 @@ export class UserController {  static async register(req, res) {
         })
       }
 
-      console.log('🔐 Solicitud de reset de contraseña para:', email)
 
       // Buscar usuario por email
       const user = await ModelsUser.getByEmail(email)
       if (!user) {
-        console.log('⚠️ Email no encontrado en la base de datos:', email)
         // Por seguridad, siempre devolvemos éxito aunque el email no exista
         return res.status(200).json({ 
           success: true, 
@@ -228,23 +214,19 @@ export class UserController {  static async register(req, res) {
         })
       }
 
-      console.log('✅ Usuario encontrado:', { id: user.id, username: user.username })
 
       // Generar token de recuperación
       const resetToken = crypto.randomBytes(32).toString('hex')
       const resetTokenExpiry = new Date(Date.now() + 3600000) // 1 hora
 
-      console.log('🔑 Token generado, guardando en BD...')
 
       // Guardar token en la base de datos
       await ModelsUser.setPasswordResetToken(user.id, resetToken, resetTokenExpiry)
 
-      console.log('💾 Token guardado, enviando email...')
 
       // Enviar email de recuperación
       await EmailService.sendPasswordResetEmail(email, resetToken, user.username)
 
-      console.log('✅ Email enviado exitosamente')
 
       res.status(200).json({ 
         success: true, 
