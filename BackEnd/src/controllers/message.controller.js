@@ -36,8 +36,6 @@ export class MessageController {  static async create(req, res) {
     }
   }  static async createFromSocket(data) {
     try {
-      // Log para depuración
-      console.log('💬 Mensaje recibido desde socket:', JSON.stringify(data))
       
       // Validación manual extra
       if (data.group_id && (typeof data.group_id !== 'string' || data.group_id.length > 350)) {
@@ -57,18 +55,10 @@ export class MessageController {  static async create(req, res) {
       }
 
       // 🎯 NUEVO: Detectar si el mensaje contiene una solicitud de acción (tarea, objetivo, evento)
-      console.log('\n🔍 Detectando acción NLP en mensaje de grupo...')
-      console.log('   📦 DATA COMPLETA:', JSON.stringify(data, null, 2))
-      console.log('   👤 Sender ID:', data.sender_id)
-      console.log('   🏢 Group ID:', data.group_id)
-      console.log('   💬 Contenido:', data.content)
       
       const actionType = nlpActionService.detectAction(data.content)
-      console.log('   Tipo de acción:', actionType || 'ninguna')
       
       if (actionType) {
-        console.log('\n✅ ACCIÓN DETECTADA:', actionType)
-        console.log('   🎯 Ejecutando en grupo:', data.group_id)
         
         // Ejecutar la acción correspondiente
         const actionResult = await nlpActionService.executeAction(
@@ -79,8 +69,6 @@ export class MessageController {  static async create(req, res) {
         )
         
         if (actionResult && actionResult.success) {
-          console.log('   ✅ Acción ejecutada exitosamente')
-          console.log('   Respuesta:', actionResult.message)
           
           // Guardar el mensaje original del usuario
           const userMessage = await ModelsMessage.create(data)
@@ -98,7 +86,6 @@ export class MessageController {  static async create(req, res) {
             io.to(`group-${data.group_id}`).emit('new-message', alexandraMessage)
           }
           
-          console.log('   Mensajes guardados y emitidos')
           
           // Retornar el mensaje original del usuario (el de confirmación ya se emitió)
           return {
@@ -109,13 +96,9 @@ export class MessageController {  static async create(req, res) {
         }
       }
       
-      console.log('MessageController.createFromSocket - Validaciones pasadas, creando mensaje');
-      console.log('Contenido original recibido:', JSON.stringify(data.content));
       
       // Crear el mensaje y obtener sus datos
       const message = await ModelsMessage.create(data);
-      console.log('Mensaje creado en la base de datos:', message);
-      console.log('Contenido después de la base de datos:', JSON.stringify(message.content));
       
       // Obtener el nombre de usuario para la respuesta (simulamos un join con users)
       // En una implementación real, esto debería ser una consulta JOIN adecuada
