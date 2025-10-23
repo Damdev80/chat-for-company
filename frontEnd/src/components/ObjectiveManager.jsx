@@ -30,26 +30,14 @@ const ObjectiveManager = ({ groupId, groupName, token, onObjectiveCreated, onTas
     description: '',
     deadline: ''
   });  const loadObjectives = useCallback(async () => {
-    console.log('🔄 ObjectiveManager: Loading objectives for groupId:', groupId);
     setLoading(true);
     try {
       const token = getToken();
       const result = await fetchObjectivesByGroup(groupId, token);
       const objectivesList = Array.isArray(result) ? result : result.objectives || [];
-      console.log('✅ ObjectiveManager: Objectives loaded successfully:', objectivesList.length, 'objectives');
-      console.log('🎯 FULL API RESULT:', result);
       
       // Debug: Log each objective with its progress data
-      objectivesList.forEach((obj, index) => {
-        console.log(`📋 Objective ${index + 1}:`, {
-          id: obj.id,
-          title: obj.title,
-          progress: obj.progress,
-          tasks: obj.tasks,
-          tasksCount: obj.tasks?.length || 0,
-          fullObjective: obj
-        });
-      });
+      
       
       setObjectives(objectivesList);
     } catch (error) {
@@ -57,7 +45,6 @@ const ObjectiveManager = ({ groupId, groupName, token, onObjectiveCreated, onTas
       setObjectives([]);
     } finally {
       setLoading(false);
-      console.log('🏁 ObjectiveManager: Loading completed');
     }
   }, [groupId]);
 

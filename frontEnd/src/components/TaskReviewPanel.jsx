@@ -19,28 +19,16 @@ const TaskReviewPanel = ({ onTaskUpdate }) => {
   const [comments, setComments] = useState('');
   const [actionType, setActionType] = useState(''); // 'approve' or 'return'
   useEffect(() => {
-    console.log('🔐 [REVIEW PANEL] Checking permissions:', {
-      canReview: canReviewTasks(),
-      userRole: localStorage.getItem('userRole'),
-      username: localStorage.getItem('username')
-    });
-    
     if (canReviewTasks()) {
       loadTasksInReview();
     } else {
-      console.log('❌ [REVIEW PANEL] User does not have review permissions');
       setLoading(false);
     }
   }, []);  const loadTasksInReview = async () => {
     try {
       const token = getToken();
-      console.log('📋 [REVIEW PANEL] Loading tasks with token:', token?.substring(0, 20) + '...');
       
       const response = await fetchTasksInReview(token);
-      console.log('📋 [REVIEW PANEL] Full response from API:', response);
-      console.log('📋 [REVIEW PANEL] Response type:', typeof response);
-      console.log('📋 [REVIEW PANEL] Is array?:', Array.isArray(response));
-      console.log('📋 [REVIEW PANEL] Length:', response?.length);
       
       setTasks(response || []);
     } catch (error) {

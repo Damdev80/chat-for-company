@@ -24,8 +24,6 @@ const CalendarBoard = ({ groupId }) => {
   const isAdmin = userRole === 'admin' || userRole === 'supervisor';  const fetchEvents = async () => {
     try {
       setLoading(true);
-      console.log('CalendarBoard: Fetching data for groupId:', groupId);
-      console.log('CalendarBoard: Token present:', !!token);
       
       // Cargar eventos
       const eventsResponse = await fetch(`${API_ENDPOINTS.events}/group/${groupId}`, {
@@ -34,8 +32,6 @@ const CalendarBoard = ({ groupId }) => {
           'Content-Type': 'application/json'
         }
       });
-
-      console.log('CalendarBoard: Events response status:', eventsResponse.status);
 
       if (eventsResponse.ok) {
         // Desempaquetar response JSON
@@ -60,7 +56,6 @@ const CalendarBoard = ({ groupId }) => {
       }
 
       // Cargar objetivos para mostrar fechas importantes
-      console.log('CalendarBoard: Fetching objectives for groupId:', groupId);
       const objectivesResponse = await fetch(`${API_ENDPOINTS.objectives}/group/${groupId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,

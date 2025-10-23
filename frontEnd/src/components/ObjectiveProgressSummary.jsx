@@ -34,7 +34,6 @@ const ObjectiveProgressSummary = ({ groupId, groupName, compact = false }) => {
       const result = await fetchObjectivesByGroup(groupId, token);
       const objectivesList = Array.isArray(result) ? result : result.objectives || [];
       
-      console.log('🔧 ObjectiveProgressSummary: Raw objectives from backend:', objectivesList);
       
       // Process objectives and calculate correct progress from tasks
       const processedObjectives = objectivesList.map(obj => {
@@ -47,7 +46,6 @@ const ObjectiveProgressSummary = ({ groupId, groupName, compact = false }) => {
         // Always calculate progress from tasks since backend progress calculation has issues
         if (obj.tasks && Array.isArray(obj.tasks)) {
           const calculatedProgress = calculateProgressFromTasks(obj.tasks);
-          console.log(`📊 Calculated progress for "${obj.title}":`, calculatedProgress);
           
           return {
             ...obj,
@@ -61,7 +59,6 @@ const ObjectiveProgressSummary = ({ groupId, groupName, compact = false }) => {
         return obj;
       });
       
-      console.log('✅ ObjectiveProgressSummary: Processed objectives with corrected progress:', processedObjectives);
       setObjectives(processedObjectives);
       
       // Calcular progreso total usando el progreso corregido
@@ -70,7 +67,6 @@ const ObjectiveProgressSummary = ({ groupId, groupName, compact = false }) => {
           const percentage = obj.progress?.percentage ?? 0;
           return sum + percentage;
         }, 0) / processedObjectives.length;
-        console.log('📈 Total progress calculated:', Math.round(totalProgress));
         setTotalProgress(Math.round(totalProgress));
       } else {
         setTotalProgress(0);
@@ -89,11 +85,9 @@ const ObjectiveProgressSummary = ({ groupId, groupName, compact = false }) => {
   useEffect(() => {
     const handleProgressUpdate = (event) => {
       const data = event.detail;
-      console.log('ObjectiveProgressSummary: Received progress update event:', data);
       
       // Check if this update is for an objective in our group
       if (data.group_id === groupId) {
-        console.log('ObjectiveProgressSummary: Update matches our group, refreshing...');
         // Reload objectives to get updated progress
         loadObjectives();
       }

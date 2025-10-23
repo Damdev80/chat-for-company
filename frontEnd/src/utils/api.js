@@ -319,10 +319,6 @@ export async function submitTaskForReview(id, token) {
 }
 
 export async function fetchTasksInReview(token) {
-  console.log('🔍 [API] Fetching tasks in review...');
-  console.log('🔍 [API] URL:', `${API_URL}/tasks/review/pending`);
-  console.log('🔍 [API] Token:', token?.substring(0, 20) + '...');
-  
   try {
     const res = await fetch(`${API_URL}/tasks/review/pending`, {
       headers: {
@@ -330,8 +326,6 @@ export async function fetchTasksInReview(token) {
       },
     });
     
-    console.log('🔍 [API] Response status:', res.status);
-    console.log('🔍 [API] Response ok:', res.ok);
     
     if (!res.ok) {
       const errorText = await res.text();
@@ -340,7 +334,6 @@ export async function fetchTasksInReview(token) {
     }
     
     const data = await res.json();
-    console.log('🔍 [API] Response data:', data);
     
     return data;
   } catch (error) {
@@ -350,7 +343,6 @@ export async function fetchTasksInReview(token) {
 }
 
 export async function approveTask(id, comments, token) {
-  console.log('🔍 [API] Approving task:', { id, comments });
   
   const res = await fetch(`${API_URL}/tasks/${id}/approve`, {
     method: 'PATCH',
@@ -361,22 +353,17 @@ export async function approveTask(id, comments, token) {
     body: JSON.stringify({ comments }),
   });
   
-  console.log('🔍 [API] Approve response status:', res.status);
-  console.log('🔍 [API] Approve response ok:', res.ok);
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
-    console.log('🔍 [API] Approve error response:', errorData);
     throw new Error(`Error al aprobar tarea: ${errorData.message || 'Error desconocido'}`);
   }
   
   const result = await res.json();
-  console.log('🔍 [API] Approve success:', result);
   return result;
 }
 
 export async function returnTask(id, comments, token) {
-  console.log('🔍 [API] Returning task:', { id, comments });
   
   const res = await fetch(`${API_URL}/tasks/${id}/return`, {
     method: 'PATCH',
@@ -387,16 +374,12 @@ export async function returnTask(id, comments, token) {
     body: JSON.stringify({ comments }),
   });
   
-  console.log('🔍 [API] Return response status:', res.status);
-  console.log('🔍 [API] Return response ok:', res.ok);
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
-    console.log('🔍 [API] Return error response:', errorData);
     throw new Error(`Error al retornar tarea: ${errorData.message || 'Error desconocido'}`);
   }
     const result = await res.json();
-  console.log('🔍 [API] Return success:', result);
   return result;
 }
 
@@ -429,7 +412,6 @@ export async function uploadFiles(files, token) {
 // --- AUDIO MESSAGES ---
 
 export async function uploadAudioMessage(audioBlob, groupId, token, duration = 0, tempId = null) {
-  console.log('🎵 [API] Uploading audio message:', { groupId, blobSize: audioBlob.size, duration, tempId });
   
   const formData = new FormData();
   formData.append('audio', audioBlob, `audio-${Date.now()}.webm`);
@@ -447,21 +429,17 @@ export async function uploadAudioMessage(audioBlob, groupId, token, duration = 0
     body: formData,
   });
   
-  console.log('🎵 [API] Audio upload response status:', res.status);
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
-    console.log('🎵 [API] Audio upload error:', errorData);
     throw new Error(`Error al subir audio: ${errorData.message || 'Error desconocido'}`);
   }
   
   const result = await res.json();
-  console.log('🎵 [API] Audio upload success:', result);
   return { success: true, data: result.data, message: result.message };
 }
 
 export async function getAudioMessages(groupId, token) {
-  console.log('🎵 [API] Fetching audio messages for group:', groupId);
   
   const res = await fetch(`${API_URL}/audio/messages/${groupId}`, {
     headers: {
@@ -469,15 +447,12 @@ export async function getAudioMessages(groupId, token) {
     },
   });
   
-  console.log('🎵 [API] Audio messages response status:', res.status);
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
-    console.log('🎵 [API] Audio messages error:', errorData);
     throw new Error(`Error al obtener mensajes de audio: ${errorData.message || 'Error desconocido'}`);
   }
   
   const result = await res.json();
-  console.log('🎵 [API] Audio messages success:', result);
   return result;
 }
