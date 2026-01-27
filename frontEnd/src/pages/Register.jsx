@@ -3,7 +3,7 @@ import { ArrowLeft, Check, User, Mail, Lock, Eye, EyeOff, UserPlus } from "lucid
 import { registerUser } from "../utils/auth"
 import { useNavigate } from "react-router-dom"
 import logoThinkchat from "../assets/logo-thinkchat.png"
-import "../../styles/index.css"
+import "../styles/index.css"
 
 function Register() {
   const [username, setUsername] = useState("")

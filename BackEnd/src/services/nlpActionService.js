@@ -17,9 +17,6 @@ class NLPActionService {
   detectAction(message) {
     const lowerMessage = message.toLowerCase()
     
-    console.log('🔍 NLP: Analizando mensaje para detectar acción...')
-    console.log('   Mensaje:', message)
-    
     // Patrones MEJORADOS - Mucho más flexibles
     const patterns = {
       // Detectar TAREAS - Ampliado

@@ -23,5 +23,3 @@ import { config } from './src/config/config.js'
 const PORT = config.PORT
 server.listen(PORT, '0.0.0.0', () => {
 })
-
-console.log(`Server running in ${NODE_ENV} mode`)

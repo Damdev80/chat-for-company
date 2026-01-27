@@ -18,7 +18,6 @@ function bufferToUuid(buffer) {
 
 export const setSocketInstance = (io) => {
   socketInstance = io;
-  console.log('✅ Socket.IO instance set in manager');
 };
 
 export const getSocketInstance = () => {
@@ -33,14 +32,10 @@ export const emitTaskCompleted = async (taskData, objectiveData = null) => {
   const io = getSocketInstance();
   if (!io) return;
 
-  console.log('📡 Emitting task_completed event:', taskData);
-  
   // Convert group_id buffer to UUID string if needed
   const groupId = objectiveData?.group_id ? 
     (Buffer.isBuffer(objectiveData.group_id) ? bufferToUuid(objectiveData.group_id) : objectiveData.group_id) : 
     null;
-
-  console.log('📡 Converted group_id for emission:', groupId);
   
   // Emit to the specific group if available
   if (groupId) {
@@ -53,7 +48,6 @@ export const emitTaskCompleted = async (taskData, objectiveData = null) => {
       group_id: groupId,
       completed_at: taskData.completed_at
     });
-    console.log('📡 Task completed event emitted to group:', groupId);
   } else {
     // Fallback to global emit
     io.emit('task_completed', {
@@ -64,7 +58,6 @@ export const emitTaskCompleted = async (taskData, objectiveData = null) => {
       completed_by: taskData.assigned_to_name || 'Unknown',
       completed_at: taskData.completed_at
     });
-    console.log('📡 Task completed event emitted globally');
   }
 };
 
@@ -72,8 +65,6 @@ export const emitTaskCompleted = async (taskData, objectiveData = null) => {
 export const emitObjectiveCompleted = async (objectiveData) => {
   const io = getSocketInstance();
   if (!io) return;
-
-  console.log('🎉 Emitting objective_completed event:', objectiveData);
   
   // Convert group_id buffer to UUID string if needed
   const groupId = objectiveData.group_id ? 

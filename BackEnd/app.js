@@ -7,35 +7,22 @@ import { config } from './src/config/config.js'
 
 import { configureSocket } from './src/config/socket.io.js'
 import { setSocketInstance } from './src/utils/socketManager.js'
-import { serverError } from './src/middlewares/error.middlewar.js' 
+import { serverError } from './src/middlewares/error.middleware.js' 
 import { requestLogger } from './src/middlewares/logger.middleware.js'
 
 // Importar rutas
-console.log('📦 Importando rutas...');
 import userRoutes from './src/routes/user.routes.js'
-console.log('✅ userRoutes imported');
 import roleRoutes from './src/routes/role.routes.js'
-console.log('✅ roleRoutes imported');
 import messageRoutes from './src/routes/message.routes.js'
-console.log('✅ messageRoutes imported');
 import groupRoutes from './src/routes/group.routes.js'
-console.log('✅ groupRoutes imported');
 import objectiveRoutes from './src/routes/objective.routes.js'
-console.log('✅ objectiveRoutes imported');
 import taskRoutes from './src/routes/task.routes.js'
-console.log('✅ taskRoutes imported');
 import uploadRoutes from './src/routes/upload.routes.js'
-console.log('✅ uploadRoutes imported');
 import audioRoutes from './src/routes/audio.routes.js'
-console.log('✅ audioRoutes imported');
 import ideaRoutes from './src/routes/idea.routes.js'
-console.log('✅ ideaRoutes imported');
 import eventRoutes from './src/routes/event.routes.js'
-console.log('✅ eventRoutes imported');
 import supportChatRoutes from './src/routes/supportChat.routes.js'
-console.log('✅ supportChatRoutes imported');
 import passwordResetRoutes from './src/routes/password-reset.routes.js'
-console.log('✅ passwordResetRoutes imported');
 
 // Inicializar Express
 const app = express()

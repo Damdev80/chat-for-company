@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react"
-import "../../styles/index.css"
+import "../styles/index.css"
 
 export function NotFound() {
   return (

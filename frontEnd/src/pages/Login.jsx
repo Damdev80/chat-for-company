@@ -3,7 +3,7 @@ import { ArrowLeft, Mail, Lock, Eye, EyeOff, User, AtSign } from "lucide-react"
 import { loginUser } from "../utils/auth"
 import { useNavigate } from "react-router-dom"
 import logoThinkchat from "../assets/logo-thinkchat.png"
-import "../../styles/index.css"
+import "../styles/index.css"
 
 function Login() {  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")

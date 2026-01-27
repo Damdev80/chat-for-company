@@ -4,7 +4,7 @@ import { ArrowLeft, Mail, CheckCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { API_ENDPOINTS, apiRequest } from "../config/api"
 import logoThinkchat from "../assets/logo-thinkchat.png"
-import "../../styles/index.css"
+import "../styles/index.css"
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState("")

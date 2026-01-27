@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react"
 import { API_ENDPOINTS, apiRequest } from "../config/api"
 import logoThinkchat from "../assets/logo-thinkchat.png"
-import "../../styles/index.css"
+import "../styles/index.css"
 
 function ResetPasswordPage() {
   const [searchParams] = useSearchParams()
