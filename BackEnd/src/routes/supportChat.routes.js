@@ -4,6 +4,7 @@ import { verifyToken } from '../middlewares/auth.middleware.js'
 import { SupportChatController } from '../controllers/supportChat.controller.js'
 import { body, param } from 'express-validator'
 import { validate } from '../middlewares/validation.middleware.js'
+import { aiLimiter } from '../middlewares/rateLimiter.middleware.js'
 
 const router = Router()
 
@@ -18,6 +19,7 @@ const sendMessageValidation = [
     .withMessage('El mensaje es requerido')
     .isLength({ min: 1, max: 2000 })
     .withMessage('El mensaje debe tener entre 1 y 2000 caracteres'),
+  aiLimiter, // Rate limiting para IA
   validate
 ]
 

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { TaskController } from '../controllers/task.controller.js'
 import { verifyToken } from '../middlewares/auth.middleware.js'
 import { checkRole } from '../middlewares/role.middleware.js'
+import { createContentLimiter } from '../middlewares/rateLimiter.middleware.js'
 
 const router = Router()
 
@@ -30,7 +31,7 @@ router.get('/my/stats', verifyToken, TaskController.getMyStats)
 router.get('/review/pending', verifyToken, TaskController.getTasksInReview)
 
 // Crear nueva tarea (solo admins o creadores de objetivos)
-router.post('/', verifyToken, TaskController.create)
+router.post('/', verifyToken, createContentLimiter, TaskController.create)
 
 // Actualizar tarea (creador, asignado o admin)
 router.put('/:id', verifyToken, TaskController.update)

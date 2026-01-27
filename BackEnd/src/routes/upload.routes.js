@@ -4,10 +4,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { verifyToken } from '../middlewares/auth.middleware.js';
+import { uploadLimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = express.Router();
-
-console.log('🔧 Inicializando rutas de upload...');
 
 // Configurar __dirname para ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +17,9 @@ const uploadsDir = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
+
+// Aplicar rate limiting a todas las rutas de upload
+router.use(uploadLimiter);
 
 // Configuración de multer
 const storage = multer.diskStorage({

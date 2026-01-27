@@ -9,6 +9,7 @@ import { configureSocket } from './src/config/socket.io.js'
 import { setSocketInstance } from './src/utils/socketManager.js'
 import { serverError } from './src/middlewares/error.middleware.js' 
 import { requestLogger } from './src/middlewares/logger.middleware.js'
+import { generalLimiter, speedLimiter } from './src/middlewares/rateLimiter.middleware.js'
 
 // Importar rutas
 import userRoutes from './src/routes/user.routes.js'
@@ -42,8 +43,13 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions))
-app.use(express.json())
+app.use(express.json({ limit: '10mb' })) // Limitar tamaño de JSON
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(requestLogger) // Agregar el middleware de logging
+
+// Rate limiting (aplicar ANTES de las rutas)
+app.use(generalLimiter) // Rate limiting general para todas las rutas
+app.use(speedLimiter)   // Ralentizar requests progresivamente
 
 // Servir archivos estáticos (uploads)
 app.use('/uploads', express.static('uploads'))

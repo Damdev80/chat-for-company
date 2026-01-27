@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { verifyToken } from '../middlewares/auth.middleware.js'
 import { IdeaController } from '../controllers/idea.controller.js'
 import { ideaValidation } from '../validations/idea.validation.js'
+import { createContentLimiter } from '../middlewares/rateLimiter.middleware.js'
 
 const router = Router()
 
@@ -10,8 +11,8 @@ const router = Router()
 router.use(verifyToken)
 
 // Rutas para Ideas
-router.post('/', ideaValidation.create, IdeaController.createIdea) // Ruta raíz para crear idea
-router.post('/create', ideaValidation.create, IdeaController.createIdea) // Ruta alternativa
+router.post('/', createContentLimiter, ideaValidation.create, IdeaController.createIdea) // Ruta raíz para crear idea
+router.post('/create', createContentLimiter, ideaValidation.create, IdeaController.createIdea) // Ruta alternativa
 router.get('/group/:group_id', IdeaController.getGroupIdeas)
 router.get('/stats/:group_id', IdeaController.getIdeaStats)
 router.get('/:id', IdeaController.getIdeaById)
