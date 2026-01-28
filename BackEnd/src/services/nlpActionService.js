@@ -38,14 +38,26 @@ class NLPActionService {
       setDeadline: /(?:fecha\s+límite|deadline|plazo|vence|vencimiento|fecha\s+de\s+entrega)\s+(?:para|el|en|de)/i,
       
       // 🆕 CONSULTAS DE INFORMACIÓN
-      queryTasks: /(?:cómo|como)\s+(?:van|está|están|anda|andan)\s+(?:las?\s+)?tareas?|(?:cuáles|cuales|qué|que)\s+tareas?|(?:estado|progreso)\s+(?:de\s+)?(?:las?\s+)?tareas?|(?:tareas?\s+de\s+)(?:\w+)/i,
+      queryTasks: /(?:cómo|como)\s+(?:van|está|están|anda|andan)\s+(?:las?\s+)?tareas?|(?:cuáles|cuales|qué|que)\s+tareas?|(?:estado|progreso|avance|estadísticas?)\s+(?:de\s+)?(?:las?\s+)?tareas?|(?:tareas?\s+de\s+)(?:\w+)|(?:mis\s+tareas|dame\s+(?:las\s+)?tareas|muéstrame\s+(?:las\s+)?tareas|lista\s+(?:de\s+)?tareas)/i,
       
-      queryGroupInfo: /(?:cuántos|cuantos|qué|que)\s+(?:miembros|usuarios|personas)|(?:quiénes|quienes)\s+(?:están|son)|(?:integrantes|participantes)\s+(?:del\s+)?grupo|(?:información|info)\s+(?:del\s+)?grupo/i,
+      queryGroupInfo: /(?:cuántos|cuantos|qué|que)\s+(?:miembros|usuarios|personas)|(?:quiénes|quienes)\s+(?:están|son)|(?:integrantes|participantes)\s+(?:del\s+)?grupo|(?:información|info)\s+(?:del\s+)?grupo|(?:estadísticas|stats|resumen)\s+(?:del\s+)?grupo/i,
+      
+      // 🆕 CONSULTAS DE OBJETIVOS
+      queryObjectives: /(?:cómo|como)\s+(?:van|está|están)\s+(?:los?\s+)?objetivos?|(?:cuáles|cuales|qué|que)\s+objetivos?|(?:lista|dame|muéstrame)\s+(?:los?\s+)?objetivos?|(?:mis\s+objetivos|objetivos\s+del\s+grupo|progreso\s+de\s+objetivos)/i,
+      
+      // 🆕 CONSULTAS DE EVENTOS
+      queryEvents: /(?:qué|que)\s+(?:eventos?|reuniones?|meetings?)\s+(?:hay|tenemos|tengo)|(?:próximos?|siguientes?)\s+(?:eventos?|reuniones?)|agenda\s+(?:del\s+)?(?:día|semana|mes)|calendario|(?:mis\s+eventos|eventos\s+pendientes)/i,
       
       // 🆕 GESTIÓN DE TAREAS
       takeTask: /(?:tomo|tomar|tomaré|asumo|asumir|me\s+asigno|asignarme)\s+(?:la\s+)?tarea|(?:yo\s+(?:lo\s+)?hago|me\s+encargo)/i,
       
-      listFreeTasks: /(?:tareas?\s+)?(?:libres|disponibles|sin\s+asignar)|(?:qué|cuáles)\s+tareas?\s+(?:puedo\s+tomar|están\s+libres)/i
+      listFreeTasks: /(?:tareas?\s+)?(?:libres|disponibles|sin\s+asignar)|(?:qué|cuáles)\s+tareas?\s+(?:puedo\s+tomar|están\s+libres)|(?:hay\s+tareas\s+disponibles)/i,
+      
+      // 🆕 COMPLETAR TAREA
+      completeTask: /(?:completé|complete|terminé|termine|acabé|acabe|finalicé|finalice)\s+(?:la\s+)?tarea|(?:tarea\s+)?(?:completada|terminada|finalizada|lista|hecha)/i,
+      
+      // 🆕 BUSCAR/FILTRAR
+      searchTasks: /(?:busca|buscar|encuentra|encontrar|filtra|filtrar)\s+tareas?\s+(?:con|de|que|sobre)/i
     }
     
     for (const [action, pattern] of Object.entries(patterns)) {
@@ -469,6 +481,7 @@ class NLPActionService {
    */
   async executeAction(actionType, message, userId, groupId, objectiveId = null) {
     try {
+      console.log('🚀 NLP executeAction:', { actionType, userId, groupId })
       
       switch (actionType) {
         case 'createTask': {
@@ -476,10 +489,11 @@ class NLPActionService {
           
           // Si NO hay un objective_id especificado, buscar o crear "Tareas Generales"
           if (!objectiveId && !taskInfo.objective_id) {
+            // 🔧 FIX: Obtener objetivos del grupo primero
+            const objectives = await ModelsObjective.getByGroupId(groupId)
+            console.log('   📋 Objetivos del grupo:', objectives?.length || 0)
             
-            
-            
-            let generalObjective = objectives.find(obj => 
+            let generalObjective = objectives?.find(obj => 
               obj.title.toLowerCase().includes('tareas generales') || 
               obj.title.toLowerCase().includes('general')
             )
@@ -589,12 +603,28 @@ class NLPActionService {
           return await this.queryGroupInformation(message, userId, groupId)
         }
         
+        case 'queryObjectives': {
+          return await this.queryObjectivesStatus(message, userId, groupId)
+        }
+        
+        case 'queryEvents': {
+          return await this.queryEventsCalendar(message, userId, groupId)
+        }
+        
         case 'listFreeTasks': {
           return await this.listAvailableTasks(message, userId, groupId)
         }
         
         case 'takeTask': {
           return await this.assignTaskToUser(message, userId, groupId)
+        }
+        
+        case 'completeTask': {
+          return await this.completeTaskByName(message, userId, groupId)
+        }
+        
+        case 'searchTasks': {
+          return await this.searchTasksByKeyword(message, userId, groupId)
         }
         
         default:
@@ -963,21 +993,12 @@ class NLPActionService {
         }
       }
       
-      // Asignar tarea al usuario
+      // Obtener info del usuario
       const { ModelsUser } = await import('../models/user.js')
       const user = await ModelsUser.getById(userId)
       
-      // Actualizar la tarea (necesitarías un método update en el modelo)
-      // Por ahora, lo hacemos directamente
-      const { getConnection } = await import('../config/db.js')
-      const connection = await getConnection()
-      
-      await connection.execute(
-        'UPDATE tasks SET assigned_to = ? WHERE id = ?',
-        [userId, targetTask.id]
-      )
-      
-      connection.end()
+      // Asignar tarea usando el método update del modelo
+      await ModelsTask.update(targetTask.id, { assigned_to: userId })
       
       return {
         success: true,
@@ -994,6 +1015,274 @@ class NLPActionService {
         message: `❌ Error al tomar la tarea: ${error.message}`
       }
     }
+  }
+
+  /**
+   * 🆕 Consultar estado de objetivos
+   */
+  async queryObjectivesStatus(message, userId, groupId) {
+    try {
+      console.log('\n🎯 Consultando estado de objetivos...')
+      
+      const objectives = await ModelsObjective.getByGroupId(groupId)
+      
+      if (!objectives || objectives.length === 0) {
+        return {
+          success: true,
+          action: 'objectives_query',
+          message: '🎯 No hay objetivos creados en este grupo todavía.\n\n💡 Puedes crear uno diciendo: "Crea un objetivo [nombre]"'
+        }
+      }
+      
+      // Calcular progreso de cada objetivo
+      let responseMessage = `🎯 **Estado de Objetivos** (${objectives.length}):\n\n`
+      
+      for (const objective of objectives) {
+        const tasks = await ModelsTask.getByObjectiveId(objective.id)
+        const totalTasks = tasks.length
+        const completedTasks = tasks.filter(t => t.status === 'completed').length
+        const progress = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(0) : 0
+        
+        // Barra de progreso visual
+        const progressBar = this.createProgressBar(progress)
+        
+        responseMessage += `📌 **${objective.title}**\n`
+        responseMessage += `   ${progressBar} ${progress}%\n`
+        responseMessage += `   📋 Tareas: ${completedTasks}/${totalTasks} completadas\n`
+        if (objective.deadline) {
+          responseMessage += `   📅 Fecha límite: ${this.formatDate(objective.deadline)}\n`
+        }
+        responseMessage += '\n'
+      }
+      
+      return {
+        success: true,
+        action: 'objectives_query',
+        data: objectives,
+        message: responseMessage
+      }
+      
+    } catch (error) {
+      console.error('❌ Error consultando objetivos:', error)
+      return {
+        success: false,
+        action: 'objectives_query_error',
+        message: `❌ Error al consultar objetivos: ${error.message}`
+      }
+    }
+  }
+
+  /**
+   * 🆕 Consultar eventos del calendario
+   */
+  async queryEventsCalendar(message, userId, groupId) {
+    try {
+      console.log('\n📅 Consultando eventos del calendario...')
+      
+      // Obtener eventos del grupo
+      const events = await Event.findByGroupId(groupId)
+      
+      if (!events || events.length === 0) {
+        return {
+          success: true,
+          action: 'events_query',
+          message: '📅 No hay eventos programados.\n\n💡 Puedes crear uno diciendo: "Agenda una reunión para mañana a las 3pm"'
+        }
+      }
+      
+      // Filtrar eventos futuros
+      const now = new Date()
+      const futureEvents = events.filter(e => new Date(e.event_date) >= now)
+        .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+      
+      if (futureEvents.length === 0) {
+        return {
+          success: true,
+          action: 'events_query',
+          message: '📅 No hay eventos próximos programados.\n\nTodos los eventos pasaron. ¡Es hora de planificar nuevos!'
+        }
+      }
+      
+      let responseMessage = `📅 **Próximos Eventos** (${futureEvents.length}):\n\n`
+      
+      futureEvents.slice(0, 10).forEach((event, index) => {
+        const eventDate = new Date(event.event_date)
+        const isToday = eventDate.toDateString() === now.toDateString()
+        const isTomorrow = eventDate.toDateString() === new Date(now.getTime() + 86400000).toDateString()
+        
+        let dateLabel = this.formatDate(event.event_date)
+        if (isToday) dateLabel = '🔴 HOY'
+        else if (isTomorrow) dateLabel = '🟡 MAÑANA'
+        
+        responseMessage += `${index + 1}. **${event.title}**\n`
+        responseMessage += `   📆 ${dateLabel}${event.event_time ? ` a las ${event.event_time}` : ''}\n`
+        responseMessage += `   🔔 ${this.translateEventType(event.event_type)}\n`
+        if (event.description) responseMessage += `   📝 ${event.description}\n`
+        responseMessage += '\n'
+      })
+      
+      return {
+        success: true,
+        action: 'events_query',
+        data: futureEvents,
+        message: responseMessage
+      }
+      
+    } catch (error) {
+      console.error('❌ Error consultando eventos:', error)
+      return {
+        success: false,
+        action: 'events_query_error',
+        message: `❌ Error al consultar eventos: ${error.message}`
+      }
+    }
+  }
+
+  /**
+   * 🆕 Completar tarea por nombre
+   */
+  async completeTaskByName(message, userId, groupId) {
+    try {
+      console.log('\n✅ Completando tarea...')
+      
+      // Extraer nombre de la tarea
+      const taskNameMatch = message.match(/(?:tarea|completé|terminé)\s+(.+?)(?:\s*$|\.)/i)
+      const taskName = taskNameMatch ? taskNameMatch[1].trim() : null
+      
+      // Obtener tareas del usuario
+      const userTasks = await ModelsTask.getByUserId(userId)
+      const pendingTasks = userTasks.filter(t => t.status !== 'completed')
+      
+      if (pendingTasks.length === 0) {
+        return {
+          success: false,
+          action: 'complete_task',
+          message: '📋 No tienes tareas pendientes asignadas.'
+        }
+      }
+      
+      let targetTask = null
+      
+      if (taskName) {
+        targetTask = pendingTasks.find(t => 
+          t.title.toLowerCase().includes(taskName.toLowerCase())
+        )
+      } else {
+        // Si no especifica, mostrar lista de tareas pendientes
+        let tasksList = pendingTasks.slice(0, 5).map((t, i) => 
+          `${i + 1}. **${t.title}**`
+        ).join('\n')
+        
+        return {
+          success: true,
+          action: 'select_task',
+          message: `📋 Tienes ${pendingTasks.length} tareas pendientes:\n\n${tasksList}\n\n💡 Di "completé la tarea [nombre]" para marcarla como terminada.`
+        }
+      }
+      
+      if (!targetTask) {
+        return {
+          success: false,
+          action: 'complete_task',
+          message: `❌ No encontré ninguna tarea pendiente llamada "${taskName}".`
+        }
+      }
+      
+      // Marcar como completada
+      await ModelsTask.update(targetTask.id, { status: 'completed' })
+      
+      return {
+        success: true,
+        action: 'task_completed',
+        data: targetTask,
+        message: `🎉 **¡Tarea completada!**\n\n✅ **${targetTask.title}**\n\n¡Excelente trabajo! 💪`
+      }
+      
+    } catch (error) {
+      console.error('❌ Error completando tarea:', error)
+      return {
+        success: false,
+        action: 'complete_task_error',
+        message: `❌ Error al completar la tarea: ${error.message}`
+      }
+    }
+  }
+
+  /**
+   * 🆕 Buscar tareas por palabra clave
+   */
+  async searchTasksByKeyword(message, userId, groupId) {
+    try {
+      console.log('\n🔍 Buscando tareas...')
+      
+      // Extraer keyword
+      const keywordMatch = message.match(/(?:busca|buscar|encuentra|filtra)\s+tareas?\s+(?:con|de|que|sobre)\s+(.+?)(?:\s*$|\.)/i)
+      const keyword = keywordMatch ? keywordMatch[1].trim() : null
+      
+      if (!keyword) {
+        return {
+          success: false,
+          action: 'search_tasks',
+          message: '🔍 ¿Qué quieres buscar? Di algo como "busca tareas de marketing" o "busca tareas con reunión"'
+        }
+      }
+      
+      // Obtener todas las tareas del grupo
+      const objectives = await ModelsObjective.getByGroupId(groupId)
+      let allTasks = []
+      
+      for (const objective of objectives) {
+        const tasks = await ModelsTask.getByObjectiveId(objective.id)
+        allTasks = allTasks.concat(tasks.map(t => ({ ...t, objective_title: objective.title })))
+      }
+      
+      // Filtrar por keyword
+      const matchingTasks = allTasks.filter(t => 
+        t.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        (t.description && t.description.toLowerCase().includes(keyword.toLowerCase()))
+      )
+      
+      if (matchingTasks.length === 0) {
+        return {
+          success: true,
+          action: 'search_tasks',
+          message: `🔍 No encontré tareas que contengan "${keyword}".`
+        }
+      }
+      
+      let responseMessage = `🔍 **Resultados para "${keyword}"** (${matchingTasks.length}):\n\n`
+      
+      matchingTasks.slice(0, 10).forEach((task, index) => {
+        const statusEmoji = task.status === 'completed' ? '✅' : task.status === 'in_progress' ? '🔄' : '⏳'
+        responseMessage += `${index + 1}. ${statusEmoji} **${task.title}**\n`
+        responseMessage += `   📂 ${task.objective_title}\n`
+        responseMessage += `   🎯 ${this.translatePriority(task.priority)}\n\n`
+      })
+      
+      return {
+        success: true,
+        action: 'search_tasks',
+        data: matchingTasks,
+        message: responseMessage
+      }
+      
+    } catch (error) {
+      console.error('❌ Error buscando tareas:', error)
+      return {
+        success: false,
+        action: 'search_tasks_error',
+        message: `❌ Error al buscar: ${error.message}`
+      }
+    }
+  }
+
+  /**
+   * Helper: Crear barra de progreso visual
+   */
+  createProgressBar(percentage) {
+    const filled = Math.round(percentage / 10)
+    const empty = 10 - filled
+    return '█'.repeat(filled) + '░'.repeat(empty)
   }
 }
 
